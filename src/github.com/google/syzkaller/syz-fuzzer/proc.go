@@ -34,6 +34,12 @@ type Proc struct {
 	execOptsComps   *ipc.ExecOpts
 }
 
+type Address struct {
+	ptr       uint64
+	size      uint64
+	callIndex int
+}
+
 func newProc(fuzzer *Fuzzer, pid int) (*Proc, error) {
 	env, err := ipc.MakeEnv(fuzzer.config, pid)
 	if err != nil {
@@ -258,6 +264,8 @@ func (proc *Proc) execute(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes,
 	if info == nil {
 		return nil
 	}
+	callPairMap := buildCallPairMap(info)
+	fmt.Print(callPairMap)
 	calls, extra := proc.fuzzer.checkNewSignal(p, info)
 	for _, callIndex := range calls {
 		proc.enqueueCallTriage(p, flags, callIndex, info.Calls[callIndex])
@@ -269,6 +277,85 @@ func (proc *Proc) execute(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes,
 		proc.fuzzer.checkNewEvents(p, info)
 	}
 	return info
+}
+
+func buildFreeMap(info *ipc.ProgInfo) map[uint64]Address {
+
+	// alloc内存操作对应的地址、大小
+	allocMap := make(map[uint64]Address)
+
+	// free内存操作对应的地址、大小、调用函数索引
+	freeMap := make(map[uint64]Address)
+
+	// 遍历函数调用信息数据
+	for _, call := range info.Calls {
+		// 遍历每个函数对应的事件记录数组
+		for _, ev := range call.EvList {
+			// 如果是alloc操作
+			if ev.EventType == prog.EVTRACK_EVENT_HEAP_ALLOCATION {
+				// 记录alloc内存操作对应的地址、大小
+				allocMap[ev.Ptr] = Address{
+					ptr:  ev.Ptr,
+					size: uint64(ev.Size),
+				}
+			}
+		}
+	}
+
+	// 遍历函数调用信息数据
+	for callIndex, call := range info.Calls {
+		// 遍历每个函数对应的事件记录数组
+		for _, ev := range call.EvList {
+			// 如果是free操作
+			if ev.EventType == prog.EVTRACK_EVENT_HEAP_DEALLOCATION {
+				// 检查是否是已分配的地址
+				if add, ok := allocMap[ev.Ptr]; ok {
+					freeMap[ev.Ptr] = Address{
+						ptr:       ev.Ptr,
+						size:      add.size,
+						callIndex: callIndex,
+					}
+				}
+			}
+		}
+	}
+	return freeMap
+}
+
+func buildCallPairMap(info *ipc.ProgInfo) map[int]map[int]int {
+
+	// free内存操作对应的地址、大小、调用函数索引
+	freeMap := buildFreeMap(info)
+
+	// free操作和访问操作内存地址有重叠的函数调用对
+	callPairMap := make(map[int]map[int]int)
+
+	// 遍历函数调用信息数据
+	for callIndex, callInfo := range info.Calls {
+		// 遍历每个函数对应的事件记录数组
+		for _, ev := range callInfo.EvList {
+			// 如果是内存访问操作
+			if ev.EventType == prog.EVTRACK_EVENT_HEAP_READ || ev.EventType == prog.EVTRACK_EVENT_HEAP_WRITE ||
+				ev.EventType == prog.EVTRACK_EVENT_HEAP_POINTER_READ || ev.EventType == prog.EVTRACK_EVENT_HEAP_POINTER_WRITE ||
+				ev.EventType == prog.EVTRACK_EVENT_HEAP_INDEX_READ || ev.EventType == prog.EVTRACK_EVENT_HEAP_INDEX_WRITE {
+				// 遍历所有free操作记录
+				for _, freeAdress := range freeMap {
+					// 检查是否是同一函数调用
+					if freeAdress.callIndex == callIndex {
+						continue
+					}
+					//检查内存地址是否重叠
+					if freeAdress.ptr <= ev.Ptr && freeAdress.ptr+freeAdress.size >= ev.Ptr {
+						if _, ok := callPairMap[freeAdress.callIndex]; !ok {
+							callPairMap[freeAdress.callIndex] = make(map[int]int)
+						}
+						callPairMap[freeAdress.callIndex][callIndex] = 1
+					}
+				}
+			}
+		}
+	}
+	return callPairMap
 }
 
 func (proc *Proc) enqueueCallTriage(p *prog.Prog, flags ProgTypes, callIndex int, info ipc.CallInfo) {
