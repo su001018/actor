@@ -7,6 +7,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/rand"
+	"os"
+	"runtime/debug"
+	"sync/atomic"
+	"syscall"
+	"time"
+
 	"github.com/google/syzkaller/pkg/cover"
 	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/ipc"
@@ -14,12 +21,6 @@ import (
 	"github.com/google/syzkaller/pkg/rpctype"
 	"github.com/google/syzkaller/pkg/signal"
 	"github.com/google/syzkaller/prog"
-	"math/rand"
-	"os"
-	"runtime/debug"
-	"sync/atomic"
-	"syscall"
-	"time"
 )
 
 // Proc represents a single fuzzing process (executor).
@@ -286,6 +287,9 @@ func (proc *Proc) execute(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes,
 }
 
 func SaveUAFProg(p *prog.Prog, callPairMap map[int]map[int]int) {
+	if len(callPairMap) <= 0 {
+		return
+	}
 	saveFile, err := os.OpenFile("fileA.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("Error opening file: %s", err)
