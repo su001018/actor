@@ -5,14 +5,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"math/rand"
-	"os"
-	"runtime/debug"
-	"sync/atomic"
-	"syscall"
-	"time"
-
 	"github.com/google/syzkaller/pkg/cover"
 	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/ipc"
@@ -20,6 +14,12 @@ import (
 	"github.com/google/syzkaller/pkg/rpctype"
 	"github.com/google/syzkaller/pkg/signal"
 	"github.com/google/syzkaller/prog"
+	"math/rand"
+	"os"
+	"runtime/debug"
+	"sync/atomic"
+	"syscall"
+	"time"
 )
 
 // Proc represents a single fuzzing process (executor).
@@ -38,6 +38,12 @@ type Address struct {
 	ptr       uint64
 	size      uint64
 	callIndex int
+}
+
+type UAFProg struct {
+	prog      *prog.Prog
+	freeIndex int
+	useIndex  int
 }
 
 func newProc(fuzzer *Fuzzer, pid int) (*Proc, error) {
@@ -265,7 +271,7 @@ func (proc *Proc) execute(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes,
 		return nil
 	}
 	callPairMap := buildCallPairMap(info)
-	fmt.Print(callPairMap)
+	SaveUAFProg(p, callPairMap)
 	calls, extra := proc.fuzzer.checkNewSignal(p, info)
 	for _, callIndex := range calls {
 		proc.enqueueCallTriage(p, flags, callIndex, info.Calls[callIndex])
@@ -277,6 +283,41 @@ func (proc *Proc) execute(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes,
 		proc.fuzzer.checkNewEvents(p, info)
 	}
 	return info
+}
+
+func SaveUAFProg(p *prog.Prog, callPairMap map[int]map[int]int) {
+	saveFile, err := os.OpenFile("fileA.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Error opening file: %s", err)
+		return
+	}
+	defer saveFile.Close()
+
+	for freeIndex, callMap := range callPairMap {
+		for callIndex, _ := range callMap {
+			uafProg := UAFProg{
+				prog:      p,
+				freeIndex: freeIndex,
+				useIndex:  callIndex,
+			}
+
+			// 获取当前时间
+			currentTime := time.Now().Format("2006-01-02 15:04:05")
+			// 将结构体转换为 JSON 格式
+			jsonData, err := json.Marshal(uafProg)
+			if err != nil {
+				log.Fatalf("Error marshalling JSON: %s", err)
+				return
+			}
+
+			// 写入当前时间和 JSON 数据到文件
+			_, err = fmt.Fprintf(saveFile, "[%s] %s\n", currentTime, string(jsonData))
+			if err != nil {
+				fmt.Println("Error writing to file:", err)
+				return
+			}
+		}
+	}
 }
 
 func buildFreeMap(info *ipc.ProgInfo) map[uint64]Address {
