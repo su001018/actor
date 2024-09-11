@@ -42,9 +42,9 @@ type Address struct {
 }
 
 type UAFProg struct {
-	prog      *prog.Prog
-	freeIndex int
-	useIndex  int
+	Prog      string
+	FreeIndex int
+	UseIndex  int
 }
 
 func newProc(fuzzer *Fuzzer, pid int) (*Proc, error) {
@@ -287,10 +287,11 @@ func (proc *Proc) execute(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes,
 }
 
 func SaveUAFProg(p *prog.Prog, callPairMap map[int]map[int]int) {
-	if len(callPairMap) <= 0 {
+	if len(callPairMap) <= 0 || p == nil {
 		return
 	}
-	saveFile, err := os.OpenFile("fileA.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	log.Logf(0, "SaveUAFProg: Prog: %v, callMap: %v", p, callPairMap)
+	saveFile, err := os.OpenFile("pairs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("Error opening file: %s", err)
 		return
@@ -300,15 +301,18 @@ func SaveUAFProg(p *prog.Prog, callPairMap map[int]map[int]int) {
 	for freeIndex, callMap := range callPairMap {
 		for callIndex, _ := range callMap {
 			uafProg := UAFProg{
-				prog:      p,
-				freeIndex: freeIndex,
-				useIndex:  callIndex,
+				Prog:      string(p.Serialize()),
+				FreeIndex: freeIndex,
+				UseIndex:  callIndex,
 			}
+			log.Logf(0, "SaveUAFProg: uafProg:%v", uafProg)
 
 			// 获取当前时间
-			currentTime := time.Now().Format("2006-01-02 15:04:05")
+			currentTime := time.Now().Format(time.RFC3339)
 			// 将结构体转换为 JSON 格式
 			jsonData, err := json.Marshal(uafProg)
+
+			log.Logf(0, "SaveUAFProg: jsonData: %s", string(jsonData))
 			if err != nil {
 				log.Fatalf("Error marshalling JSON: %s", err)
 				return
