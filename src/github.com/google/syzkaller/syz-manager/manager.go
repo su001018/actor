@@ -10,6 +10,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/google/syzkaller/uaf"
 	"io/fs"
 	"io/ioutil"
 	"math/rand"
@@ -47,18 +48,19 @@ var (
 	flagDebug  = flag.Bool("debug", false, "dump all VM output to console")
 	flagBench  = flag.String("bench", "", "write execution statistics into this file periodically")
 	flagPprof  = flag.Bool("pprof", false, "enable pprof memory profiling, endpoint available at http://localhost:<syzMgrHttpPort>/debug/pprof")
-	flagProm  = flag.Bool("prom", false, "enable Prometheus, endpoint available at http://localhost:<syzMgrHttpPort>/metrics")
+	flagProm   = flag.Bool("prom", false, "enable Prometheus, endpoint available at http://localhost:<syzMgrHttpPort>/metrics")
 )
 
 type Manager struct {
-	cfg            *mgrconfig.Config
-	vmPool         *vm.Pool
-	target         *prog.Target
-	sysTarget      *targets.Target
-	reporter       *report.Reporter
-	crashdir       string
-	serv           *RPCServer
-	corpusDB       *db.DB
+	cfg       *mgrconfig.Config
+	vmPool    *vm.Pool
+	target    *prog.Target
+	sysTarget *targets.Target
+	reporter  *report.Reporter
+	crashdir  string
+	serv      *RPCServer
+	corpusDB  *db.DB
+
 	startTime      time.Time
 	firstConnect   time.Time
 	fuzzingTime    time.Duration
@@ -100,6 +102,16 @@ type Manager struct {
 	modulesInitialized bool
 
 	rpcserv *RPCServer
+
+	// uaf corpus
+	uafCorpusDB   *db.DB
+	uafCorpus     map[string]UafCorpusItem
+	uafCandidates []rpctype.UafCandidate
+}
+type UafCorpusItem struct {
+	Prog      []byte
+	FreeIndex int
+	UseIndex  int
 }
 
 type CorpusItemUpdate struct {
@@ -161,7 +173,6 @@ func main() {
 	gob.RegisterName("github.com/google/syzkaller/prog.ConstArg", &prog.ConstArg{})
 	gob.RegisterName("github.com/google/syzkaller/prog.UnionArg", &prog.UnionArg{})
 
-
 	flag.Parse()
 	initMetrics()
 
@@ -215,6 +226,7 @@ func RunManager(cfg *mgrconfig.Config) {
 		reproRequest:     make(chan chan map[string]bool),
 		usedFiles:        make(map[string]time.Time),
 		saturatedCalls:   make(map[string]bool),
+		uafCorpus:        make(map[string]UafCorpusItem),
 	}
 
 	mgr.preloadCorpus()
@@ -261,10 +273,10 @@ func RunManager(cfg *mgrconfig.Config) {
 			merged := len(mgr.rpcserv.mergedGroups)
 			mgr.rpcserv.groupMu.Unlock()
 
-			log.Logf(0, "VMs %v, executed %v, cover %v, signal %v/%v, crashes %v, repro %v" +
+			log.Logf(0, "VMs %v, executed %v, cover %v, signal %v/%v, crashes %v, repro %v"+
 				", groups %v (%v)",
 				numFuzzing, executed, corpusCover, corpusSignal, maxSignal, crashes, numReproducing,
-				merged, merged + numNewGroups)
+				merged, merged+numNewGroups)
 
 			if *flagProm {
 				numPendingGroups.Set(float64(merged + numNewGroups))
@@ -354,7 +366,7 @@ func (mgr *Manager) vmLoop() {
 	reproDone := make(chan *ReproResult, 1)
 	stopPending := false
 	shutdown := vm.Shutdown
-	for shutdown != nil || instances.Len() + len(deadInstances) != vmCount {
+	for shutdown != nil || instances.Len()+len(deadInstances) != vmCount {
 		mgr.mu.Lock()
 		phase := mgr.phase
 		mgr.mu.Unlock()
@@ -498,7 +510,8 @@ func (mgr *Manager) vmLoop() {
 func (mgr *Manager) loadCfg() map[string]string {
 	cfg := map[string]string{}
 	vmCfg := &map[string]interface{}{}
-	err := json.Unmarshal(mgr.cfg.VM, vmCfg); if err != nil {
+	err := json.Unmarshal(mgr.cfg.VM, vmCfg)
+	if err != nil {
 		log.Fatalf("Failed to unmarshal vm config: %v", err)
 	}
 	cfg["compressedKernel"] = osutil.Abs((*vmCfg)["kernel"].(string))
@@ -693,6 +706,15 @@ func (mgr *Manager) preloadCorpus() {
 	}
 	mgr.corpusDB = corpusDB
 
+	uafCorpusDB, err := db.Open(filepath.Join(mgr.cfg.Workdir, "uaf_corpus.db"), true)
+	if err != nil {
+		if uafCorpusDB == nil {
+			log.Fatalf("failed to open uaf_corpus.db: %v", err)
+		}
+		log.Logf(0, "read %v inputs from uaf_corpus and got error: %v", len(uafCorpusDB.Records), err)
+	}
+	mgr.uafCorpusDB = uafCorpusDB
+
 	if seedDir := filepath.Join(mgr.cfg.Syzkaller, "sys", mgr.cfg.TargetOS, "test"); osutil.IsExist(seedDir) {
 		seeds, err := ioutil.ReadDir(seedDir)
 		if err != nil {
@@ -739,6 +761,12 @@ func (mgr *Manager) loadCorpus() {
 			broken++
 		}
 	}
+	for key, rec := range mgr.uafCorpusDB.Records {
+		if !mgr.loadUafProg(rec.Val, minimized, smashed) {
+			mgr.uafCorpusDB.Delete(key)
+			broken++
+		}
+	}
 	mgr.fresh = len(mgr.corpusDB.Records) == 0
 	corpusSize := len(mgr.candidates)
 	log.Logf(0, "%-24v: %v (deleted %v broken)", "corpus", corpusSize, broken)
@@ -763,6 +791,24 @@ func (mgr *Manager) loadCorpus() {
 		panic(fmt.Sprintf("loadCorpus: bad phase %v", mgr.phase))
 	}
 	mgr.phase = phaseLoadedCorpus
+}
+func (mgr *Manager) loadUafProg(data []byte, minimized, smashed bool) bool {
+	bad, disabled := checkProgram(mgr.target, mgr.targetEnabledSyscalls, data)
+	if bad {
+		return false
+	}
+	if disabled {
+		return false
+	}
+	uafProg := uaf.Deserialize(data)
+	mgr.uafCandidates = append(mgr.uafCandidates, rpctype.UafCandidate{
+		Prog:      uafProg.Prog,
+		FreeIndex: uafProg.FreeIndex,
+		UseIndex:  uafProg.UseIndex,
+		Minimized: minimized,
+		Smashed:   smashed,
+	})
+	return true
 }
 
 func (mgr *Manager) loadProg(data []byte, minimized, smashed bool) bool {
@@ -1409,6 +1455,27 @@ func (mgr *Manager) machineChecked(a *rpctype.CheckArgs, enabledSyscalls map[*pr
 	mgr.target.UpdateGlobs(a.GlobFiles)
 	mgr.loadCorpus()
 	mgr.firstConnect = time.Now()
+}
+
+func (mgr *Manager) newUafInput(inp rpctype.UafInput) bool {
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	data := uaf.FromRpcType(inp).Serialize()
+	sig := hash.String(data)
+	if old, ok := mgr.uafCorpus[sig]; ok {
+		mgr.uafCorpus[sig] = old
+	} else {
+		mgr.uafCorpus[sig] = UafCorpusItem{
+			Prog:      inp.Prog,
+			FreeIndex: inp.FreeIndex,
+			UseIndex:  inp.UseIndex,
+		}
+		mgr.uafCorpusDB.Save(sig, data, 0)
+		if err := mgr.uafCorpusDB.Flush(); err != nil {
+			log.Logf(0, "failed to save corpus database: %v", err)
+		}
+	}
+	return true
 }
 
 func (mgr *Manager) newInput(inp rpctype.Input, sign signal.Signal) bool {

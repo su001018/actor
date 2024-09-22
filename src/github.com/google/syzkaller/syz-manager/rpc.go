@@ -4,25 +4,25 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
+	"encoding/gob"
 	"fmt"
+	"io"
 	"math/rand"
 	"net"
 	"sync"
 	"time"
-	"bytes"
-	"encoding/binary"
-	"encoding/gob"
-	"io"
 
 	"github.com/google/syzkaller/pkg/cover"
+	"github.com/google/syzkaller/pkg/evtrack"
 	"github.com/google/syzkaller/pkg/host"
+	"github.com/google/syzkaller/pkg/ivshmem"
 	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/mgrconfig"
 	"github.com/google/syzkaller/pkg/rpctype"
 	"github.com/google/syzkaller/pkg/signal"
-	"github.com/google/syzkaller/pkg/evtrack"
 	"github.com/google/syzkaller/prog"
-	"github.com/google/syzkaller/pkg/ivshmem"
 )
 
 type RPCServer struct {
@@ -47,26 +47,26 @@ type RPCServer struct {
 	checkFailures int
 	vanilla       bool
 
-	groupMu       sync.Mutex
-	groupMin      chan int
-	mergedGroups  []*prog.Group
-	newGroups     []*prog.Group
-	maxGroupID    uint64
-	strategies    []prog.Strategy
-	llvmLookup    *evtrack.LLVMLookup
+	groupMu      sync.Mutex
+	groupMin     chan int
+	mergedGroups []*prog.Group
+	newGroups    []*prog.Group
+	maxGroupID   uint64
+	strategies   []prog.Strategy
+	llvmLookup   *evtrack.LLVMLookup
 
-	addrMu       sync.Mutex
-	addrIn       io.WriteCloser
-	addrOut      io.ReadCloser
-	cacheMu      sync.Mutex
-	subsysCache  map[uint32]string
-	apiCache     map[uint32]bool
-	subsysProbs  map[string]float64
-	subsysStats  map[string]uint64
-	groupsDropp  uint64
-	groupsKept   uint64
-	cacheMisses  uint64
-	cacheHit     uint64
+	addrMu      sync.Mutex
+	addrIn      io.WriteCloser
+	addrOut     io.ReadCloser
+	cacheMu     sync.Mutex
+	subsysCache map[uint32]string
+	apiCache    map[uint32]bool
+	subsysProbs map[string]float64
+	subsysStats map[string]uint64
+	groupsDropp uint64
+	groupsKept  uint64
+	cacheMisses uint64
+	cacheHit    uint64
 
 	statsMu           sync.Mutex
 	shared_objects    uint64
@@ -100,6 +100,7 @@ type RPCManagerView interface {
 		[]rpctype.Input, BugFrames, map[uint32]uint32, []byte, error)
 	machineChecked(result *rpctype.CheckArgs, enabledSyscalls map[*prog.Syscall]bool)
 	newInput(inp rpctype.Input, sign signal.Signal) bool
+	newUafInput(inp rpctype.UafInput) bool
 	candidateBatch(size int) []rpctype.Candidate
 	rotateCorpus() bool
 }
@@ -155,7 +156,7 @@ func (serv *RPCServer) Connect(a *rpctype.ConnectArgs, r *rpctype.ConnectRes) er
 		}
 		delete(serv.fuzzers, a.Name)
 		old.changes = nil
-		old.groups =  nil
+		old.groups = nil
 	}
 
 	f := &Fuzzer{
@@ -164,7 +165,7 @@ func (serv *RPCServer) Connect(a *rpctype.ConnectArgs, r *rpctype.ConnectRes) er
 		groups:      make(map[uint64]*prog.Group),
 		changes:     make(map[uint64]prog.Result),
 		used:        make(map[uint64]bool),
-		inactive:   make(map[uint64]bool),
+		inactive:    make(map[uint64]bool),
 	}
 
 	f.ivshmem, err = ivshmem.GetSharedMappingHost(fmt.Sprintf("/dev/shm/ivshmemfile%s", a.Name))
@@ -482,9 +483,10 @@ func (serv *RPCServer) PollNew(a *rpctype.PollArgsNew, r *rpctype.PollResNew) er
 	if !newMaxSignal.Empty() {
 		serv.maxSignal.Merge(newMaxSignal)
 		// read data from ivshmem
-		for readU64(f.ivshmem) != 1 {}
+		for readU64(f.ivshmem) != 1 {
+		}
 		if a.EvtLen != 0 {
-			batch := evtrack.DecodeBatchPb(f.ivshmem[8:(8+a.EvtLen)])
+			batch := evtrack.DecodeBatchPb(f.ivshmem[8:(8 + a.EvtLen)])
 			go serv.add_groups(batch.Events)
 		}
 
@@ -582,8 +584,6 @@ func (serv *RPCServer) PollNew(a *rpctype.PollArgsNew, r *rpctype.PollResNew) er
 	return nil
 }
 
-
-
 func (serv *RPCServer) Poll(a *rpctype.PollArgs, r *rpctype.PollRes) error {
 	serv.stats.mergeNamed(a.Stats)
 
@@ -653,4 +653,22 @@ func (serv *RPCServer) shutdownInstance(name string) []byte {
 	}
 	delete(serv.fuzzers, name)
 	return fuzzer.machineInfo
+}
+
+func (serv *RPCServer) NewUafInput(a *rpctype.NewUafInputArgs, r interface{}) error {
+
+	bad, disabled := checkProgram(serv.cfg.Target, serv.targetEnabledSyscalls, a.UafInput.Prog)
+	if bad || disabled {
+		log.Logf(0, "rejecting program from fuzzer (bad=%v, disabled=%v):\n%s", bad, disabled, a.UafInput.Prog)
+		return nil
+	}
+	serv.mu.Lock()
+	defer serv.mu.Unlock()
+	if !serv.mgr.newUafInput(a.UafInput) {
+		return nil
+	}
+
+	// todo send input to other fuzzer
+
+	return nil
 }

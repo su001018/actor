@@ -33,11 +33,11 @@ type PollArgsNew struct {
 }
 
 type PollResNew struct {
-	Candidates    []Candidate
-	NewInputs     []Input
-	MaxSignal     signal.Serial
-	ChangeLen     uint64
-	DeletedLen    uint64
+	Candidates []Candidate
+	NewInputs  []Input
+	MaxSignal  signal.Serial
+	ChangeLen  uint64
+	DeletedLen uint64
 }
 
 type Input struct {
@@ -49,8 +49,27 @@ type Input struct {
 	RawCover []uint32
 }
 
+type UafInput struct {
+	Prog      []byte
+	FreeIndex int
+	UseIndex  int
+}
+
+type NewUafInputArgs struct {
+	Name string
+	UafInput
+}
+
 type Candidate struct {
 	Prog      []byte
+	Minimized bool
+	Smashed   bool
+}
+
+type UafCandidate struct {
+	Prog      []byte
+	FreeIndex int
+	UseIndex  int
 	Minimized bool
 	Smashed   bool
 }

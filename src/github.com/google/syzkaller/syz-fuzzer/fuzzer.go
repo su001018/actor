@@ -21,20 +21,20 @@ import (
 	"syscall"
 
 	"github.com/google/syzkaller/pkg/csource"
+	"github.com/google/syzkaller/pkg/evtrack"
 	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/host"
 	"github.com/google/syzkaller/pkg/ipc"
 	"github.com/google/syzkaller/pkg/ipc/ipcconfig"
+	"github.com/google/syzkaller/pkg/ivshmem"
 	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/osutil"
 	"github.com/google/syzkaller/pkg/rpctype"
 	"github.com/google/syzkaller/pkg/signal"
 	"github.com/google/syzkaller/pkg/tool"
-	"github.com/google/syzkaller/pkg/evtrack"
 	"github.com/google/syzkaller/prog"
 	_ "github.com/google/syzkaller/sys"
 	"github.com/google/syzkaller/sys/targets"
-	"github.com/google/syzkaller/pkg/ivshmem"
 )
 
 type Fuzzer struct {
@@ -65,9 +65,9 @@ type Fuzzer struct {
 	sumPrios     int64
 
 	signalMu     sync.RWMutex
-	corpusSignal signal.Signal // signal of inputs in corpus
-	maxSignal    signal.Signal // max signal ever observed including flakes
-	newSignal    signal.Signal // diff of maxSignal since last sync with master
+	corpusSignal signal.Signal      // signal of inputs in corpus
+	maxSignal    signal.Signal      // max signal ever observed including flakes
+	newSignal    signal.Signal      // diff of maxSignal since last sync with master
 	evState      *prog.EvTrackState // state of evtrack, groups and choice table
 	eventsMu     sync.RWMutex
 	batches      []prog.Batch
@@ -533,7 +533,7 @@ func (fuzzer *Fuzzer) pollNew(needCandidates bool, stats map[string]uint64, shou
 		for _, lst := range maxEvents {
 			evts += len(lst)
 		}
-		log.Fatalf("buffer was too small for %v events(%v executions): %v(%v) instead of %v", 
+		log.Fatalf("buffer was too small for %v events(%v executions): %v(%v) instead of %v",
 			evts, len(maxEvents), m, len(fuzzer.ivshmem), n)
 	}
 	writeU64(fuzzer.ivshmem[(8+n):], uint64(0))
@@ -561,7 +561,7 @@ func (fuzzer *Fuzzer) pollNew(needCandidates bool, stats map[string]uint64, shou
 
 	maxSignal := r.MaxSignal.Deserialize()
 	log.Logf(1, "poll: candidates=%v inputs=%v signal=%v groups=%v",
-	len(r.Candidates), len(r.NewInputs), maxSignal.Len(), len(changes))
+		len(r.Candidates), len(r.NewInputs), maxSignal.Len(), len(changes))
 	fuzzer.addMaxSignal(maxSignal)
 	for _, inp := range r.NewInputs {
 		fuzzer.addInputFromAnotherFuzzer(inp)
@@ -575,7 +575,6 @@ func (fuzzer *Fuzzer) pollNew(needCandidates bool, stats map[string]uint64, shou
 	return len(r.NewInputs) != 0 || len(r.Candidates) != 0 || maxSignal.Len() != 0 ||
 		len(changes) != 0
 }
-
 
 func (fuzzer *Fuzzer) poll(needCandidates bool, stats map[string]uint64, shouldBuildEvChoiceTable bool) bool {
 	a := &rpctype.PollArgs{
@@ -824,9 +823,9 @@ func (fuzzer *Fuzzer) checkNewEvents(p *prog.Prog, info *ipc.ProgInfo) {
 		return
 	}
 	fuzzer.eventsMu.Unlock()
-	
+
 	var curBatch *prog.Batch = fuzzer.getCurBatch()
-	
+
 	var flattened []prog.EvtrackEvent
 	for i, call := range info.Calls {
 		// To completely ignore events from the 14 banned syscalls, check for the name and continue here
@@ -885,6 +884,16 @@ func (fuzzer *Fuzzer) checkNewCallSignal(p *prog.Prog, info *ipc.CallInfo, call 
 	fuzzer.signalMu.Unlock()
 	fuzzer.signalMu.RLock()
 	return true
+}
+
+func (fuzzer *Fuzzer) sendUafInputToManager(inp rpctype.UafInput) {
+	a := &rpctype.NewUafInputArgs{
+		Name:     fuzzer.name,
+		UafInput: inp,
+	}
+	if err := fuzzer.manager.Call("Manager.NewUafInput", a, nil); err != nil {
+		log.Fatalf("Manager.NewUafInput call failed: %v", err)
+	}
 }
 
 func signalPrio(p *prog.Prog, info *ipc.CallInfo, call int) (prio uint8) {
