@@ -655,7 +655,7 @@ func (serv *RPCServer) shutdownInstance(name string) []byte {
 	return fuzzer.machineInfo
 }
 
-func (serv *RPCServer) NewUafInput(a *rpctype.NewUafInputArgs, r interface{}) error {
+func (serv *RPCServer) NewUafInput(a *rpctype.NewUafInputArgs, r *int) error {
 
 	bad, disabled := checkProgram(serv.cfg.Target, serv.targetEnabledSyscalls, a.UafInput.Prog)
 	if bad || disabled {
