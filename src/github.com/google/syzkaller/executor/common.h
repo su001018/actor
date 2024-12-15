@@ -602,6 +602,7 @@ static void loop(void)
 	if (pipe(child_pipe))
 		fail("pipe failed");
 #endif
+	race_result_setup();
 	int iter = 0;
 #if SYZ_REPEAT_TIMES
 	for (; iter < /*{{{REPEAT_TIMES}}}*/; iter++) {
@@ -715,7 +716,8 @@ static void loop(void)
 			errno = 0;
 			fail("child failed");
 		}
-		reply_execute(0);
+		int result = recv_race_result();
+		reply_execute(0, result);
 #endif
 #if SYZ_EXECUTOR || SYZ_USE_TMP_DIR
 		remove_dir(cwdbuf);
@@ -826,3 +828,4 @@ int main(void)
 	return 0;
 }
 #endif
+

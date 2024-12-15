@@ -15,11 +15,14 @@
 #include <string.h>
 #include <time.h>
 
+#include "hypercall.h"
+
 #if !GOOS_windows
 #include <unistd.h>
 #endif
 
 #include <sys/types.h>
+#include <sys/prctl.h>
 #include "defs.h"
 
 #if defined(__GNUC__)
@@ -76,6 +79,8 @@ const int kEventFd = kExtraCoverFd - kMaxThreads;
 const int kMaxArgs = 9;
 const int kCoverSize = 256 << 10;
 const int kFailStatus = 67;
+// razzer
+const int kHypercallFail = 70;
 
 // Two approaches of dealing with kcov memory.
 const int kCoverOptimizedCount = 12; // the number of kcov instances to be opened inside main()
@@ -109,7 +114,7 @@ void debug_dump_data(const char* data, int length);
 #endif
 
 static void receive_execute();
-static void reply_execute(int status);
+static void reply_execute(int status, int result);
 
 #if GOOS_akaros
 static void resend_execute(int fd);
@@ -184,6 +189,8 @@ static bool flag_dedup_cover;
 static bool flag_threaded;
 static bool flag_coverage_filter;
 static bool flag_collect_event;
+static bool flag_collide;
+
 
 // If true, then executor should write the comparisons data to fuzzer.
 static bool flag_comparisons;
@@ -193,8 +200,33 @@ static uint64 syscall_timeout_ms;
 static uint64 program_timeout_ms;
 static uint64 slowdown_scale;
 
+//razzer
+bool collide;
+pthread_barrier_t ready_barrier;
+bool race_result[2];
+int race_done[2];
+
+//razzer
+enum race_result {
+	NO_RACE,
+	TRUE_RACE,
+	RACE_RETRY,
+	RACE_RESULT,
+};
+uint32* race_pos;
+void* const kRacePosAddr = (void*)0x1e2d3c0000ull;
+
+// razzer
+void race_result_setup();
+int recv_race_result();
+int finish_race();
+void send_race_result(int result);
+uint64 hypercall(int id, long cmd, unsigned long bp, int sched);
+
 #define SYZ_EXECUTOR 1
 #include "common.h"
+
+
 
 const int kMaxInput = 4 << 20; // keep in sync with prog.ExecBufferSize
 const int kMaxCommands = 1000; // prog package knows about this constant (prog.execMaxCommands)
@@ -267,6 +299,7 @@ struct evtrack_t {
 	struct evtrack_event* events;
 };
 
+
 struct thread_t {
 	int id;
 	bool created;
@@ -274,7 +307,7 @@ struct thread_t {
 	event_t done;
 	uint64* copyout_pos;
 	uint64 copyout_index;
-	bool executing;
+	bool executing; // alias "handled" in razzer
 	int call_index;
 	int call_num;
 	int num_args;
@@ -286,6 +319,12 @@ struct thread_t {
 	cover_t cov;
 	evtrack_t ev;
 	bool soft_fail_state;
+
+    // razzer
+	bool colliding;
+	bool init;
+	bool executing_racy_syscall;
+	struct raceinfo_per_thread_t* race_info;
 };
 
 static thread_t threads[kMaxThreads];
@@ -315,6 +354,14 @@ struct handshake_reply {
 	uint32 magic;
 };
 
+struct raceinfo_per_thread_t {
+	uint64 bp;
+	uint64 race_index;
+	uint64 sched;
+};
+
+struct raceinfo_per_thread_t race_info[2];
+
 struct execute_req {
 	uint64 magic;
 	uint64 env_flags;
@@ -324,12 +371,21 @@ struct execute_req {
 	uint64 program_timeout_ms;
 	uint64 slowdown_scale;
 	uint64 prog_size;
+
+	//razzer
+	uint64 bp0;
+	uint64 bp1;
+	uint64 race_index0;
+	uint64 race_index1;
+	uint64 sched;
 };
 
 struct execute_reply {
 	uint32 magic;
 	uint32 done;
 	uint32 status;
+	// razzer
+	uint32 is_race;
 };
 
 // call_reply.flags
@@ -382,7 +438,7 @@ struct feature_t {
 
 static int exec_id;
 
-static thread_t* schedule_call(int call_index, int call_num, uint64 copyout_index, uint64 num_args, uint64* args, uint64* pos, call_props_t call_props);
+static thread_t* schedule_call(int call_index, int call_num, bool colliding, uint64 copyout_index, uint64 num_args, uint64* args, uint64* pos, call_props_t call_props);
 static void handle_completion(thread_t* th);
 static void copyout_call_results(thread_t* th);
 static void write_call_output(thread_t* th, bool finished);
@@ -400,6 +456,10 @@ static void copyin(char* addr, uint64 val, uint64 size, uint64 bf, uint64 bf_off
 static bool copyout(char* addr, uint64 size, uint64* res);
 static void setup_control_pipes();
 static void setup_features(char** enable, int n);
+
+// razzer
+void set_cpu_affinity(thread_t* th);
+
 
 #include "syscalls.h"
 
@@ -563,12 +623,12 @@ int main(int argc, char** argv)
 	// before the sandbox process exits this will make ipc package kill the sandbox.
 	// As the result sandbox process will exit with exit status 9 instead of the executor
 	// exit status (notably kFailStatus). So we duplicate the exit status on the pipe.
-	reply_execute(status);
+	reply_execute(status, 0);
 	doexit(status);
 	// Unreachable.
 	return 1;
 #else
-	reply_execute(status);
+	reply_execute(status, 0);
 	return status;
 #endif
 }
@@ -685,12 +745,30 @@ void receive_execute()
 	flag_threaded = req.exec_flags & (1 << 4);
 	flag_coverage_filter = req.exec_flags & (1 << 5);
 
-	debug("[DEBUG] [%llums] exec opts: procid=%llu threaded=%d cover=%d comps=%d event=%d dedup=%d"
+	//razzer
+	flag_collide = req.exec_flags & (1 << 6);
+
+	if (!flag_threaded)
+		flag_collide = false;
+
+	debug("[DEBUG] [%llums] exec opts: procid=%llu threaded=%d collide=%d cover=%d comps=%d event=%d dedup=%d"
 	      " signal=%d timeouts=%llu/%llu/%llu prog=%llu filter=%d\n exec_id=%d",
-	      current_time_ms() - start_time_ms, procid, flag_threaded, flag_collect_cover,
+	      current_time_ms() - start_time_ms, procid, flag_threaded,flag_collide, flag_collect_cover,
 	      flag_comparisons, flag_collect_event, flag_dedup_cover, flag_collect_signal,
 	      syscall_timeout_ms, program_timeout_ms, slowdown_scale, req.prog_size,
 	      flag_coverage_filter, exec_id);
+	if (flag_collide) {
+		debug("race info: bp0=%llu, bp1=%llu, race_index0=%llu, race_index1=%llu, sched=%llu\n",
+		      req.bp0, req.bp1, req.race_index0, req.race_index1, req.sched);
+
+		race_info[0].bp = req.bp0;
+		race_info[0].race_index = req.race_index0;
+		race_info[0].sched = req.sched;
+
+		race_info[1].bp = req.bp1;
+		race_info[1].race_index = req.race_index1;
+		race_info[1].sched = req.sched;
+	}
 	if (syscall_timeout_ms == 0 || program_timeout_ms <= syscall_timeout_ms || slowdown_scale == 0)
 		failmsg("bad timeouts", "syscall=%llu, program=%llu, scale=%llu",
 			syscall_timeout_ms, program_timeout_ms, slowdown_scale);
@@ -714,6 +792,28 @@ void receive_execute()
 		failmsg("bad input size", "size=%lld, want=%lld", pos, req.prog_size);
 }
 
+// razzer
+static inline void prepare_race()
+{
+	if (flag_collide == false)
+		return;
+
+	if (race_info[0].race_index > race_info[1].race_index) {
+#define swap_num(a, b)                  \
+	do {                        \
+		unsigned int t = a; \
+		a = b;              \
+		b = t;              \
+	} while (0)
+		swap_num(race_info[0].race_index, race_info[1].race_index);
+		swap_num(race_info[0].bp, race_info[1].bp);
+	}
+	for (int i = 0; i < 2; i++) {
+		race_done[i] = 0;
+	}
+	pthread_barrier_init(&ready_barrier, NULL, 2);
+}
+
 bool cover_collection_required()
 {
 	return flag_coverage && (flag_collect_signal || flag_collect_cover || flag_comparisons);
@@ -730,12 +830,13 @@ void resend_execute(int fd)
 }
 #endif
 
-void reply_execute(int status)
+void reply_execute(int status, int race_result)
 {
 	execute_reply reply = {};
 	reply.magic = kOutMagic;
 	reply.done = true;
 	reply.status = status;
+	reply.is_race = race_result;
 	if (write(kOutPipeFd, &reply, sizeof(reply)) != sizeof(reply))
 		fail("control pipe write failed");
 }
@@ -761,23 +862,28 @@ void realloc_output_data()
 // execute_one executes program stored in input_data.
 void execute_one()
 {
+	bool colliding = false;
+
 #if SYZ_EXECUTOR_USES_SHMEM
 	realloc_output_data();
 	output_pos = output_data;
 	write_output(0); // Number of executed syscalls (updated later).
 #endif
 	uint64 start = current_time_ms();
+	prepare_race();
+
+retry:
 	uint64* input_pos = (uint64*)input_data;
 
 	if (cover_collection_required()) {
-		if (!flag_threaded)
+		if (!flag_threaded && !colliding)
 			cover_enable(&threads[0].cov, flag_comparisons, false);
 		if (flag_extra_coverage)
 			cover_reset(&extra_cov);
 	}
 
 	if (flag_collect_event) {
-		if (!flag_threaded)
+		if (!flag_threaded && !colliding)
 			evtrack_enable(&threads[0].ev);
 	}
 
@@ -902,10 +1008,10 @@ void execute_one()
 			args[i] = read_arg(&input_pos);
 		for (uint64 i = num_args; i < kMaxArgs; i++)
 			args[i] = 0;
-		thread_t* th = schedule_call(call_index++, call_num, copyout_index,
+		thread_t* th = schedule_call(call_index++, call_num, colliding, copyout_index,
 					     num_args, args, input_pos, call_props);
 
-		if (call_props.async && flag_threaded) {
+		if (colliding /* call_props.async && flag_threaded */) {
 			// Don't wait for an async call to finish. We'll wait at the end.
 			// If we're not in the threaded mode, just ignore the async flag - during repro simplification syzkaller
 			// will anyway try to make it non-threaded.
@@ -997,11 +1103,38 @@ void execute_one()
 		sleep_ms(kSleepMs);
 		write_extra_output();
 	}
+
+	// razzer
+	if (flag_collide && !colliding && !collide) {
+		debug("enabling collider\n");
+		collide = colliding = true;
+		goto retry;
+	}
+
+	// razzer
+	int res = finish_race();
+	send_race_result(res);
+
+
 }
 
-thread_t* schedule_call(int call_index, int call_num, uint64 copyout_index, uint64 num_args, uint64* args, uint64* pos, call_props_t call_props)
+thread_t* schedule_call(int call_index, int call_num, bool colliding, uint64 copyout_index, uint64 num_args, uint64* args, uint64* pos, call_props_t call_props)
 {
 	// Find a spare thread to execute the call.
+
+	// razzer
+	int i = 0, first_call_index = 0;
+	if (colliding && call_index > (int)(race_info[0].race_index)) {
+		i++;
+		first_call_index = race_info[0].race_index + 1;
+	}
+	thread_t* th = &threads[i];
+	if (!th->created)
+		thread_create(th, i, cover_collection_required());
+	event_wait(&th->done);
+	if (th->executing)
+		handle_completion(th);
+	/*
 	int i = 0;
 	for (; i < kMaxThreads; i++) {
 		thread_t* th = &threads[i];
@@ -1015,16 +1148,28 @@ thread_t* schedule_call(int call_index, int call_num, uint64 copyout_index, uint
 	}
 	if (i == kMaxThreads)
 		exitf("out of threads");
+
 	thread_t* th = &threads[i];
+	*/
 	debug("[DEBUG]: Thread %d is being scheduled\n", i);
 	if (event_isset(&th->ready) || !event_isset(&th->done) || th->executing)
 		failmsg("bad thread state in schedule", "ready=%d done=%d executing=%d",
 			event_isset(&th->ready), event_isset(&th->done), th->executing);
 	last_scheduled = th;
+
+	// razzer
+	th->colliding = colliding;
+	th->init = (call_index == first_call_index) && (th->colliding);
+
 	th->copyout_pos = pos;
 	th->copyout_index = copyout_index;
 	event_reset(&th->done);
 	th->executing = true;
+
+	// razzer
+	th->race_info = &race_info[th->id];
+	th->executing_racy_syscall = colliding && ((int)(race_info[th->id].race_index) == call_index);
+
 	th->call_index = call_index;
 	th->call_num = call_num;
 	th->num_args = num_args;
@@ -1323,15 +1468,113 @@ void* worker_thread(void* arg)
 	for (;;) {
 		event_wait(&th->ready);
 		event_reset(&th->ready);
+
+		// razzer
+		set_cpu_affinity(th);
+
 		debug("[DEBUG]: Worker %d in action\n", th->id);
 		if (flag_collect_event)
 			evtrack_enable(&th->ev);
+		
+		// razzer
+		if (th->init) {
+#define gettid() syscall(SYS_gettid)
+			debug("[%d] TID: %ld", th->id, gettid());
+			debug("[%d] hypercall CMD_REFRESH", th->id);
+			hypercall(th->id, CMD_REFRESH, 0, 0);
+		}
+
 		execute_call(th);
 		if (flag_collect_event)
 			evtrack_stop(&th->ev);
 		event_set(&th->done);
 	}
 	return 0;
+}
+
+// razzer
+uint64 hypercall(int id, long cmd, unsigned long bp, int sched)
+{
+	if (collide)
+		return syscall(SYS_hypercall, id, cmd, bp, sched);
+	return 0;
+}
+void race_result_setup()
+{
+	race_pos = (uint32*)mmap(kRacePosAddr, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED | MAP_ANONYMOUS, -1, 0);
+	if (race_pos == (uint32*)-1)
+		fail("race result setup failed");
+	debug("race_pos: %p\n", race_pos);
+}
+void send_race_result(int result)
+{
+	if (!flag_collide)
+		return;
+	debug("race_pos: %p\n", race_pos);
+	*race_pos = result;
+	debug("send race result: %d\n", result);
+}
+
+int recv_race_result()
+{
+	if (!flag_collide)
+		return 0;
+	debug("race_pos: %p\n", race_pos);
+	int result = *race_pos;
+	debug("recv race result: %d\n", result);
+	if (result < 0 || result >= RACE_RESULT) {
+		debug("WARN: race result %d", result);
+		result = 0;
+	}
+	return result;
+}
+int finish_race()
+{
+	// wait until both are done
+	if (!flag_collide)
+		return NO_RACE;
+
+	for (int i = 0; flag_collide && i < 2; i++) {
+		while (!__atomic_load_n(&race_done[i], __ATOMIC_ACQUIRE))
+			syscall(SYS_futex, &race_done[i], FUTEX_WAIT, 0, 0);
+	}
+
+	pthread_barrier_destroy(&ready_barrier);
+
+	int ret;
+	if (race_result[0] != race_result[1]) {
+		ret = RACE_RETRY;
+	} else {
+		ret = race_result[0] == 0 ? NO_RACE : TRUE_RACE;
+		debug("Executor race result (%llx %llx) : %d\n", race_info[0].bp, race_info[1].bp, ret);
+	}
+	return ret;
+}
+
+void set_cpu_affinity(thread_t* th)
+{
+	pthread_t thrd = pthread_self();
+	cpu_set_t cpuset;
+	CPU_ZERO(&cpuset);
+	if (pthread_getaffinity_np(thrd, sizeof(cpuset), &cpuset) == -1)
+		fail("pthread_getaffinity_np");
+// TODO Fix NUM_CPU
+#define NUM_CPU 4
+	bool needSetAffnty = false;
+	for (int i = 0; i < NUM_CPU; i++)
+		if (i != th->id && CPU_ISSET(i, &cpuset))
+			needSetAffnty = true;
+	if (!CPU_ISSET(th->id, &cpuset))
+		needSetAffnty = true;
+
+	if (needSetAffnty) {
+		// TODO: pinning to the specific CPU
+		cpu_set_t cpuset;
+		CPU_ZERO(&cpuset);
+		CPU_SET(th->id, &cpuset);
+		if (pthread_setaffinity_np(thrd, sizeof(cpuset), &cpuset) == -1)
+			fail("pthread_setaffinity_np");
+	}
 }
 
 void execute_call(thread_t* th)
@@ -1353,6 +1596,26 @@ void execute_call(thread_t* th)
 			fail("both fault injection and rerun are enabled for the same call");
 		fail_fd = inject_fault(th->call_props.fail_nth);
 		th->soft_fail_state = true;
+	}
+
+	// razzer
+	if (th->executing_racy_syscall) {
+		// TODO: hypercall start, install bp
+		uint64 bp = th->race_info->bp;
+		uint64 sched = (uint64)th->race_info->sched;
+		debug("[%d] hypercall CMD_START", th->id);
+		debug("[%d] \tInstall bp: 0x%llx", th->id, bp);
+		debug("[%d] \tsched: %lld", th->id, sched);
+
+		uint64 res = hypercall(th->id, CMD_START, bp, sched);
+		if (res == (uint64)-1) {
+			// something wrong during handling CMD_START. Retry
+			doexit(kHypercallFail);
+		}
+
+		// TODO: wait until two threads are ready
+		pthread_barrier_wait(&ready_barrier);
+		debug("[%d] barrier", th->id);
 	}
 
 	if (flag_coverage)
@@ -1379,6 +1642,21 @@ void execute_call(thread_t* th)
 	if (flag_collect_event)
 		evtrack_collect(&th->ev);
 	th->fault_injected = false;
+
+	// razzer
+	if (th->executing_racy_syscall) {
+		// TODO: hypercall end, check there is a race
+		debug("[%d] hypercall CMD_END", th->id);
+		uint64 is_race = hypercall(th->id, CMD_END, 0, 0);
+		debug("[%d] \tis_race: %lld", th->id, is_race);
+		if (is_race == (uint64)-1) {
+			doexit(kHypercallFail);
+		} else {
+			__atomic_store_n(&race_result[th->id], (uint32_t)is_race, __ATOMIC_RELEASE);
+			__atomic_store_n(&race_done[th->id], 1, __ATOMIC_RELEASE);
+			syscall(SYS_futex, &race_done[th->id], FUTEX_WAKE);
+		}
+	}
 
 	if (th->call_props.fail_nth > 0)
 		th->fault_injected = fault_injected(fail_fd);

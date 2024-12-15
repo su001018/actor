@@ -3496,6 +3496,7 @@ static void setup_cgroups()
 	write_file("/syzcgroup/cpu/cpuset.memory_pressure_enabled", "1");
 }
 
+
 #if SYZ_EXECUTOR || SYZ_REPEAT
 static void setup_cgroups_loop()
 {
@@ -3770,6 +3771,8 @@ static void drop_caps(void)
 #include <sched.h>
 #include <sys/types.h>
 
+void setup_binfmt_misc();
+
 static int do_sandbox_none(void)
 {
 	// CLONE_NEWPID takes effect for the first child of the current process,
@@ -3788,6 +3791,10 @@ static int do_sandbox_none(void)
 	setup_common();
 #if SYZ_EXECUTOR || SYZ_VHCI_INJECTION
 	initialize_vhci();
+#endif
+#if SYZ_EXECUTOR || SYZ_CGROUPS
+	setup_cgroups();
+	setup_binfmt_misc();
 #endif
 	sandbox_common();
 	drop_caps();
@@ -4641,7 +4648,7 @@ static void check_leaks(void)
 #include <sys/stat.h>
 #include <sys/types.h>
 
-static void setup_binfmt_misc()
+void setup_binfmt_misc()
 {
 	if (mount(0, "/proc/sys/fs/binfmt_misc", "binfmt_misc", 0, 0)) {
 		debug("mount(binfmt_misc) failed: %d\n", errno);
@@ -5313,3 +5320,5 @@ static long syz_clone3(volatile long a0, volatile long a1)
 }
 
 #endif
+
+
