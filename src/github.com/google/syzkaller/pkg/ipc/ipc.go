@@ -91,8 +91,8 @@ type CallInfo struct {
 	Cover  []uint32 // per-call coverage, filled if FlagSignal is set and cover == true,
 	// if dedup == false, then cov effectively contains a trace, otherwise duplicates are removed
 	EvList []prog.EvtrackEvent // events triggered by this call
-	Comps prog.CompMap // per-call comparison operands
-	Errno int          // call errno (0 if the call was successful)
+	Comps  prog.CompMap        // per-call comparison operands
+	Errno  int                 // call errno (0 if the call was successful)
 }
 
 type ProgInfo struct {
@@ -494,8 +494,8 @@ func readEvents(outp *[]byte, eventSize uint32) ([]prog.EvtrackEvent, error) {
 		if !ok {
 			return nil, fmt.Errorf("failed to read instr_id %v", i)
 		}
-		if evList[i].EventId != (i + 1) || evList[i].NumTrace > prog.NR_MAX_TRACE_ENTRIES ||
-		evList[i].EventType > prog.EVTRACK_EVENT_TYPES {
+		if evList[i].EventId != (i+1) || evList[i].NumTrace > prog.NR_MAX_TRACE_ENTRIES ||
+			evList[i].EventType > prog.EVTRACK_EVENT_TYPES {
 			var all_zero bool = true
 			all_zero = all_zero && (evList[i].EventId == 0)
 			all_zero = all_zero && (evList[i].EventType == 0)
@@ -652,6 +652,13 @@ type executeReq struct {
 	progSize         uint64
 	// This structure is followed by a serialized test program in encodingexec format.
 	// Both when sent over a pipe or in shared memory.
+
+	// razzer
+	bp0        uint64
+	bp1        uint64
+	raceIndex0 uint64
+	raceIndex1 uint64
+	sched      uint64
 }
 
 type executeReply struct {
@@ -660,6 +667,7 @@ type executeReply struct {
 	// If done is 1, then program execution is finished and status is set.
 	done   uint32
 	status uint32
+	isRace uint32
 }
 
 type callReply struct {
