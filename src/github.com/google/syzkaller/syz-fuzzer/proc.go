@@ -6,13 +6,14 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/google/syzkaller/uaf"
 	"math/rand"
 	"os"
 	"runtime/debug"
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/google/syzkaller/uaf"
 
 	"github.com/google/syzkaller/pkg/cover"
 	"github.com/google/syzkaller/pkg/hash"
@@ -395,6 +396,8 @@ func (proc *Proc) storeUafInput(p *prog.Prog, info *ipc.ProgInfo) {
 			Prog:      uafProg.Prog,
 			FreeIndex: uafProg.FreeIndex,
 			UseIndex:  uafProg.UseIndex,
+			FreeEvent: uafProg.FreeEvent,
+			UseEvent:  uafProg.UseEvent,
 		}
 		proc.fuzzer.sendUafInputToManager(inp)
 	}

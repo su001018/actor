@@ -53,6 +53,8 @@ type UafInput struct {
 	Prog      []byte
 	FreeIndex int
 	UseIndex  int
+	FreeEvent prog.EvtrackEvent
+	UseEvent  prog.EvtrackEvent
 }
 
 type NewUafInputArgs struct {
@@ -70,6 +72,8 @@ type UafCandidate struct {
 	Prog      []byte
 	FreeIndex int
 	UseIndex  int
+	FreeAddr  uint64
+	UseAddr   uint64
 	Minimized bool
 	Smashed   bool
 }

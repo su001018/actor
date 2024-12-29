@@ -2,6 +2,7 @@ package uaf
 
 import (
 	"encoding/json"
+
 	"github.com/google/syzkaller/pkg/ipc"
 	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/rpctype"
@@ -9,15 +10,27 @@ import (
 )
 
 type Address struct {
-	ptr       uint64
-	size      uint64
-	callIndex int
+	ptr        uint64
+	size       uint64
+	callIndex  int
+	eventIndex int
 }
 
 type UafProg struct {
 	Prog      []byte
 	FreeIndex int
 	UseIndex  int
+	FreeAddr  uint64
+	UseAddr   uint64
+	FreeEvent prog.EvtrackEvent
+	UseEvent  prog.EvtrackEvent
+}
+
+type UafPair struct {
+	FreeIdx      int
+	UseIdx       int
+	FreeEventIdx int
+	UseEventIdx  int
 }
 
 func Deserialize(data []byte) *UafProg {
@@ -44,6 +57,8 @@ func (p *UafProg) ToRpcType() rpctype.UafInput {
 		Prog:      p.Prog,
 		FreeIndex: p.FreeIndex,
 		UseIndex:  p.UseIndex,
+		FreeEvent: p.FreeEvent,
+		UseEvent:  p.UseEvent,
 	}
 }
 
@@ -52,6 +67,8 @@ func FromRpcType(inp rpctype.UafInput) *UafProg {
 		Prog:      inp.Prog,
 		FreeIndex: inp.FreeIndex,
 		UseIndex:  inp.UseIndex,
+		FreeEvent: inp.FreeEvent,
+		UseEvent:  inp.UseEvent,
 	}
 }
 
@@ -123,15 +140,16 @@ func BuildFreeMap(info *ipc.ProgInfo) map[uint64]Address {
 	// 遍历函数调用信息数据
 	for callIndex, call := range info.Calls {
 		// 遍历每个函数对应的事件记录数组
-		for _, ev := range call.EvList {
+		for evIdx, ev := range call.EvList {
 			// 如果是free操作
 			if ev.EventType == prog.EVTRACK_EVENT_HEAP_DEALLOCATION {
 				// 检查是否是已分配的地址
 				if add, ok := allocMap[ev.Ptr]; ok {
 					freeMap[ev.Ptr] = Address{
-						ptr:       ev.Ptr,
-						size:      add.size,
-						callIndex: callIndex,
+						ptr:        ev.Ptr,
+						size:       add.size,
+						callIndex:  callIndex,
+						eventIndex: evIdx,
 					}
 				}
 			}
@@ -140,22 +158,27 @@ func BuildFreeMap(info *ipc.ProgInfo) map[uint64]Address {
 	return freeMap
 }
 
-func BuildCallPairMap(info *ipc.ProgInfo) map[int]map[int]int {
+func BuildCallPairMap(info *ipc.ProgInfo) []UafPair {
 
 	// free内存操作对应的地址、大小、调用函数索引
 	freeMap := BuildFreeMap(info)
 
 	// free操作和访问操作内存地址有重叠的函数调用对
-	callPairMap := make(map[int]map[int]int)
+	callPairs := make([]UafPair, 0)
 
 	// 遍历函数调用信息数据
 	for callIndex, callInfo := range info.Calls {
 		// 遍历每个函数对应的事件记录数组
-		for _, ev := range callInfo.EvList {
+		for evIdx, ev := range callInfo.EvList {
+
 			// 如果是内存访问操作
 			if ev.EventType == prog.EVTRACK_EVENT_HEAP_READ || ev.EventType == prog.EVTRACK_EVENT_HEAP_WRITE ||
 				ev.EventType == prog.EVTRACK_EVENT_HEAP_POINTER_READ || ev.EventType == prog.EVTRACK_EVENT_HEAP_POINTER_WRITE ||
 				ev.EventType == prog.EVTRACK_EVENT_HEAP_INDEX_READ || ev.EventType == prog.EVTRACK_EVENT_HEAP_INDEX_WRITE {
+				// the top 2 of the trace is stack_trace_save and record_event
+				if len(ev.Trace) <= 2 {
+					continue
+				}
 				// 遍历所有free操作记录
 				for _, freeAdress := range freeMap {
 					// 检查是否是同一函数调用
@@ -164,37 +187,40 @@ func BuildCallPairMap(info *ipc.ProgInfo) map[int]map[int]int {
 					}
 					//检查内存地址是否重叠
 					if freeAdress.ptr <= ev.Ptr && freeAdress.ptr+freeAdress.size >= ev.Ptr {
-						if _, ok := callPairMap[freeAdress.callIndex]; !ok {
-							callPairMap[freeAdress.callIndex] = make(map[int]int)
-						}
-						callPairMap[freeAdress.callIndex][callIndex] = 1
+						callPairs = append(callPairs, UafPair{
+							FreeIdx:      freeAdress.callIndex,
+							UseIdx:       callIndex,
+							FreeEventIdx: freeAdress.eventIndex,
+							UseEventIdx:  evIdx,
+						})
 					}
 				}
 			}
 		}
 	}
-	return callPairMap
+	return callPairs
 }
 
 func BuildUafProgList(p *prog.Prog, info *ipc.ProgInfo) []UafProg {
 	if p == nil {
 		return nil
 	}
-	callPairMap := BuildCallPairMap(info)
-	if len(callPairMap) == 0 {
+	callPairs := BuildCallPairMap(info)
+	if len(callPairs) == 0 {
 		return nil
 	}
 
 	var res []UafProg
-	for freeIndex, callMap := range callPairMap {
-		for callIndex, _ := range callMap {
-			uafProg := UafProg{
-				Prog:      p.Serialize(),
-				FreeIndex: freeIndex,
-				UseIndex:  callIndex,
-			}
-			res = append(res, uafProg)
+	for _, uafPair := range callPairs {
+		uafProg := UafProg{
+			Prog:      p.Serialize(),
+			FreeIndex: uafPair.FreeIdx,
+			UseIndex:  uafPair.UseIdx,
+			FreeEvent: info.Calls[uafPair.FreeIdx].EvList[uafPair.FreeEventIdx],
+			UseEvent:  info.Calls[uafPair.UseIdx].EvList[uafPair.UseEventIdx],
 		}
+		res = append(res, uafProg)
+
 	}
 
 	return res

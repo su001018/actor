@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/google/syzkaller/pkg/log"
+	"github.com/google/syzkaller/pkg/mgrconfig"
 	"github.com/google/syzkaller/pkg/osutil"
 	"github.com/google/syzkaller/pkg/report"
 	"github.com/google/syzkaller/sys/targets"
@@ -81,6 +82,7 @@ type Env struct {
 	Timeouts targets.Timeouts
 	Debug    bool
 	Config   []byte // json-serialized VM-type-specific config
+	Sched    bool
 }
 
 // BootError is returned by Pool.Create when VM does not boot.
@@ -237,4 +239,20 @@ func EscapeDoubleQuotes(inp string) string {
 		pos = j
 	}
 	return ret.String()
+}
+
+func CreateVMEnv(cfg *mgrconfig.Config, debug, sched bool) *Env {
+	return &Env{
+		Name:     cfg.Name,
+		OS:       cfg.TargetOS,
+		Arch:     cfg.TargetVMArch,
+		Workdir:  cfg.Workdir,
+		Image:    cfg.Image,
+		SSHKey:   cfg.SSHKey,
+		SSHUser:  cfg.SSHUser,
+		Timeouts: cfg.Timeouts,
+		Debug:    debug,
+		Config:   cfg.VM,
+		Sched:    sched,
+	}
 }

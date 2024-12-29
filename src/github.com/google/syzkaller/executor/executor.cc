@@ -1247,6 +1247,7 @@ void write_event(evtrack_event* event)
 	ts = (uint32)(event->timestamp >> 32);
 	write_output(ts);
 	write_output(event->obj_id);
+	//debug("write_output: instr_id is %lx,type is %d\n",event->instr_id,event->type);
 	write_output((uint32)event->instr_id);
 
 	for (uint32 i = 0; i < nr_trace; i++) {

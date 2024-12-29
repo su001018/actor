@@ -16,6 +16,7 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/google/syzkaller/pkg/common"
 	"github.com/google/syzkaller/pkg/cover"
 	"github.com/google/syzkaller/pkg/osutil"
 	"github.com/google/syzkaller/pkg/signal"
@@ -56,6 +57,7 @@ const (
 	FlagCollectComps                               // collect KCOV comparisons
 	FlagThreaded                                   // use multiple threads to mitigate blocked syscalls
 	FlagEnableCoverageFilter                       // setup and use bitmap to do coverage filter
+	FlagCollide                                    // collide syscalls to provoke uaf
 )
 
 type ExecOpts struct {
@@ -285,6 +287,60 @@ func (env *Env) Exec(opts *ExecOpts, p *prog.Prog) (output []byte, info *ProgInf
 		}
 	}
 	output, hanged, err0 = env.cmd.exec(opts, progData)
+	if err0 != nil {
+		env.cmd.close()
+		env.cmd = nil
+		return
+	}
+
+	info, err0 = env.parseOutput(p, opts)
+	if info != nil && env.config.Flags&FlagSignal == 0 {
+		addFallbackSignal(p, info)
+	}
+	if !env.config.UseForkServer {
+		env.cmd.close()
+		env.cmd = nil
+	}
+	return
+}
+
+// ExecUaf starts executor binary to execute program p in muti-threaded model with UafInfo and returns information about the execution:
+// output: process output
+// info: per-call info
+// hanged: program hanged and was killed
+// err0: failed to start the process or bug in executor itself.
+func (env *Env) ExecUaf(opts *ExecOpts, p *prog.Prog, uafInfo common.UafInfo) (output []byte, info *ProgInfo, hanged bool, err0 error) {
+	// Copy-in serialized program.
+	progSize, err := p.SerializeForExec(env.in)
+	if err != nil {
+		err0 = err
+		return
+	}
+	var progData []byte
+	if !env.config.UseShmem {
+		progData = env.in[:progSize]
+	}
+	// Zero out the first two words (ncmd and nsig), so that we don't have garbage there
+	// if executor crashes before writing non-garbage there.
+	for i := 0; i < 4; i++ {
+		env.out[i] = 0
+	}
+
+	atomic.AddUint64(&env.StatExecs, 1)
+	if env.cmd == nil {
+		if p.Target.OS != targets.TestOS && targets.Get(p.Target.OS, p.Target.Arch).HostFuzzer {
+			// The executor is actually ssh,
+			// starting them too frequently leads to timeouts.
+			<-rateLimit.C
+		}
+		tmpDirPath := "./"
+		atomic.AddUint64(&env.StatRestarts, 1)
+		env.cmd, err0 = makeCommand(env.pid, env.bin, env.config, env.inFile, env.outFile, env.out, tmpDirPath)
+		if err0 != nil {
+			return
+		}
+	}
+	output, hanged, err0 = env.cmd.execUaf(opts, progData, uafInfo)
 	if err0 != nil {
 		env.cmd.close()
 		env.cmd = nil
@@ -882,6 +938,110 @@ func (c *command) exec(opts *ExecOpts, progData []byte) (output []byte, hanged b
 		programTimeoutMS: uint64(c.config.Timeouts.Program / time.Millisecond),
 		slowdownScale:    uint64(c.config.Timeouts.Scale),
 		progSize:         uint64(len(progData)),
+	}
+	reqData := (*[unsafe.Sizeof(*req)]byte)(unsafe.Pointer(req))[:]
+	if _, err := c.outwp.Write(reqData); err != nil {
+		output = <-c.readDone
+		err0 = fmt.Errorf("executor %v: failed to write control pipe: %v", c.pid, err)
+		return
+	}
+	if progData != nil {
+		if _, err := c.outwp.Write(progData); err != nil {
+			output = <-c.readDone
+			err0 = fmt.Errorf("executor %v: failed to write control pipe: %v", c.pid, err)
+			return
+		}
+	}
+	// At this point program is executing.
+
+	done := make(chan bool)
+	hang := make(chan bool)
+	go func() {
+		t := time.NewTimer(c.timeout)
+		select {
+		case <-t.C:
+			c.cmd.Process.Kill()
+			hang <- true
+		case <-done:
+			t.Stop()
+			hang <- false
+		}
+	}()
+	exitStatus := -1
+	completedCalls := (*uint32)(unsafe.Pointer(&c.outmem[0]))
+	outmem := c.outmem[4:]
+	for {
+		reply := &executeReply{}
+		replyData := (*[unsafe.Sizeof(*reply)]byte)(unsafe.Pointer(reply))[:]
+		if _, err := io.ReadFull(c.inrp, replyData); err != nil {
+			break
+		}
+		if reply.magic != outMagic {
+			fmt.Fprintf(os.Stderr, "executor %v: got bad reply magic 0x%x\n", c.pid, reply.magic)
+			os.Exit(1)
+		}
+		if reply.done != 0 {
+			exitStatus = int(reply.status)
+			break
+		}
+		callReply := &callReply{}
+		callReplyData := (*[unsafe.Sizeof(*callReply)]byte)(unsafe.Pointer(callReply))[:]
+		if _, err := io.ReadFull(c.inrp, callReplyData); err != nil {
+			break
+		}
+		if callReply.signalSize != 0 || callReply.coverSize != 0 || callReply.compsSize != 0 || callReply.eventSize != 0 {
+			// This is unsupported yet.
+			fmt.Fprintf(os.Stderr, "executor %v: got call reply with coverage\n", c.pid)
+			os.Exit(1)
+		}
+		copy(outmem, callReplyData)
+		outmem = outmem[len(callReplyData):]
+		*completedCalls++
+	}
+	close(done)
+	if exitStatus == 0 {
+		// Program was OK.
+		<-hang
+		return
+	}
+	c.cmd.Process.Kill()
+	output = <-c.readDone
+	if err := c.wait(); <-hang {
+		hanged = true
+		if err != nil {
+			output = append(output, err.Error()...)
+			output = append(output, '\n')
+		}
+		return
+	}
+	if exitStatus == -1 {
+		exitStatus = osutil.ProcessExitStatus(c.cmd.ProcessState)
+	}
+	// Ignore all other errors.
+	// Without fork server executor can legitimately exit (program contains exit_group),
+	// with fork server the top process can exit with statusFail if it wants special handling.
+	if exitStatus == statusFail {
+		err0 = fmt.Errorf("executor %v: exit status %d\n%s", c.pid, exitStatus, output)
+	}
+	return
+}
+
+func (c *command) execUaf(opts *ExecOpts, progData []byte, uafInfo common.UafInfo) (output []byte, hanged bool, err0 error) {
+	req := &executeReq{
+		magic:            inMagic,
+		envFlags:         uint64(c.config.Flags),
+		execFlags:        uint64(opts.Flags),
+		pid:              uint64(c.pid),
+		syscallTimeoutMS: uint64(c.config.Timeouts.Syscall / time.Millisecond),
+		programTimeoutMS: uint64(c.config.Timeouts.Program / time.Millisecond),
+		slowdownScale:    uint64(c.config.Timeouts.Scale),
+		progSize:         uint64(len(progData)),
+
+		raceIndex0: uint64(uafInfo.FreeIndex),
+		raceIndex1: uint64(uafInfo.UseIndex),
+		bp0:        uafInfo.FreeAddr,
+		bp1:        uafInfo.UseAddr,
+		sched:      uint64(uafInfo.Sched),
 	}
 	reqData := (*[unsafe.Sizeof(*req)]byte)(unsafe.Pointer(req))[:]
 	if _, err := c.outwp.Write(reqData); err != nil {

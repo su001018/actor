@@ -102,6 +102,37 @@ func Create(cfg *mgrconfig.Config, debug bool) (*Pool, error) {
 	}, nil
 }
 
+// CreateWithSched creates a VM pool that can be used to create individual VMs.
+func CreateWithSched(cfg *mgrconfig.Config, debug, sched bool) (*Pool, error) {
+	typ, ok := vmimpl.Types[cfg.Type]
+	if !ok {
+		return nil, fmt.Errorf("unknown instance type '%v'", cfg.Type)
+	}
+	env := &vmimpl.Env{
+		Name:     cfg.Name,
+		OS:       cfg.TargetOS,
+		Arch:     cfg.TargetVMArch,
+		Workdir:  cfg.Workdir,
+		Image:    cfg.Image,
+		SSHKey:   cfg.SSHKey,
+		SSHUser:  cfg.SSHUser,
+		Timeouts: cfg.Timeouts,
+		Debug:    debug,
+		Config:   cfg.VM,
+		Sched:    sched,
+	}
+	impl, err := typ.Ctor(env)
+	if err != nil {
+		return nil, err
+	}
+	return &Pool{
+		impl:     impl,
+		workdir:  env.Workdir,
+		template: cfg.WorkdirTemplate,
+		timeouts: cfg.Timeouts,
+	}, nil
+}
+
 func (pool *Pool) Count() int {
 	return pool.impl.Count()
 }

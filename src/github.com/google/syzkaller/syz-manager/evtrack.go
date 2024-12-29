@@ -17,6 +17,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/google/syzkaller/pkg/debug"
 	"github.com/google/syzkaller/pkg/evtrack"
 	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/osutil"
@@ -170,11 +171,10 @@ func (serv *RPCServer) readEventsFromDumpFile(dumpFile string) {
 
 	for _, group := range serv.newGroups {
 		if group.ID >= serv.maxGroupID {
-			atomic.StoreUint64(&serv.maxGroupID, group.ID + 1)
+			atomic.StoreUint64(&serv.maxGroupID, group.ID+1)
 		}
 	}
 }
-
 
 /*
  * Fileformat for strategies.txt:
@@ -203,10 +203,10 @@ func (serv *RPCServer) loadStrategies(workdir string) {
 	}
 
 	tokenToInt := map[string]prog.EvtrackEventType{
-		"alloc": prog.EvtrackEventType(0),
+		"alloc":   prog.EvtrackEventType(0),
 		"dealloc": prog.EvtrackEventType(1),
-		"read": prog.EvtrackEventType(2),
-		"write": prog.EvtrackEventType(3),
+		"read":    prog.EvtrackEventType(2),
+		"write":   prog.EvtrackEventType(3),
 	}
 	stratsString := strings.Split(string(content[:]), "\n")
 	var ok bool
@@ -252,9 +252,9 @@ func (serv *RPCServer) loadStrategies(workdir string) {
 }
 
 type AccessStats struct {
-	SharedObjs          uint64
-	SharedAccs          uint64
-	SharedSubs          map[string]uint64
+	SharedObjs uint64
+	SharedAccs uint64
+	SharedSubs map[string]uint64
 }
 
 // output stats every 10mins to the stats directory
@@ -267,7 +267,7 @@ func (serv *RPCServer) output_stats(stats_dir string) {
 		accs_stat.SharedObjs = serv.shared_objects
 		accs_stat.SharedAccs = serv.shared_accesses
 		accs_stat.SharedSubs = serv.shared_acc_subsys
-		f, err := os.Create(filepath.Join(stats_dir, "stats_" + strconv.Itoa(index)))
+		f, err := os.Create(filepath.Join(stats_dir, "stats_"+strconv.Itoa(index)))
 		if err != nil {
 			log.Logf(0, "Dumping metric stats failed: %v", err)
 			return
@@ -353,7 +353,7 @@ func (serv *RPCServer) update(mergedRes []prog.Result, newly_merged []*prog.Grou
 	serv.mu.Lock()
 	if !serv.vanilla {
 		for _, f := range serv.fuzzers {
-			toDelete := make([]uint64,0)
+			toDelete := make([]uint64, 0)
 			for _, result := range mergedRes {
 				if !result.Changed {
 					continue
@@ -442,7 +442,7 @@ func (serv *RPCServer) group_events(evlist [][]prog.EvtrackEvent) []*prog.Group 
 					idx++
 					continue
 				}
-				fPath := serv.find_trigg_instruction(list[idx])
+				fPath := serv.Find_trigg_instruction(&list[idx])
 				if list[idx].EventType > 2 {
 					spl := strings.Split(fPath, ":")
 					lineNumber, _ := strconv.Atoi(spl[1])
@@ -539,7 +539,7 @@ func (serv *RPCServer) query_addr2line(address uint32) (string, error) {
 	serv.addrMu.Lock()
 	defer serv.addrMu.Unlock()
 
-	addr := []byte(strconv.FormatUint(uint64(address) + 0xffffffff00000000, 16) + "\n")
+	addr := []byte(strconv.FormatUint(uint64(address)+0xffffffff00000000, 16) + "\n")
 	num, err := serv.addrIn.Write(addr)
 	if err != nil {
 		return "", err
@@ -565,7 +565,7 @@ func (serv *RPCServer) query_addr2line(address uint32) (string, error) {
 }
 
 // Find triggering instruction and return file and line number in addr2line style
-func (serv *RPCServer) find_trigg_instruction(evt prog.EvtrackEvent) string {
+func (serv *RPCServer) Find_trigg_instruction(evt *prog.EvtrackEvent) string {
 	api_names := []string{"__kasan_kmalloc", "kmem_cache_alloc_trace",
 		"kfree", "slab_post_alloc_hook", "kmalloc_array", "kcalloc",
 		"kzalloc", "kmalloc", "slab_free_freelist_hook", "__kasan_slab_free",
@@ -576,11 +576,21 @@ func (serv *RPCServer) find_trigg_instruction(evt prog.EvtrackEvent) string {
 		"kmalloc_node", "__vmalloc_node_range", "__kmalloc_node",
 		"kmem_cache_alloc_node_trace", "kvfree", "check_memory_region",
 		"kmem_cache_alloc", "memory_is_poisoned_2_4_8",
-		"check_memory_region_inline", "kasan_mem_to_shadow", "is_handle_aborted"};
+		"check_memory_region_inline", "kasan_mem_to_shadow", "is_handle_aborted"}
 	misses := uint64(0)
 	hits := uint64(0)
 	var file string
 	var prev_bound bool = true
+
+	//debug
+	// debugFile, err := os.OpenFile("/home/dengnan/workdir/schduleFuzz/actor/out/workdir/debug.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// if err != nil {
+	// 	log.Fatalf("Error opening file: %+v", err)
+	// 	return ""
+	// }
+	// defer debugFile.Close()
+	debug.LogDebug("find_trigg_instruction: event is: %+v, trace list is: %#x\n", evt, evt.Trace)
+
 	for i := uint32(2); i < evt.NumTrace; i++ {
 		serv.cacheMu.Lock()
 		_, ok := (serv.apiCache)[evt.Trace[i]]
@@ -615,7 +625,7 @@ func (serv *RPCServer) find_trigg_instruction(evt prog.EvtrackEvent) string {
 				continue
 			}
 			// serv.cfg["kernelDir"] does not end with a trailing frontslash ('/') character, hence +1 adjustment
-			splitted[1] = splitted[1][len(serv.unpackedCfg["kernelDir"]) + 1:]
+			splitted[1] = splitted[1][len(serv.unpackedCfg["kernelDir"])+1:]
 
 			serv.cacheMu.Lock()
 			(serv.subsysCache)[evt.Trace[i]] = splitted[1]
@@ -633,6 +643,7 @@ func (serv *RPCServer) find_trigg_instruction(evt prog.EvtrackEvent) string {
 				prev_bound = false
 			}
 		}
+		debug.LogDebug("Trace is %x, InstrId is %d\n", evt.Trace[i], evt.InstrId)
 	}
 	serv.cacheMu.Lock()
 	serv.cacheMisses += misses
@@ -652,7 +663,7 @@ func (serv *RPCServer) find_subsystem(group *prog.Group) string {
 		"kmalloc_node", "__vmalloc_node_range", "__kmalloc_node",
 		"kmem_cache_alloc_node_trace", "kvfree", "check_memory_region",
 		"kmem_cache_alloc", "memory_is_poisoned_2_4_8",
-		"check_memory_region_inline", "kasan_mem_to_shadow", "is_handle_aborted"};
+		"check_memory_region_inline", "kasan_mem_to_shadow", "is_handle_aborted"}
 	subs := make(map[string]uint32)
 	misses := uint64(0)
 	hits := uint64(0)
@@ -694,7 +705,7 @@ func (serv *RPCServer) find_subsystem(group *prog.Group) string {
 						continue
 					}
 					// serv.cfg["kernelDir"] does not end with a trailing frontslash ('/') character, hence +1 adjustment
-					splitted[1] = splitted[1][len(serv.unpackedCfg["kernelDir"]) + 1:]
+					splitted[1] = splitted[1][len(serv.unpackedCfg["kernelDir"])+1:]
 					serv.cacheMu.Lock()
 					(serv.subsysCache)[evt.Trace[i]] = splitted[1]
 					serv.cacheMu.Unlock()

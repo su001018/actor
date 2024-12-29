@@ -10,7 +10,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/google/syzkaller/uaf"
 	"io/fs"
 	"io/ioutil"
 	"math/rand"
@@ -27,6 +26,7 @@ import (
 	"github.com/google/syzkaller/pkg/cover"
 	"github.com/google/syzkaller/pkg/csource"
 	"github.com/google/syzkaller/pkg/db"
+	"github.com/google/syzkaller/pkg/debug"
 	"github.com/google/syzkaller/pkg/gce"
 	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/host"
@@ -40,15 +40,17 @@ import (
 	"github.com/google/syzkaller/pkg/signal"
 	"github.com/google/syzkaller/prog"
 	"github.com/google/syzkaller/sys/targets"
+	"github.com/google/syzkaller/uaf"
 	"github.com/google/syzkaller/vm"
 )
 
 var (
-	flagConfig = flag.String("config", "", "configuration file")
-	flagDebug  = flag.Bool("debug", false, "dump all VM output to console")
-	flagBench  = flag.String("bench", "", "write execution statistics into this file periodically")
-	flagPprof  = flag.Bool("pprof", false, "enable pprof memory profiling, endpoint available at http://localhost:<syzMgrHttpPort>/debug/pprof")
-	flagProm   = flag.Bool("prom", false, "enable Prometheus, endpoint available at http://localhost:<syzMgrHttpPort>/metrics")
+	flagConfig     = flag.String("config", "", "configuration file")
+	flagDebug      = flag.Bool("fdebug", false, "dump all VM output to console")
+	flagSchedDebug = flag.Bool("sdebug", false, "dump all VM output to console")
+	flagBench      = flag.String("bench", "", "write execution statistics into this file periodically")
+	flagPprof      = flag.Bool("pprof", false, "enable pprof memory profiling, endpoint available at http://localhost:<syzMgrHttpPort>/debug/pprof")
+	flagProm       = flag.Bool("prom", false, "enable Prometheus, endpoint available at http://localhost:<syzMgrHttpPort>/metrics")
 )
 
 type Manager struct {
@@ -103,15 +105,19 @@ type Manager struct {
 
 	rpcserv *RPCServer
 
-	// uaf corpus
+	// uaf
 	uafCorpusDB   *db.DB
 	uafCorpus     map[string]UafCorpusItem
 	uafCandidates []rpctype.UafCandidate
+
+	uafPool *vm.Pool
 }
 type UafCorpusItem struct {
 	Prog      []byte
 	FreeIndex int
 	UseIndex  int
+	FreeAddr  uint64
+	UseAddr   uint64
 }
 
 type CorpusItemUpdate struct {
@@ -186,12 +192,17 @@ func main() {
 
 func RunManager(cfg *mgrconfig.Config) {
 	var vmPool *vm.Pool
+	var uafPool *vm.Pool
 	// Type "none" is a special case for debugging/development when manager
 	// does not start any VMs, but instead you start them manually
 	// and start syz-fuzzer there.
 	if cfg.Type != "none" {
 		var err error
-		vmPool, err = vm.Create(cfg, *flagDebug)
+		vmPool, err = vm.CreateWithSched(cfg, *flagDebug, false)
+		if err != nil {
+			log.Fatalf("%v", err)
+		}
+		uafPool, err = vm.CreateWithSched(cfg, *flagSchedDebug, true)
 		if err != nil {
 			log.Fatalf("%v", err)
 		}
@@ -227,6 +238,7 @@ func RunManager(cfg *mgrconfig.Config) {
 		usedFiles:        make(map[string]time.Time),
 		saturatedCalls:   make(map[string]bool),
 		uafCorpus:        make(map[string]UafCorpusItem),
+		uafPool:          uafPool,
 	}
 
 	mgr.preloadCorpus()
@@ -805,6 +817,8 @@ func (mgr *Manager) loadUafProg(data []byte, minimized, smashed bool) bool {
 		Prog:      uafProg.Prog,
 		FreeIndex: uafProg.FreeIndex,
 		UseIndex:  uafProg.UseIndex,
+		FreeAddr:  uafProg.FreeAddr,
+		UseAddr:   uafProg.UseAddr,
 		Minimized: minimized,
 		Smashed:   smashed,
 	})
@@ -879,7 +893,7 @@ func checkProgram(target *prog.Target, enabled map[*prog.Syscall]bool, data []by
 
 func (mgr *Manager) runInstance(index int) (*Crash, error) {
 	mgr.checkUsedFiles()
-	instanceName := fmt.Sprintf("vm-%d", index)
+	instanceName := fmt.Sprintf("fuzzer-vm%d", index)
 
 	rep, vmInfo, err := mgr.runInstanceInner(index, instanceName)
 
@@ -1465,11 +1479,19 @@ func (mgr *Manager) newUafInput(inp rpctype.UafInput) bool {
 	if old, ok := mgr.uafCorpus[sig]; ok {
 		mgr.uafCorpus[sig] = old
 	} else {
-		mgr.uafCorpus[sig] = UafCorpusItem{
+		item := UafCorpusItem{
 			Prog:      inp.Prog,
 			FreeIndex: inp.FreeIndex,
 			UseIndex:  inp.UseIndex,
+			// the call length is 5.
+			// ffffffff815eaeed:       e8 ce d2 e8 ff          call   ffffffff814781c0 <kvfree>
+			// ffffffff815eaef2:       48 8b 3d bf 64 60 02    mov    0x26064bf(%rip),%rdi        # ffffffff83bf13b8 <seq_file_cache>
+			FreeAddr: uint64(inp.FreeEvent.Trace[inp.FreeEvent.InstrId]) - 5,
+			UseAddr:  uint64(inp.UseEvent.Trace[inp.UseEvent.InstrId]) - 5,
 		}
+		mgr.uafCorpus[sig] = item
+		debug.LogDebug("newUafInput : FreeIndex: %d, UseIndex: %d, FreeAddr: %x, UseAddr: %x\n", item.FreeIndex,
+			item.UseIndex, item.FreeAddr, item.UseAddr)
 		mgr.uafCorpusDB.Save(sig, data, 0)
 		if err := mgr.uafCorpusDB.Flush(); err != nil {
 			log.Logf(0, "failed to save corpus database: %v", err)

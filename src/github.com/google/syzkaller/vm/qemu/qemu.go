@@ -32,6 +32,8 @@ func init() {
 type Config struct {
 	// Number of VMs to run in parallel (1 by default).
 	Count int `json:"count"`
+	// Number of VMs to run in parallel (1 by default).
+	SchedCount int `json:"sched_count"`
 	// QEMU binary name (optional).
 	// If not specified, qemu-system-arch is used by default.
 	Qemu string `json:"qemu"`
@@ -82,6 +84,7 @@ type Pool struct {
 }
 
 type instance struct {
+	name        string
 	index       int
 	cfg         *Config
 	target      *targets.Target
@@ -246,6 +249,7 @@ func ctor(env *vmimpl.Env) (vmimpl.Pool, error) {
 	archConfig := archConfigs[env.OS+"/"+env.Arch]
 	cfg := &Config{
 		Count:       1,
+		SchedCount:  1,
 		CPU:         1,
 		Mem:         1024,
 		ImageDevice: "hda",
@@ -305,7 +309,12 @@ func ctor(env *vmimpl.Env) (vmimpl.Pool, error) {
 }
 
 func (pool *Pool) Count() int {
-	return pool.cfg.Count
+	if pool.env.Sched {
+		return pool.cfg.Count
+	} else {
+		return pool.cfg.SchedCount
+	}
+
 }
 
 func (pool *Pool) Create(workdir string, index int) (vmimpl.Instance, error) {
@@ -338,7 +347,14 @@ func (pool *Pool) Create(workdir string, index int) (vmimpl.Instance, error) {
 }
 
 func (pool *Pool) ctor(workdir, sshkey, sshuser string, index int) (vmimpl.Instance, error) {
+	var name string
+	if !pool.env.Sched {
+		name = fmt.Sprintf("fuzzer-vm%d", index)
+	} else {
+		name = fmt.Sprintf("scheduler-vm%d", index)
+	}
 	inst := &instance{
+		name:       name,
 		index:      index,
 		cfg:        pool.cfg,
 		target:     pool.target,
@@ -402,6 +418,19 @@ func (inst *instance) Close() {
 func (inst *instance) boot() error {
 	inst.port = vmimpl.UnusedTCPPort()
 	inst.monport = vmimpl.UnusedTCPPort()
+	// args := []string{
+	// 	"-m", strconv.Itoa(inst.cfg.Mem),
+	// 	"-smp", strconv.Itoa(inst.cfg.CPU),
+	// 	"-chardev", fmt.Sprintf("socket,id=SOCKSYZ,server=on,wait=off,host=localhost,port=%v", inst.monport),
+	// 	"-mon", "chardev=SOCKSYZ,mode=control",
+	// 	"-display", "none",
+	// 	"-serial", "stdio",
+	// 	"-no-reboot",
+	// 	"-object", fmt.Sprintf("memory-backend-file,size=512M,share,mem-path=/dev/shm/ivshmemfilevm-%v,id=ivshmem", inst.index),
+	// 	"-device","ivshmem-plain,memdev=ivshmem",
+	// 	"-name", fmt.Sprintf("VM-%v", inst.index),
+	// }
+
 	args := []string{
 		"-m", strconv.Itoa(inst.cfg.Mem),
 		"-smp", strconv.Itoa(inst.cfg.CPU),
@@ -410,9 +439,9 @@ func (inst *instance) boot() error {
 		"-display", "none",
 		"-serial", "stdio",
 		"-no-reboot",
-		"-object", fmt.Sprintf("memory-backend-file,size=512M,share,mem-path=/dev/shm/ivshmemfilevm-%v,id=ivshmem", inst.index),
-		"-device","ivshmem-plain,memdev=ivshmem",
-		"-name", fmt.Sprintf("VM-%v", inst.index),
+		"-object", fmt.Sprintf("memory-backend-file,size=512M,share,mem-path=/dev/shm/ivshmemfile%s,id=ivshmem", inst.name),
+		"-device", "ivshmem,x-memdev=ivshmem",
+		"-name", inst.name,
 	}
 	if inst.archConfig.RngDev != "" {
 		args = append(args, "-device", inst.archConfig.RngDev)

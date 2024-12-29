@@ -664,7 +664,18 @@ func (serv *RPCServer) NewUafInput(a *rpctype.NewUafInputArgs, r *int) error {
 	}
 	serv.mu.Lock()
 	defer serv.mu.Unlock()
-	if !serv.mgr.newUafInput(a.UafInput) {
+
+	// fill events instrId
+	uafInp := a.UafInput
+	serv.Find_trigg_instruction(&uafInp.FreeEvent)
+	serv.Find_trigg_instruction(&uafInp.UseEvent)
+
+	// the top 2 of the trace is stack_trace_save and record_event
+	if uafInp.FreeEvent.InstrId < 2 || uafInp.UseEvent.InstrId < 2 {
+		return nil
+	}
+
+	if !serv.mgr.newUafInput(uafInp) {
 		return nil
 	}
 

@@ -1,0 +1,290 @@
+find_trigg_instruction: event is: &{EventId:5 EventType:2 Ptr:18446612682225878784 Size:0 NumTrace:10 TimeStamp:21138 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422794 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d484a 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d484a, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:4 EventType:3 Ptr:18446612682225878784 Size:8 NumTrace:11 TimeStamp:21117 ObjId:0 InstrId:0 Trace:[2167034912 2169843369 2166723294 2171425281 2170000602 2170217889 2170232728 2170020965 2170024082 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552ea9 0x812592de 0x816d5201 0x815794da 0x815ae5a1 0x815b1f98 0x8157e465 0x8157f092 0x82e06e9f 0x830000ae]
+Trace is 812592de, InstrId is 2
+Trace is 816d5201, InstrId is 2
+Trace is 815794da, InstrId is 2
+Trace is 815ae5a1, InstrId is 2
+Trace is 815b1f98, InstrId is 2
+Trace is 8157e465, InstrId is 2
+Trace is 8157f092, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 1, FreeAddr: 816d4845, UseAddr: 812592de
+find_trigg_instruction: event is: &{EventId:3 EventType:2 Ptr:18446612682225879296 Size:0 NumTrace:10 TimeStamp:21136 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422952 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d48e8 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d48e8, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:6 EventType:4 Ptr:18446612682225879296 Size:8 NumTrace:11 TimeStamp:21119 ObjId:0 InstrId:0 Trace:[2167034912 2169843580 2166723411 2171425281 2170000602 2170217889 2170232728 2170020965 2170024082 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552f7c 0x81259353 0x816d5201 0x815794da 0x815ae5a1 0x815b1f98 0x8157e465 0x8157f092 0x82e06e9f 0x830000ae]
+Trace is 81259353, InstrId is 2
+Trace is 816d5201, InstrId is 2
+Trace is 815794da, InstrId is 2
+Trace is 815ae5a1, InstrId is 2
+Trace is 815b1f98, InstrId is 2
+Trace is 8157e465, InstrId is 2
+Trace is 8157f092, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 1, FreeAddr: 816d48e3, UseAddr: 81259353
+find_trigg_instruction: event is: &{EventId:5 EventType:2 Ptr:18446612682225878784 Size:0 NumTrace:10 TimeStamp:21138 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422794 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d484a 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d484a, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:1 EventType:3 Ptr:18446612682225878784 Size:8 NumTrace:7 TimeStamp:21120 ObjId:0 InstrId:0 Trace:[2167034912 2169843369 2171420593 2170046000 2170050853 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552ea9 0x816d3fb1 0x81584630 0x81585925 0x82e06e9f 0x830000ae]
+Trace is 816d3fb1, InstrId is 2
+Trace is 81584630, InstrId is 2
+Trace is 81585925, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 2, FreeAddr: 816d4845, UseAddr: 816d3fb1
+find_trigg_instruction: event is: &{EventId:3 EventType:2 Ptr:18446612682225879296 Size:0 NumTrace:10 TimeStamp:21136 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422952 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d48e8 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d48e8, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:4 EventType:3 Ptr:18446612682225879312 Size:1 NumTrace:11 TimeStamp:21123 ObjId:0 InstrId:0 Trace:[2167034912 2169842153 2166774933 2166775943 2171420024 2170474146 2171421197 2170046000 2170050853 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x815529e9 0x81265c95 0x81266087 0x816d3d78 0x815ecea2 0x816d420d 0x81584630 0x81585925 0x82e06e9f 0x830000ae]
+Trace is 81265c95, InstrId is 2
+Trace is 81266087, InstrId is 2
+Trace is 816d3d78, InstrId is 2
+Trace is 815ecea2, InstrId is 2
+Trace is 816d420d, InstrId is 2
+Trace is 81584630, InstrId is 2
+Trace is 81585925, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 2, FreeAddr: 816d48e3, UseAddr: 81265c95
+find_trigg_instruction: event is: &{EventId:4 EventType:2 Ptr:18446612682363002880 Size:0 NumTrace:12 TimeStamp:21137 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2168947206 2170466034 2171422768 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x81478206 0x815eaef2 0x816d4830 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 815eaef2, InstrId is 4
+Trace is 816d4830, InstrId is 4
+Trace is 81589f99, InstrId is 4
+Trace is 811315c9, InstrId is 4
+Trace is 811f2a18, InstrId is 4
+Trace is 82e0be81, InstrId is 4
+Trace is 82e06eac, InstrId is 4
+Trace is 830000ae, InstrId is 4
+find_trigg_instruction: event is: &{EventId:6 EventType:4 Ptr:18446612682363002880 Size:1 NumTrace:13 TimeStamp:21125 ObjId:0 InstrId:0 Trace:[2167034912 2169842348 2194947217 2194996247 2170471238 2166695919 2166721131 2170474588 2171421197 2170046000 2170050853 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552aac 0x82d43c91 0x82d4fc17 0x815ec346 0x812527ef 0x81258a6b 0x815ed05c 0x816d420d 0x81584630 0x81585925 0x82e06e9f 0x830000ae]
+Trace is 82d43c91, InstrId is 2
+Trace is 82d4fc17, InstrId is 2
+Trace is 815ec346, InstrId is 2
+Trace is 812527ef, InstrId is 2
+Trace is 81258a6b, InstrId is 2
+Trace is 815ed05c, InstrId is 2
+Trace is 816d420d, InstrId is 2
+Trace is 81584630, InstrId is 2
+Trace is 81585925, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 2, FreeAddr: 815eaeed, UseAddr: 82d43c91
+find_trigg_instruction: event is: &{EventId:4 EventType:2 Ptr:18446612682363002880 Size:0 NumTrace:12 TimeStamp:21137 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2168947206 2170466034 2171422768 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x81478206 0x815eaef2 0x816d4830 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 815eaef2, InstrId is 4
+Trace is 816d4830, InstrId is 4
+Trace is 81589f99, InstrId is 4
+Trace is 811315c9, InstrId is 4
+Trace is 811f2a18, InstrId is 4
+Trace is 82e0be81, InstrId is 4
+Trace is 82e06eac, InstrId is 4
+Trace is 830000ae, InstrId is 4
+find_trigg_instruction: event is: &{EventId:7 EventType:3 Ptr:18446612682363002880 Size:1 NumTrace:9 TimeStamp:21126 ObjId:0 InstrId:0 Trace:[2167034912 2169844864 2175513393 2170476082 2171421197 2170046000 2170050853 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81553480 0x81abb331 0x815ed632 0x816d420d 0x81584630 0x81585925 0x82e06e9f 0x830000ae]
+Trace is 81abb331, InstrId is 2
+Trace is 815ed632, InstrId is 2
+Trace is 816d420d, InstrId is 2
+Trace is 81584630, InstrId is 2
+Trace is 81585925, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 2, FreeAddr: 815eaeed, UseAddr: 81abb331
+find_trigg_instruction: event is: &{EventId:5 EventType:2 Ptr:18446612682225878784 Size:0 NumTrace:10 TimeStamp:21138 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422794 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d484a 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d484a, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:4 EventType:3 Ptr:18446612682225878784 Size:8 NumTrace:7 TimeStamp:21130 ObjId:0 InstrId:0 Trace:[2167034912 2169843369 2171423515 2170050274 2170051557 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552ea9 0x816d4b1b 0x815856e2 0x81585be5 0x82e06e9f 0x830000ae]
+Trace is 816d4b1b, InstrId is 2
+Trace is 815856e2, InstrId is 2
+Trace is 81585be5, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 3, FreeAddr: 816d4845, UseAddr: 816d4b1b
+find_trigg_instruction: event is: &{EventId:3 EventType:2 Ptr:18446612682225879296 Size:0 NumTrace:10 TimeStamp:21136 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422952 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d48e8 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d48e8, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:6 EventType:3 Ptr:18446612682225879296 Size:8 NumTrace:10 TimeStamp:21132 ObjId:0 InstrId:0 Trace:[2167034912 2169843369 2166764501 2166765190 2166702006 2171423643 2170050274 2170051557 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552ea9 0x812633d5 0x81263686 0x81253fb6 0x816d4b9b 0x815856e2 0x81585be5 0x82e06e9f 0x830000ae]
+Trace is 812633d5, InstrId is 2
+Trace is 81263686, InstrId is 2
+Trace is 81253fb6, InstrId is 2
+Trace is 816d4b9b, InstrId is 2
+Trace is 815856e2, InstrId is 2
+Trace is 81585be5, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 3, FreeAddr: 816d48e3, UseAddr: 812633d5
+find_trigg_instruction: event is: &{EventId:5 EventType:2 Ptr:18446612682226829824 Size:0 NumTrace:10 TimeStamp:32294 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422794 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d484a 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d484a, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:4 EventType:3 Ptr:18446612682226829824 Size:8 NumTrace:11 TimeStamp:32273 ObjId:0 InstrId:0 Trace:[2167034912 2169843369 2166723294 2171425281 2170000602 2170217889 2170232728 2170020965 2170024082 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552ea9 0x812592de 0x816d5201 0x815794da 0x815ae5a1 0x815b1f98 0x8157e465 0x8157f092 0x82e06e9f 0x830000ae]
+Trace is 812592de, InstrId is 2
+Trace is 816d5201, InstrId is 2
+Trace is 815794da, InstrId is 2
+Trace is 815ae5a1, InstrId is 2
+Trace is 815b1f98, InstrId is 2
+Trace is 8157e465, InstrId is 2
+Trace is 8157f092, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 1, FreeAddr: 816d4845, UseAddr: 812592de
+find_trigg_instruction: event is: &{EventId:3 EventType:2 Ptr:18446612682252808448 Size:0 NumTrace:10 TimeStamp:32292 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422952 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d48e8 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d48e8, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:6 EventType:4 Ptr:18446612682252808448 Size:8 NumTrace:11 TimeStamp:32275 ObjId:0 InstrId:0 Trace:[2167034912 2169843580 2166723411 2171425281 2170000602 2170217889 2170232728 2170020965 2170024082 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552f7c 0x81259353 0x816d5201 0x815794da 0x815ae5a1 0x815b1f98 0x8157e465 0x8157f092 0x82e06e9f 0x830000ae]
+Trace is 81259353, InstrId is 2
+Trace is 816d5201, InstrId is 2
+Trace is 815794da, InstrId is 2
+Trace is 815ae5a1, InstrId is 2
+Trace is 815b1f98, InstrId is 2
+Trace is 8157e465, InstrId is 2
+Trace is 8157f092, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 1, FreeAddr: 816d48e3, UseAddr: 81259353
+find_trigg_instruction: event is: &{EventId:5 EventType:2 Ptr:18446612682226829824 Size:0 NumTrace:10 TimeStamp:32294 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422794 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d484a 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d484a, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:1 EventType:3 Ptr:18446612682226829824 Size:8 NumTrace:7 TimeStamp:32276 ObjId:0 InstrId:0 Trace:[2167034912 2169843369 2171420593 2170046000 2170050853 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552ea9 0x816d3fb1 0x81584630 0x81585925 0x82e06e9f 0x830000ae]
+Trace is 816d3fb1, InstrId is 2
+Trace is 81584630, InstrId is 2
+Trace is 81585925, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 2, FreeAddr: 816d4845, UseAddr: 816d3fb1
+find_trigg_instruction: event is: &{EventId:3 EventType:2 Ptr:18446612682252808448 Size:0 NumTrace:10 TimeStamp:32292 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422952 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d48e8 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d48e8, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:4 EventType:3 Ptr:18446612682252808464 Size:1 NumTrace:11 TimeStamp:32279 ObjId:0 InstrId:0 Trace:[2167034912 2169842153 2166774933 2166775943 2171420024 2170474146 2171421197 2170046000 2170050853 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x815529e9 0x81265c95 0x81266087 0x816d3d78 0x815ecea2 0x816d420d 0x81584630 0x81585925 0x82e06e9f 0x830000ae]
+Trace is 81265c95, InstrId is 2
+Trace is 81266087, InstrId is 2
+Trace is 816d3d78, InstrId is 2
+Trace is 815ecea2, InstrId is 2
+Trace is 816d420d, InstrId is 2
+Trace is 81584630, InstrId is 2
+Trace is 81585925, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 2, FreeAddr: 816d48e3, UseAddr: 81265c95
+find_trigg_instruction: event is: &{EventId:4 EventType:2 Ptr:18446612682525089792 Size:0 NumTrace:12 TimeStamp:32293 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2168947206 2170466034 2171422768 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x81478206 0x815eaef2 0x816d4830 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 815eaef2, InstrId is 4
+Trace is 816d4830, InstrId is 4
+Trace is 81589f99, InstrId is 4
+Trace is 811315c9, InstrId is 4
+Trace is 811f2a18, InstrId is 4
+Trace is 82e0be81, InstrId is 4
+Trace is 82e06eac, InstrId is 4
+Trace is 830000ae, InstrId is 4
+find_trigg_instruction: event is: &{EventId:6 EventType:4 Ptr:18446612682525089792 Size:1 NumTrace:13 TimeStamp:32281 ObjId:0 InstrId:0 Trace:[2167034912 2169842348 2194947217 2194996247 2170471238 2166695919 2166721131 2170474588 2171421197 2170046000 2170050853 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552aac 0x82d43c91 0x82d4fc17 0x815ec346 0x812527ef 0x81258a6b 0x815ed05c 0x816d420d 0x81584630 0x81585925 0x82e06e9f 0x830000ae]
+Trace is 82d43c91, InstrId is 2
+Trace is 82d4fc17, InstrId is 2
+Trace is 815ec346, InstrId is 2
+Trace is 812527ef, InstrId is 2
+Trace is 81258a6b, InstrId is 2
+Trace is 815ed05c, InstrId is 2
+Trace is 816d420d, InstrId is 2
+Trace is 81584630, InstrId is 2
+Trace is 81585925, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 2, FreeAddr: 815eaeed, UseAddr: 82d43c91
+find_trigg_instruction: event is: &{EventId:4 EventType:2 Ptr:18446612682525089792 Size:0 NumTrace:12 TimeStamp:32293 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2168947206 2170466034 2171422768 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x81478206 0x815eaef2 0x816d4830 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 815eaef2, InstrId is 4
+Trace is 816d4830, InstrId is 4
+Trace is 81589f99, InstrId is 4
+Trace is 811315c9, InstrId is 4
+Trace is 811f2a18, InstrId is 4
+Trace is 82e0be81, InstrId is 4
+Trace is 82e06eac, InstrId is 4
+Trace is 830000ae, InstrId is 4
+find_trigg_instruction: event is: &{EventId:7 EventType:3 Ptr:18446612682525089792 Size:1 NumTrace:9 TimeStamp:32282 ObjId:0 InstrId:0 Trace:[2167034912 2169844864 2175513393 2170476082 2171421197 2170046000 2170050853 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81553480 0x81abb331 0x815ed632 0x816d420d 0x81584630 0x81585925 0x82e06e9f 0x830000ae]
+Trace is 81abb331, InstrId is 2
+Trace is 815ed632, InstrId is 2
+Trace is 816d420d, InstrId is 2
+Trace is 81584630, InstrId is 2
+Trace is 81585925, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 2, FreeAddr: 815eaeed, UseAddr: 81abb331
+find_trigg_instruction: event is: &{EventId:5 EventType:2 Ptr:18446612682226829824 Size:0 NumTrace:10 TimeStamp:32294 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422794 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d484a 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d484a, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:4 EventType:3 Ptr:18446612682226829824 Size:8 NumTrace:7 TimeStamp:32286 ObjId:0 InstrId:0 Trace:[2167034912 2169843369 2171423515 2170050274 2170051557 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552ea9 0x816d4b1b 0x815856e2 0x81585be5 0x82e06e9f 0x830000ae]
+Trace is 816d4b1b, InstrId is 2
+Trace is 815856e2, InstrId is 2
+Trace is 81585be5, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 3, FreeAddr: 816d4845, UseAddr: 816d4b1b
+find_trigg_instruction: event is: &{EventId:3 EventType:2 Ptr:18446612682252808448 Size:0 NumTrace:10 TimeStamp:32292 ObjId:0 InstrId:0 Trace:[2167034912 2169835412 2169831216 2171422952 2170068889 2165511625 2166303256 2195766913 2195746476 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81550f94 0x8154ff30 0x816d48e8 0x81589f99 0x811315c9 0x811f2a18 0x82e0be81 0x82e06eac 0x830000ae]
+Trace is 816d48e8, InstrId is 3
+Trace is 81589f99, InstrId is 3
+Trace is 811315c9, InstrId is 3
+Trace is 811f2a18, InstrId is 3
+Trace is 82e0be81, InstrId is 3
+Trace is 82e06eac, InstrId is 3
+Trace is 830000ae, InstrId is 3
+find_trigg_instruction: event is: &{EventId:6 EventType:3 Ptr:18446612682252808448 Size:8 NumTrace:10 TimeStamp:32288 ObjId:0 InstrId:0 Trace:[2167034912 2169843369 2166764501 2166765190 2166702006 2171423643 2170050274 2170051557 2195746463 2197815470] Syscall: Args:[]}, trace list is: [0x812a5420 0x81552ea9 0x812633d5 0x81263686 0x81253fb6 0x816d4b9b 0x815856e2 0x81585be5 0x82e06e9f 0x830000ae]
+Trace is 812633d5, InstrId is 2
+Trace is 81263686, InstrId is 2
+Trace is 81253fb6, InstrId is 2
+Trace is 816d4b9b, InstrId is 2
+Trace is 815856e2, InstrId is 2
+Trace is 81585be5, InstrId is 2
+Trace is 82e06e9f, InstrId is 2
+Trace is 830000ae, InstrId is 2
+newUafInput : FreeIndex: 4, UseIndex: 3, FreeAddr: 816d48e3, UseAddr: 812633d5
