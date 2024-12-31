@@ -106,8 +106,10 @@ type Manager struct {
 	rpcserv *RPCServer
 
 	// uaf
-	uafCorpusDB   *db.DB
-	uafCorpus     map[string]UafCorpusItem
+	uafCorpusDB *db.DB
+	// from: schedulers input
+	uafCorpus map[string]UafCorpusItem
+	// from: fuzzers input & DB, to: schedulers' workQueue.Candidate
 	uafCandidates []rpctype.UafCandidate
 
 	uafPool *vm.Pool
