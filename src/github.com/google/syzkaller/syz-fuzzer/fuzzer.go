@@ -886,13 +886,13 @@ func (fuzzer *Fuzzer) checkNewCallSignal(p *prog.Prog, info *ipc.CallInfo, call 
 	return true
 }
 
-func (fuzzer *Fuzzer) sendUafInputToManager(inp rpctype.UafInput) {
-	a := &rpctype.NewUafInputArgs{
-		Name:     fuzzer.name,
-		UafInput: inp,
+func (fuzzer *Fuzzer) sendUafInputToManager(inp rpctype.UafCandInput) {
+	a := &rpctype.NewUafCandInputArgs{
+		Name:         fuzzer.name,
+		UafCandInput: inp,
 	}
-	if err := fuzzer.manager.Call("Manager.NewUafInput", a, nil); err != nil {
-		log.Fatalf("Manager.NewUafInput call failed: %v", err)
+	if err := fuzzer.manager.Call("Manager.NewUafCandInput", a, nil); err != nil {
+		log.Fatalf("Manager.NewUafCandInput call failed: %v", err)
 	}
 }
 

@@ -36,6 +36,12 @@ type RPCServer struct {
 	stats                 *Stats
 	batchSize             int
 
+	// uaf
+	schedulers      map[string]*Scheduler
+	uafMaxSignal    signal.Signal
+	uafCorpusSignal signal.Signal
+	uafCorpusCover  cover.Cover
+
 	mu            sync.Mutex
 	fuzzers       map[string]*Fuzzer
 	checkResult   *rpctype.CheckArgs
@@ -89,6 +95,20 @@ type Fuzzer struct {
 	ivshmem       []byte
 }
 
+type Scheduler struct {
+	name          string
+	rotated       bool
+	inputs        []rpctype.UafInput
+	newMaxSignal  signal.Signal
+	rotatedSignal signal.Signal
+	machineInfo   []byte
+	groups        map[uint64]*prog.Group
+	used          map[uint64]bool
+	changes       map[uint64]prog.Result
+	inactive      map[uint64]bool
+	ivshmem       []byte
+}
+
 type BugFrames struct {
 	memoryLeaks []string
 	dataRaces   []string
@@ -98,10 +118,13 @@ type BugFrames struct {
 type RPCManagerView interface {
 	fuzzerConnect([]host.KernelModule) (
 		[]rpctype.Input, BugFrames, map[uint32]uint32, []byte, error)
+	schedulerConnect([]host.KernelModule) ([]rpctype.UafInput, BugFrames, map[uint32]uint32, []byte, error)
 	machineChecked(result *rpctype.CheckArgs, enabledSyscalls map[*prog.Syscall]bool)
 	newInput(inp rpctype.Input, sign signal.Signal) bool
-	newUafInput(inp rpctype.UafInput) bool
+	newUafInput(inp rpctype.UafInput, sign signal.Signal) bool
+	newUafCandInput(inp rpctype.UafCandInput) bool
 	candidateBatch(size int) []rpctype.Candidate
+	candidateSchedulerBatch(size int) []rpctype.UafCandidate
 	rotateCorpus() bool
 }
 
@@ -115,6 +138,7 @@ func startRPCServer(mgr *Manager) (*RPCServer, error) {
 		rnd:         rand.New(rand.NewSource(time.Now().UnixNano())),
 		groupMin:    make(chan int, 1),
 		vanilla:     mgr.cfg.Vanilla,
+		schedulers:  make(map[string]*Scheduler),
 	}
 	mgr.rpcserv = serv
 	serv.initEvtrack(mgr.crashdir, serv.unpackedCfg["workdir"])
@@ -223,6 +247,96 @@ func (serv *RPCServer) Connect(a *rpctype.ConnectArgs, r *rpctype.ConnectRes) er
 	return nil
 }
 
+func (serv *RPCServer) SchedulerConnect(a *rpctype.ConnectArgs, r *rpctype.ConnectRes) error {
+	log.Logf(1, "scheduler %v connected", a.Name)
+	serv.stats.vmRestarts.inc()
+
+	corpus, bugFrames, coverFilter, coverBitmap, err := serv.mgr.schedulerConnect(a.Modules)
+	if err != nil {
+		return err
+	}
+	serv.coverFilter = coverFilter
+	serv.modules = a.Modules
+
+	serv.mu.Lock()
+	defer serv.mu.Unlock()
+
+	// check whether fuzzer with this name exists already, then unmap sharedmem
+	old := serv.schedulers[a.Name]
+	if old != nil {
+		err := ivshmem.UnmapHostIvshmem(old.ivshmem)
+		if err != nil {
+			log.Fatalf("Unmap failed: %v", err)
+		}
+		delete(serv.schedulers, a.Name)
+		old.changes = nil
+		old.groups = nil
+	}
+
+	scheduler := &Scheduler{
+		name:        a.Name,
+		machineInfo: a.MachineInfo,
+		groups:      make(map[uint64]*prog.Group),
+		changes:     make(map[uint64]prog.Result),
+		used:        make(map[uint64]bool),
+		inactive:    make(map[uint64]bool),
+	}
+
+	scheduler.ivshmem, err = ivshmem.GetSharedMappingHost(fmt.Sprintf("/dev/shm/ivshmemfile%s", a.Name))
+	if err != nil {
+		fmt.Println(err)
+		panic("mmap failed")
+	}
+
+	serv.schedulers[a.Name] = scheduler
+	r.MemoryLeakFrames = bugFrames.memoryLeaks
+	r.DataRaceFrames = bugFrames.dataRaces
+	r.CoverFilterBitmap = coverBitmap
+	r.EnabledCalls = serv.cfg.Syscalls
+	r.GitRevision = prog.GitRevision
+	r.TargetRevision = serv.cfg.Target.Revision
+	if !serv.vanilla {
+		// choose x groups for fuzzer
+		serv.groupMu.Lock()
+		if len(serv.mergedGroups) > 0 {
+			if len(serv.mergedGroups) < prog.GROUPS_PER_VM {
+				for i := 0; i < len(serv.mergedGroups); i++ {
+					grp := serv.mergedGroups[i]
+					scheduler.groups[grp.ID] = grp
+					scheduler.changes[grp.ID] = prog.Result{Res: grp, Changed: true}
+				}
+			} else {
+				min := 0
+				max := len(serv.mergedGroups)
+				rnds := serv.rnd.Perm(max)
+				for i := 0; i < prog.GROUPS_PER_VM; i++ {
+					ind := min + rnds[i]
+					grp := serv.mergedGroups[ind]
+					if _, present := scheduler.groups[grp.ID]; !present {
+						scheduler.groups[grp.ID] = grp
+						scheduler.changes[grp.ID] = prog.Result{Res: grp, Changed: true}
+					}
+				}
+			}
+		}
+		serv.groupMu.Unlock()
+
+		log.Logf(0, "Added %v groups to %v's changed list", len(scheduler.groups), scheduler.name)
+	}
+	if serv.mgr.rotateCorpus() && serv.rnd.Intn(5) == 0 {
+		// We do rotation every other time because there are no objective
+		// proofs regarding its efficiency either way.
+		// Also, rotation gives significantly skewed syscall selection
+		// (run prog.TestRotationCoverage), it may or may not be OK.
+		r.CheckResult = serv.rotateUafCorpus(scheduler, corpus)
+	} else {
+		r.CheckResult = serv.checkResult
+		scheduler.inputs = corpus
+		scheduler.newMaxSignal = serv.maxSignal.Copy()
+	}
+	return nil
+}
+
 func (f *Fuzzer) assignAdditionalGroups(serv *RPCServer) {
 	// choose x groups for fuzzer
 	serv.groupMu.Lock()
@@ -237,6 +351,25 @@ func (f *Fuzzer) assignAdditionalGroups(serv *RPCServer) {
 		if !present && !inactive {
 			f.groups[grp.ID] = grp
 			f.changes[grp.ID] = prog.Result{Res: grp, Changed: true}
+		}
+	}
+	serv.groupMu.Unlock()
+}
+
+func (s *Scheduler) assignAdditionalGroups(serv *RPCServer) {
+	// choose x groups for fuzzer
+	serv.groupMu.Lock()
+	min := 0
+	max := len(serv.mergedGroups)
+	rnds := serv.rnd.Perm(max)
+	for i := 0; i < max && len(s.groups) < max && len(s.groups) < prog.GROUPS_PER_VM; i++ {
+		ind := min + rnds[i]
+		grp := serv.mergedGroups[ind]
+		_, present := s.groups[grp.ID]
+		_, inactive := s.inactive[grp.ID]
+		if !present && !inactive {
+			s.groups[grp.ID] = grp
+			s.changes[grp.ID] = prog.Result{Res: grp, Changed: true}
 		}
 	}
 	serv.groupMu.Unlock()
@@ -291,8 +424,84 @@ func (serv *RPCServer) rotateCorpus(f *Fuzzer, corpus []rpctype.Input) *rpctype.
 	return &result
 }
 
+func (serv *RPCServer) rotateUafCorpus(s *Scheduler, corpus []rpctype.UafInput) *rpctype.CheckArgs {
+	// Fuzzing tends to stuck in some local optimum and then it fails to cover
+	// other state space points since code coverage is only a very approximate
+	// measure of logic coverage. To overcome this we introduce some variation
+	// into the process which should cause steady corpus rotation over time
+	// (the same coverage is achieved in different ways).
+	//
+	// First, we select a subset of all syscalls for each VM run (result.EnabledCalls).
+	// This serves 2 goals: (1) target fuzzer at a particular area of state space,
+	// (2) disable syscalls that cause frequent crashes at least in some runs
+	// to allow it to do actual fuzzing.
+	//
+	// Then, we remove programs that contain disabled syscalls from corpus
+	// that will be sent to the VM (f.inputs). We also remove 10% of remaining
+	// programs at random to allow to rediscover different variations of these programs.
+	//
+	// Then, we drop signal provided by the removed programs and also 10%
+	// of the remaining signal at random (f.newMaxSignal). This again allows
+	// rediscovery of this signal by different programs.
+	//
+	// Finally, we adjust criteria for accepting new programs from this VM (f.rotatedSignal).
+	// This allows to accept rediscovered varied programs even if they don't
+	// increase overall coverage. As the result we have multiple programs
+	// providing the same duplicate coverage, these are removed during periodic
+	// corpus minimization process. The minimization process is specifically
+	// non-deterministic to allow the corpus rotation.
+	//
+	// Note: at no point we drop anything globally and permanently.
+	// Everything we remove during this process is temporal and specific to a single VM.
+	calls := serv.rotator.Select()
+
+	var callIDs []int
+	callNames := make(map[string]bool)
+	for call := range calls {
+		callNames[call.Name] = true
+		callIDs = append(callIDs, call.ID)
+	}
+
+	s.inputs, s.newMaxSignal = serv.selectUafInputs(callNames, corpus, serv.maxSignal)
+	// Remove the corresponding signal from rotatedSignal which will
+	// be used to accept new inputs from this manager.
+	s.rotatedSignal = serv.corpusSignal.Intersection(s.newMaxSignal)
+	s.rotated = true
+
+	result := *serv.checkResult
+	result.EnabledCalls = map[string][]int{serv.cfg.Sandbox: callIDs}
+	return &result
+}
+
 func (serv *RPCServer) selectInputs(enabled map[string]bool, inputs0 []rpctype.Input, signal0 signal.Signal) (
 	inputs []rpctype.Input, signal signal.Signal) {
+	signal = signal0.Copy()
+	for _, inp := range inputs0 {
+		calls, _, err := prog.CallSet(inp.Prog)
+		if err != nil {
+			panic(fmt.Sprintf("rotateInputs: CallSet failed: %v\n%s", err, inp.Prog))
+		}
+		for call := range calls {
+			if !enabled[call] {
+				goto drop
+			}
+		}
+		if serv.rnd.Float64() > 0.9 {
+			goto drop
+		}
+		inputs = append(inputs, inp)
+		continue
+	drop:
+		for _, sig := range inp.Signal.Elems {
+			delete(signal, sig)
+		}
+	}
+	signal.Split(len(signal) / 10)
+	return inputs, signal
+}
+
+func (serv *RPCServer) selectUafInputs(enabled map[string]bool, inputs0 []rpctype.UafInput, signal0 signal.Signal) (
+	inputs []rpctype.UafInput, signal signal.Signal) {
 	signal = signal0.Copy()
 	for _, inp := range inputs0 {
 		calls, _, err := prog.CallSet(inp.Prog)
@@ -425,6 +634,73 @@ func (serv *RPCServer) NewInput(a *rpctype.NewInputArgs, r *int) error {
 				continue
 			}
 			other.inputs = append(other.inputs, a.Input)
+		}
+	}
+	return nil
+}
+
+func (serv *RPCServer) NewUafInput(a *rpctype.NewUafInputArgs, r *int) error {
+	inputSignal := a.Signal.Deserialize()
+	log.Logf(4, "new input from %v for syscall %v (signal=%v, cover=%v)",
+		a.Name, a.Call, inputSignal.Len(), len(a.Cover))
+	bad, disabled := checkProgram(serv.cfg.Target, serv.targetEnabledSyscalls, a.UafInput.Prog)
+	if bad || disabled {
+		log.Logf(0, "rejecting program from fuzzer (bad=%v, disabled=%v):\n%s", bad, disabled, a.UafInput.Prog)
+		return nil
+	}
+	serv.mu.Lock()
+	defer serv.mu.Unlock()
+
+	s := serv.schedulers[a.Name]
+	// Note: f may be nil if we called shutdownInstance,
+	// but this request is already in-flight.
+	genuine := !serv.uafCorpusSignal.Diff(inputSignal).Empty()
+	rotated := false
+	if !genuine && s != nil && s.rotated {
+		rotated = !s.rotatedSignal.Diff(inputSignal).Empty()
+	}
+	if !genuine && !rotated {
+		return nil
+	}
+	if !serv.mgr.newUafInput(a.UafInput, inputSignal) {
+		return nil
+	}
+
+	if s != nil && s.rotated {
+		s.rotatedSignal.Merge(inputSignal)
+	}
+	diff := serv.uafCorpusCover.MergeDiff(a.Cover)
+	serv.stats.corpusCover.set(len(serv.corpusCover))
+	if len(diff) != 0 && serv.coverFilter != nil {
+		// Note: ReportGenerator is already initialized if coverFilter is enabled.
+		rg, err := getReportGenerator(serv.cfg, serv.modules)
+		if err != nil {
+			return err
+		}
+		filtered := 0
+		for _, pc := range diff {
+			if serv.coverFilter[uint32(rg.RestorePC(pc))] != 0 {
+				filtered++
+			}
+		}
+		serv.stats.corpusCoverFiltered.add(filtered)
+	}
+	serv.stats.newInputs.inc()
+	if rotated {
+		serv.stats.rotatedInputs.inc()
+	}
+
+	if genuine {
+		serv.corpusSignal.Merge(inputSignal)
+		serv.stats.corpusSignal.set(serv.corpusSignal.Len())
+
+		a.UafInput.Cover = nil // Don't send coverage back to all fuzzers.
+		a.UafInput.RawCover = nil
+		for _, other := range serv.schedulers {
+			if other == s || other.rotated {
+				continue
+			}
+			other.inputs = append(other.inputs, a.UafInput)
 		}
 	}
 	return nil
@@ -584,6 +860,126 @@ func (serv *RPCServer) PollNew(a *rpctype.PollArgsNew, r *rpctype.PollResNew) er
 	return nil
 }
 
+func (serv *RPCServer) SchedulerPollNew(a *rpctype.PollArgsNew, r *rpctype.SchedulerPollResNew) error {
+	serv.stats.mergeNamed(a.Stats)
+
+	serv.mu.Lock()
+	defer serv.mu.Unlock()
+
+	scheduler := serv.schedulers[a.Name]
+	if scheduler == nil {
+		log.Fatalf("scheduler %v is not connected", a.Name)
+	}
+	serv.statsMu.Lock()
+	for id := range a.NewUsed {
+		scheduler.used[id] = true
+	}
+	serv.statsMu.Unlock()
+	newMaxSignal := serv.uafMaxSignal.Diff(a.MaxSignal.Deserialize())
+	if !newMaxSignal.Empty() {
+		serv.uafMaxSignal.Merge(newMaxSignal)
+		// read data from ivshmem
+		for readU64(scheduler.ivshmem) != 1 {
+		}
+		if a.EvtLen != 0 {
+			batch := evtrack.DecodeBatchPb(scheduler.ivshmem[8:(8 + a.EvtLen)])
+			go serv.add_groups(batch.Events)
+		}
+
+		for _, s1 := range serv.schedulers {
+			if s1 == scheduler {
+				continue
+			}
+			s1.newMaxSignal.Merge(newMaxSignal)
+		}
+	}
+	// some groups have syscalls that cannot be used by the VM
+	toBeDeleted := make([]uint64, 0)
+	for _, id := range a.DeletedIDs {
+		delete(scheduler.groups, id)
+		ch, present := scheduler.changes[id]
+		if present {
+			toBeDeleted = append(toBeDeleted, ch.Deleted...)
+			delete(scheduler.changes, id)
+		}
+		scheduler.inactive[id] = true
+	}
+	// if fuzzer does not yet have x groups, assign additional groups
+	if len(scheduler.groups) < prog.GROUPS_PER_VM {
+		scheduler.assignAdditionalGroups(serv)
+	}
+
+	if len(toBeDeleted) > 0 {
+		// this means we deleted at least 1 group, therefore we need to add a new one
+		if len(scheduler.changes) == 0 {
+			panic("need to delete this stuff but cannot")
+		}
+		for id := range scheduler.changes {
+			ch := scheduler.changes[id]
+			ch.Deleted = append(ch.Deleted, toBeDeleted...)
+			scheduler.changes[id] = ch
+			break
+		}
+	}
+	// write data to ivshmem
+	changes := make([]prog.Result, 0)
+	ind := 0
+	for _, res := range scheduler.changes {
+		if ind == 50 {
+			break
+		}
+		changes = append(changes, res)
+		ind++
+	}
+	for _, res := range changes {
+		delete(scheduler.changes, res.Res.ID)
+	}
+
+	writeU64(scheduler.ivshmem, uint64(0))
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(changes)
+	if err != nil {
+		log.Fatalf("Encoding of groups failed: %v", err)
+	}
+	n := buf.Len()
+	if n != copy(scheduler.ivshmem[8:], buf.Bytes()) {
+		r.ChangeLen = 0
+		log.Fatalf("buffer was too small for changed")
+	}
+	r.ChangeLen = uint64(n)
+
+	writeU64(scheduler.ivshmem[8+n:], uint64(0))
+
+	r.MaxSignal = scheduler.newMaxSignal.Split(500).Serialize()
+	if a.NeedCandidates {
+		r.Candidates = serv.mgr.candidateSchedulerBatch(serv.batchSize)
+	}
+	if len(r.Candidates) == 0 {
+		batchSize := serv.batchSize
+		// When the fuzzer starts, it pumps the whole corpus.
+		// If we do it using the final batchSize, it can be very slow
+		// (batch of size 6 can take more than 10 mins for 50K corpus and slow kernel).
+		// So use a larger batch initially (we use no stats as approximation of initial pump).
+		const initialBatch = 30
+		if len(a.Stats) == 0 && batchSize < initialBatch {
+			batchSize = initialBatch
+		}
+		for i := 0; i < batchSize && len(scheduler.inputs) > 0; i++ {
+			last := len(scheduler.inputs) - 1
+			r.NewInputs = append(r.NewInputs, scheduler.inputs[last])
+			scheduler.inputs[last] = rpctype.UafInput{}
+			scheduler.inputs = scheduler.inputs[:last]
+		}
+		if len(scheduler.inputs) == 0 {
+			scheduler.inputs = nil
+		}
+	}
+	log.Logf(4, "poll from %v: candidates=%v inputs=%v maxsignal=%v maxgroups=%v",
+		a.Name, len(r.Candidates), len(r.NewInputs), len(r.MaxSignal.Elems), len(changes))
+	return nil
+}
+
 func (serv *RPCServer) Poll(a *rpctype.PollArgs, r *rpctype.PollRes) error {
 	serv.stats.mergeNamed(a.Stats)
 
@@ -643,30 +1039,41 @@ func (serv *RPCServer) Poll(a *rpctype.PollArgs, r *rpctype.PollRes) error {
 	return nil
 }
 
-func (serv *RPCServer) shutdownInstance(name string) []byte {
+func (serv *RPCServer) shutdownInstance(name string, sched bool) []byte {
 	serv.mu.Lock()
 	defer serv.mu.Unlock()
-
-	fuzzer := serv.fuzzers[name]
-	if fuzzer == nil {
-		return nil
+	var machineInfo []byte
+	if sched {
+		scheduler := serv.schedulers[name]
+		if scheduler == nil {
+			return nil
+		}
+		delete(serv.schedulers, name)
+		machineInfo = scheduler.machineInfo
+	} else {
+		fuzzer := serv.fuzzers[name]
+		if fuzzer == nil {
+			return nil
+		}
+		delete(serv.fuzzers, name)
+		machineInfo = fuzzer.machineInfo
 	}
-	delete(serv.fuzzers, name)
-	return fuzzer.machineInfo
+
+	return machineInfo
 }
 
-func (serv *RPCServer) NewUafInput(a *rpctype.NewUafInputArgs, r *int) error {
+func (serv *RPCServer) NewUafCandInput(a *rpctype.NewUafCandInputArgs, r *int) error {
 
-	bad, disabled := checkProgram(serv.cfg.Target, serv.targetEnabledSyscalls, a.UafInput.Prog)
+	bad, disabled := checkProgram(serv.cfg.Target, serv.targetEnabledSyscalls, a.UafCandInput.Prog)
 	if bad || disabled {
-		log.Logf(0, "rejecting program from fuzzer (bad=%v, disabled=%v):\n%s", bad, disabled, a.UafInput.Prog)
+		log.Logf(0, "rejecting program from fuzzer (bad=%v, disabled=%v):\n%s", bad, disabled, a.UafCandInput.Prog)
 		return nil
 	}
 	serv.mu.Lock()
 	defer serv.mu.Unlock()
 
 	// fill events instrId
-	uafInp := a.UafInput
+	uafInp := a.UafCandInput
 	serv.Find_trigg_instruction(&uafInp.FreeEvent)
 	serv.Find_trigg_instruction(&uafInp.UseEvent)
 
@@ -675,11 +1082,7 @@ func (serv *RPCServer) NewUafInput(a *rpctype.NewUafInputArgs, r *int) error {
 		return nil
 	}
 
-	if !serv.mgr.newUafInput(uafInp) {
-		return nil
-	}
-
-	// todo send input to other fuzzer
-
+	// push uafCand to manager's Candidate Queue
+	serv.mgr.newUafCandInput(uafInp)
 	return nil
 }

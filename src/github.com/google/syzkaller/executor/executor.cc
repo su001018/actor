@@ -807,6 +807,8 @@ static inline void prepare_race()
 	} while (0)
 		swap_num(race_info[0].race_index, race_info[1].race_index);
 		swap_num(race_info[0].bp, race_info[1].bp);
+		race_info[0].sched = 1 - race_info[0].sched;
+		race_info[1].sched = 1 - race_info[1].sched;
 	}
 	for (int i = 0; i < 2; i++) {
 		race_done[i] = 0;

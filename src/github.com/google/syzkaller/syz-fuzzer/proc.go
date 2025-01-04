@@ -392,7 +392,7 @@ func (proc *Proc) storeUafInput(p *prog.Prog, info *ipc.ProgInfo) {
 	}
 
 	for _, uafProg := range uafProgs {
-		inp := rpctype.UafInput{
+		inp := rpctype.UafCandInput{
 			Prog:      uafProg.Prog,
 			FreeIndex: uafProg.FreeIndex,
 			UseIndex:  uafProg.UseIndex,

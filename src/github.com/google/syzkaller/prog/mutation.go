@@ -33,6 +33,7 @@ func (p *Prog) Mutate(rs rand.Source, ncalls int, ct *ChoiceTable, corpus []*Pro
 		ct:      ct,
 		corpus:  corpus,
 		evState: evState,
+		index:   [2]int{-1, -1},
 	}
 	var usedACTOR bool
 	for stop, ok := false, false; !stop; stop = ok && len(p.Calls) != 0 && r.oneOf(3) {
@@ -61,6 +62,55 @@ func (p *Prog) Mutate(rs rand.Source, ncalls int, ct *ChoiceTable, corpus []*Pro
 	}
 }
 
+// Mutate program p.
+//
+// p:       The program to mutate.
+// rs:      Random source.
+// ncalls:  The allowed maximum calls in mutated program.
+// ct:      ChoiceTable for syscalls.
+// corpus:  The entire corpus, including original program p.
+func (p *Prog) MutateUaf(rs rand.Source, ncalls int, ct *ChoiceTable, corpus []*Prog, evState *EvTrackState, index [2]int) [2]int {
+	r := newRand(p.Target, rs)
+	if ncalls < len(p.Calls) {
+		ncalls = len(p.Calls)
+	}
+	ctx := &mutator{
+		p:       p,
+		r:       r,
+		ncalls:  ncalls,
+		ct:      ct,
+		corpus:  corpus,
+		evState: evState,
+		index:   index,
+	}
+	var usedACTOR bool
+	for stop, ok := false, false; !stop; stop = ok && len(p.Calls) != 0 && r.oneOf(3) {
+		switch {
+		case r.oneOf(5):
+			// Not all calls have anything squashable,
+			// so this has lower priority in reality.
+			ok = ctx.squashAny()
+		case r.nOutOf(1, 100):
+			ok = ctx.splice()
+		case r.nOutOf(20, 31):
+			ok, usedACTOR = ctx.insertCall()
+			if usedACTOR {
+				break
+			}
+		case r.nOutOf(10, 11):
+			ok = ctx.mutateArg()
+		default:
+			ok = ctx.removeCall()
+		}
+	}
+	p.sanitizeFix()
+	p.debugValidate()
+	if got := len(p.Calls); got < 1 || got > ncalls {
+		panic(fmt.Sprintf("bad number of calls after mutation: %v, want [1, %v]", got, ncalls))
+	}
+	return ctx.index
+}
+
 // Internal state required for performing mutations -- currently this matches
 // the arguments passed to Mutate().
 type mutator struct {
@@ -70,6 +120,7 @@ type mutator struct {
 	ct      *ChoiceTable  // ChoiceTable for syscalls.
 	corpus  []*Prog       // The entire corpus, including original program p.
 	evState *EvTrackState // State of current evtrack coverage.
+	index   [2]int        // the free and use index
 }
 
 // This function selects a random other program p0 out of the corpus, and
@@ -83,10 +134,15 @@ func (ctx *mutator) splice() bool {
 	p0 := ctx.corpus[r.Intn(len(ctx.corpus))]
 	p0c := p0.Clone()
 	idx := r.Intn(len(p.Calls))
-	p.Calls = append(p.Calls[:idx], append(p0c.Calls, p.Calls[idx:]...)...)
-	for i := len(p.Calls) - 1; i >= ctx.ncalls; i-- {
-		p.RemoveCall(i)
+	for i := 0; i < 2; i++ {
+		if ctx.index[i] >= idx {
+			ctx.index[i] += len(p0c.Calls)
+		}
 	}
+	p.Calls = append(p.Calls[:idx], append(p0c.Calls, p.Calls[idx:]...)...)
+	// for i := len(p.Calls) - 1; i >= ctx.ncalls; i-- {
+	// 	p.RemoveCall(i)
+	// }
 	return true
 }
 
@@ -146,9 +202,14 @@ func (ctx *mutator) insertCall() (bool, bool) {
 	s := analyze(ctx.ct, ctx.corpus, p, c, ctx.evState)
 	calls, usedACTOR := r.generateCalls(s, p, idx, len(p.Calls))
 	p.insertBefore(c, calls)
-	for len(p.Calls) > ctx.ncalls {
-		p.RemoveCall(idx)
+	for i := 0; i < 2; i++ {
+		if ctx.index[i] >= idx {
+			ctx.index[i] += len(calls)
+		}
 	}
+	// for len(p.Calls) > ctx.ncalls {
+	// 	p.RemoveCall(idx)
+	// }
 	return true, usedACTOR
 }
 
@@ -159,6 +220,14 @@ func (ctx *mutator) removeCall() bool {
 		return false
 	}
 	idx := r.Intn(len(p.Calls))
+	if idx == ctx.index[0] || idx == ctx.index[1] {
+		return false
+	}
+	for i := 0; i < 2; i++ {
+		if ctx.index[i] > idx {
+			ctx.index[i]--
+		}
+	}
 	p.RemoveCall(idx)
 	return true
 }
@@ -190,12 +259,17 @@ func (ctx *mutator) mutateArg() bool {
 			ok = false
 			continue
 		}
+		for i := 0; i < 2; i++ {
+			if ctx.index[i] >= idx {
+				ctx.index[i] += len(calls)
+			}
+		}
 		p.insertBefore(c, calls)
 		idx += len(calls)
-		for len(p.Calls) > ctx.ncalls {
-			idx--
-			p.RemoveCall(idx)
-		}
+		// for len(p.Calls) > ctx.ncalls {
+		// 	idx--
+		// 	p.RemoveCall(idx)
+		// }
 		if idx < 0 || idx >= len(p.Calls) || p.Calls[idx] != c {
 			panic(fmt.Sprintf("wrong call index: idx=%v calls=%v p.Calls=%v ncalls=%v",
 				idx, len(calls), len(p.Calls), ctx.ncalls))

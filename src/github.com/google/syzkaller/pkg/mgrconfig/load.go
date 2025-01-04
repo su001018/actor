@@ -30,9 +30,10 @@ type Derived struct {
 	TargetVMArch string
 
 	// Full paths to binaries we are going to use:
-	FuzzerBin   string
-	ExecprogBin string
-	ExecutorBin string
+	FuzzerBin    string
+	SchedulerBin string
+	ExecprogBin  string
+	ExecutorBin  string
 
 	Syscalls []int
 	Timeouts targets.Timeouts
@@ -243,6 +244,7 @@ func (cfg *Config) completeBinaries() error {
 		return filepath.Join(cfg.Syzkaller, "bin", cfg.TargetOS+"_"+arch, name+exe)
 	}
 	cfg.FuzzerBin = targetBin("syz-fuzzer", cfg.TargetVMArch)
+	cfg.SchedulerBin = targetBin("syz-scheduler", cfg.TargetVMArch)
 	cfg.ExecprogBin = targetBin("syz-execprog", cfg.TargetVMArch)
 	cfg.ExecutorBin = targetBin("syz-executor", cfg.TargetArch)
 	// If the target already provides an executor binary, we don't need to copy it.
@@ -251,6 +253,9 @@ func (cfg *Config) completeBinaries() error {
 	}
 	if !osutil.IsExist(cfg.FuzzerBin) {
 		return fmt.Errorf("bad config syzkaller param: can't find %v", cfg.FuzzerBin)
+	}
+	if !osutil.IsExist(cfg.SchedulerBin) {
+		return fmt.Errorf("bad config syzkaller param: can't find %v", cfg.SchedulerBin)
 	}
 	if !osutil.IsExist(cfg.ExecprogBin) {
 		return fmt.Errorf("bad config syzkaller param: can't find %v", cfg.ExecprogBin)

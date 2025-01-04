@@ -3,11 +3,18 @@ package uaf
 import (
 	"encoding/json"
 
+	"github.com/google/syzkaller/pkg/common"
+	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/ipc"
 	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/rpctype"
 	"github.com/google/syzkaller/prog"
 )
+
+type UafCandiate struct {
+	Prog *prog.Prog
+	common.UafInfo
+}
 
 type Address struct {
 	ptr        uint64
@@ -17,11 +24,8 @@ type Address struct {
 }
 
 type UafProg struct {
-	Prog      []byte
-	FreeIndex int
-	UseIndex  int
-	FreeAddr  uint64
-	UseAddr   uint64
+	Prog []byte
+	common.UafInfo
 	FreeEvent prog.EvtrackEvent
 	UseEvent  prog.EvtrackEvent
 }
@@ -31,6 +35,10 @@ type UafPair struct {
 	UseIdx       int
 	FreeEventIdx int
 	UseEventIdx  int
+}
+
+func ComputeSig(p, ui []byte) string {
+	return hash.String(append(p, ui...))
 }
 
 func Deserialize(data []byte) *UafProg {
@@ -52,8 +60,8 @@ func (p *UafProg) Serialize() []byte {
 	return data
 }
 
-func (p *UafProg) ToRpcType() rpctype.UafInput {
-	return rpctype.UafInput{
+func (p *UafProg) ToRpcType() rpctype.UafCandInput {
+	return rpctype.UafCandInput{
 		Prog:      p.Prog,
 		FreeIndex: p.FreeIndex,
 		UseIndex:  p.UseIndex,
@@ -62,11 +70,14 @@ func (p *UafProg) ToRpcType() rpctype.UafInput {
 	}
 }
 
-func FromRpcType(inp rpctype.UafInput) *UafProg {
-	return &UafProg{
-		Prog:      inp.Prog,
+func FromRpcType(inp rpctype.UafCandInput) *UafProg {
+	uafInfo := common.UafInfo{
 		FreeIndex: inp.FreeIndex,
 		UseIndex:  inp.UseIndex,
+	}
+	return &UafProg{
+		Prog:      inp.Prog,
+		UafInfo:   uafInfo,
 		FreeEvent: inp.FreeEvent,
 		UseEvent:  inp.UseEvent,
 	}
@@ -212,10 +223,13 @@ func BuildUafProgList(p *prog.Prog, info *ipc.ProgInfo) []UafProg {
 
 	var res []UafProg
 	for _, uafPair := range callPairs {
-		uafProg := UafProg{
-			Prog:      p.Serialize(),
+		uafInfo := common.UafInfo{
 			FreeIndex: uafPair.FreeIdx,
 			UseIndex:  uafPair.UseIdx,
+		}
+		uafProg := UafProg{
+			Prog:      p.Serialize(),
+			UafInfo:   uafInfo,
 			FreeEvent: info.Calls[uafPair.FreeIdx].EvList[uafPair.FreeEventIdx],
 			UseEvent:  info.Calls[uafPair.UseIdx].EvList[uafPair.UseEventIdx],
 		}

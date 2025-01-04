@@ -62,6 +62,97 @@ func Minimize(p0 *Prog, callIndex0 int, crash bool, pred0 func(*Prog, int) bool)
 	return p0, callIndex0
 }
 
+// Minimize minimizes program p into an equivalent program using the equivalence
+// predicate pred. It iteratively generates simpler programs and asks pred
+// whether it is equal to the original program or not. If it is equivalent then
+// the simplification attempt is committed and the process continues.
+func MinimizeUaf(p0 *Prog, callIndex0 int, crash bool, pred0 func(*Prog, int, [2]int) bool, index0 [2]int) (*Prog, int, [2]int) {
+	pred := func(p *Prog, callIndex int, index [2]int) bool {
+		p.sanitizeFix()
+		p.debugValidate()
+		return pred0(p, callIndex, index)
+	}
+	name0 := ""
+	if callIndex0 != -1 {
+		if callIndex0 < 0 || callIndex0 >= len(p0.Calls) {
+			panic("bad call index")
+		}
+		name0 = p0.Calls[callIndex0].Meta.Name
+	}
+
+	// Try to remove all calls except the last one one-by-one.
+	// p0, callIndex0 = removeCalls(p0, callIndex0, crash, pred)
+	for i := len(p0.Calls) - 1; i >= 0; i-- {
+		if i == callIndex0 || i == index0[0] || i == index0[1] {
+			continue
+		}
+		callIndex := callIndex0
+		index := index0
+		if i < callIndex {
+			callIndex--
+		}
+		if i < index[0] {
+			index[0]--
+		}
+		if i < index[1] {
+			index[1]--
+		}
+		p := p0.Clone()
+		p.RemoveCall(i)
+		if !pred(p, callIndex, index) {
+			continue
+		}
+		p0 = p
+		callIndex0 = callIndex
+		index0 = index
+	}
+
+	// Try to reset all call props to their default values.
+	// p0 = resetCallProps(p0, callIndex0, pred)
+	p := p0.Clone()
+	anyDifferent := false
+	for idx := range p.Calls {
+		if !reflect.DeepEqual(p.Calls[idx].Props, CallProps{}) {
+			p.Calls[idx].Props = CallProps{}
+			anyDifferent = true
+		}
+	}
+	if anyDifferent && pred(p, callIndex0, index0) {
+		p0 = p
+	}
+
+	// Try to minimize individual calls.
+	for i := 0; i < len(p0.Calls); i++ {
+		ctx := &minimizeArgsCtx{
+			target:     p0.Target,
+			p0:         &p0,
+			callIndex0: callIndex0,
+			crash:      crash,
+			pred:       nil,
+			predUaf:    pred,
+			uafIndex:   index0,
+			triedPaths: make(map[string]bool),
+		}
+	again:
+		ctx.p = p0.Clone()
+		ctx.call = ctx.p.Calls[i]
+		for j, field := range ctx.call.Meta.Args {
+			if ctx.do(ctx.call.Args[j], field.Name, "") {
+				goto again
+			}
+		}
+		p0 = minimizeUafCallProps(p0, i, callIndex0, pred, index0)
+	}
+
+	if callIndex0 != -1 {
+		if callIndex0 < 0 || callIndex0 >= len(p0.Calls) || name0 != p0.Calls[callIndex0].Meta.Name {
+			panic(fmt.Sprintf("bad call index after minimization: ncalls=%v index=%v call=%v/%v",
+				len(p0.Calls), callIndex0, name0, p0.Calls[callIndex0].Meta.Name))
+		}
+	}
+	return p0, callIndex0, index0
+}
+
 func removeCalls(p0 *Prog, callIndex0 int, crash bool, pred func(*Prog, int) bool) (*Prog, int) {
 	for i := len(p0.Calls) - 1; i >= 0; i-- {
 		if i == callIndex0 {
@@ -132,6 +223,39 @@ func minimizeCallProps(p0 *Prog, callIndex, callIndex0 int, pred func(*Prog, int
 	return p0
 }
 
+func minimizeUafCallProps(p0 *Prog, callIndex, callIndex0 int, pred func(*Prog, int, [2]int) bool, index0 [2]int) *Prog {
+	props := p0.Calls[callIndex].Props
+
+	// Try to drop fault injection.
+	if props.FailNth > 0 {
+		p := p0.Clone()
+		p.Calls[callIndex].Props.FailNth = 0
+		if pred(p, callIndex0, index0) {
+			p0 = p
+		}
+	}
+
+	// Try to drop async.
+	if props.Async {
+		p := p0.Clone()
+		p.Calls[callIndex].Props.Async = false
+		if pred(p, callIndex0, index0) {
+			p0 = p
+		}
+	}
+
+	// Try to drop rerun.
+	if props.Rerun > 0 {
+		p := p0.Clone()
+		p.Calls[callIndex].Props.Rerun = 0
+		if pred(p, callIndex0, index0) {
+			p0 = p
+		}
+	}
+
+	return p0
+}
+
 type minimizeArgsCtx struct {
 	target     *Target
 	p0         **Prog
@@ -141,6 +265,8 @@ type minimizeArgsCtx struct {
 	crash      bool
 	pred       func(*Prog, int) bool
 	triedPaths map[string]bool
+	predUaf    func(*Prog, int, [2]int) bool
+	uafIndex   [2]int
 }
 
 func (ctx *minimizeArgsCtx) do(arg Arg, field, path string) bool {
@@ -195,9 +321,11 @@ func (typ *PtrType) minimize(ctx *minimizeArgsCtx, arg Arg, path string) bool {
 		removeArg(a.Res)
 		replaceArg(a, MakeSpecialPointerArg(a.Type(), a.GetDir(), 0))
 		ctx.target.assignSizesCall(ctx.call)
-		if ctx.pred(ctx.p, ctx.callIndex0) {
+
+		if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 			*ctx.p0 = ctx.p
 		}
+
 		ctx.triedPaths[path1] = true
 		return true
 	}
@@ -218,9 +346,11 @@ func (typ *ArrayType) minimize(ctx *minimizeArgsCtx, arg Arg, path string) bool 
 			a.Inner = a.Inner[:len(a.Inner)-1]
 			removeArg(elem)
 			ctx.target.assignSizesCall(ctx.call)
-			if ctx.pred(ctx.p, ctx.callIndex0) {
+
+			if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 				*ctx.p0 = ctx.p
 			}
+
 			return true
 		}
 		if ctx.do(elem, "", elemPath) {
@@ -263,7 +393,7 @@ func minimizeInt(ctx *minimizeArgsCtx, arg Arg, path string) bool {
 	}
 	v0 := a.Val
 	a.Val = def.Val
-	if ctx.pred(ctx.p, ctx.callIndex0) {
+	if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 		*ctx.p0 = ctx.p
 		ctx.triedPaths[path] = true
 		return true
@@ -283,7 +413,7 @@ func (typ *ResourceType) minimize(ctx *minimizeArgsCtx, arg Arg, path string) bo
 	r0 := a.Res
 	delete(a.Res.uses, a)
 	a.Res, a.Val = nil, typ.Default()
-	if ctx.pred(ctx.p, ctx.callIndex0) {
+	if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 		*ctx.p0 = ctx.p
 	} else {
 		a.Res, a.Val = r0, 0
@@ -305,7 +435,7 @@ func (typ *BufferType) minimize(ctx *minimizeArgsCtx, arg Arg, path string) bool
 		if len(a.Data())-step >= minLen {
 			a.data = a.Data()[:len(a.Data())-step]
 			ctx.target.assignSizesCall(ctx.call)
-			if ctx.pred(ctx.p, ctx.callIndex0) {
+			if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 				continue
 			}
 			a.data = a.Data()[:len(a.Data())+step]

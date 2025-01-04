@@ -95,7 +95,7 @@ ifeq ("$(TARGETOS)", "trusty")
 endif
 
 .PHONY: all clean host target \
-	manager runtest fuzzer executor \
+	manager runtest fuzzer scheduler executor \
 	ci hub \
 	execprog mutate prog2c trace2syz stress repro upgrade db \
 	usbgen symbolize cover kconf syz-build crush \
@@ -109,7 +109,7 @@ endif
 
 all: host target
 host: manager runtest repro mutate prog2c db upgrade
-target: fuzzer execprog stress executor
+target: fuzzer scheduler execprog stress executor
 
 executor: descriptions
 ifeq ($(TARGETOS),fuchsia)
@@ -156,7 +156,8 @@ runtest: descriptions
 
 fuzzer: descriptions
 	GOOS=$(TARGETGOOS) GOARCH=$(TARGETGOARCH) $(GO) build $(GOTARGETFLAGS) -o ./bin/$(TARGETOS)_$(TARGETVMARCH)/syz-fuzzer$(EXE) github.com/google/syzkaller/syz-fuzzer
-
+scheduler: descriptions
+	GOOS=$(TARGETGOOS) GOARCH=$(TARGETGOARCH) $(GO) build $(GOTARGETFLAGS) -o ./bin/$(TARGETOS)_$(TARGETVMARCH)/syz-scheduler$(EXE) github.com/google/syzkaller/syz-scheduler
 execprog: descriptions
 	GOOS=$(TARGETGOOS) GOARCH=$(TARGETGOARCH) $(GO) build $(GOTARGETFLAGS) -o ./bin/$(TARGETOS)_$(TARGETVMARCH)/syz-execprog$(EXE) github.com/google/syzkaller/tools/syz-execprog
 

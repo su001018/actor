@@ -8,6 +8,7 @@ package rpctype
 import (
 	"math"
 
+	"github.com/google/syzkaller/pkg/common"
 	"github.com/google/syzkaller/pkg/host"
 	"github.com/google/syzkaller/pkg/ipc"
 	"github.com/google/syzkaller/pkg/signal"
@@ -40,6 +41,14 @@ type PollResNew struct {
 	DeletedLen uint64
 }
 
+type SchedulerPollResNew struct {
+	Candidates []UafCandidate
+	NewInputs  []UafInput
+	MaxSignal  signal.Serial
+	ChangeLen  uint64
+	DeletedLen uint64
+}
+
 type Input struct {
 	Call     string
 	Prog     []byte
@@ -48,8 +57,18 @@ type Input struct {
 	CallID   int // seq number of call in the prog to which the item is related (-1 for extra)
 	RawCover []uint32
 }
-
 type UafInput struct {
+	Call     string
+	Prog     []byte
+	Signal   signal.Serial
+	Cover    []uint32
+	CallID   int // seq number of call in the prog to which the item is related (-1 for extra)
+	RawCover []uint32
+
+	common.UafInfo
+}
+
+type UafCandInput struct {
 	Prog      []byte
 	FreeIndex int
 	UseIndex  int
@@ -57,9 +76,9 @@ type UafInput struct {
 	UseEvent  prog.EvtrackEvent
 }
 
-type NewUafInputArgs struct {
+type NewUafCandInputArgs struct {
 	Name string
-	UafInput
+	UafCandInput
 }
 
 type Candidate struct {
@@ -69,11 +88,8 @@ type Candidate struct {
 }
 
 type UafCandidate struct {
-	Prog      []byte
-	FreeIndex int
-	UseIndex  int
-	FreeAddr  uint64
-	UseAddr   uint64
+	Prog []byte
+	common.UafInfo
 	Minimized bool
 	Smashed   bool
 }
@@ -117,6 +133,11 @@ type SyscallReason struct {
 type NewInputArgs struct {
 	Name string
 	Input
+}
+
+type NewUafInputArgs struct {
+	Name string
+	UafInput
 }
 
 type PollArgs struct {

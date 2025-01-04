@@ -23,10 +23,10 @@ import (
 	"time"
 
 	"github.com/google/syzkaller/dashboard/dashapi"
+	"github.com/google/syzkaller/pkg/common"
 	"github.com/google/syzkaller/pkg/cover"
 	"github.com/google/syzkaller/pkg/csource"
 	"github.com/google/syzkaller/pkg/db"
-	"github.com/google/syzkaller/pkg/debug"
 	"github.com/google/syzkaller/pkg/gce"
 	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/host"
@@ -45,12 +45,12 @@ import (
 )
 
 var (
-	flagConfig     = flag.String("config", "", "configuration file")
-	flagDebug      = flag.Bool("fdebug", false, "dump all VM output to console")
-	flagSchedDebug = flag.Bool("sdebug", false, "dump all VM output to console")
-	flagBench      = flag.String("bench", "", "write execution statistics into this file periodically")
-	flagPprof      = flag.Bool("pprof", false, "enable pprof memory profiling, endpoint available at http://localhost:<syzMgrHttpPort>/debug/pprof")
-	flagProm       = flag.Bool("prom", false, "enable Prometheus, endpoint available at http://localhost:<syzMgrHttpPort>/metrics")
+	flagConfig = flag.String("config", "", "configuration file")
+	flagFDebug = flag.Bool("fdebug", false, "dump all VM output to console")
+	flagSDebug = flag.Bool("sdebug", false, "dump all VM output to console")
+	flagBench  = flag.String("bench", "", "write execution statistics into this file periodically")
+	flagPprof  = flag.Bool("pprof", false, "enable pprof memory profiling, endpoint available at http://localhost:<syzMgrHttpPort>/debug/pprof")
+	flagProm   = flag.Bool("prom", false, "enable Prometheus, endpoint available at http://localhost:<syzMgrHttpPort>/metrics")
 )
 
 type Manager struct {
@@ -109,17 +109,16 @@ type Manager struct {
 	uafCorpusDB *db.DB
 	// from: schedulers input
 	uafCorpus map[string]UafCorpusItem
-	// from: fuzzers input & DB, to: schedulers' workQueue.Candidate
+	// from: DB & fuzzers, to: schedulers' workQueue.Candidate
 	uafCandidates []rpctype.UafCandidate
 
 	uafPool *vm.Pool
 }
 type UafCorpusItem struct {
-	Prog      []byte
-	FreeIndex int
-	UseIndex  int
-	FreeAddr  uint64
-	UseAddr   uint64
+	Prog   []byte
+	Signal signal.Serial
+	Cover  []uint32
+	common.UafInfo
 }
 
 type CorpusItemUpdate struct {
@@ -142,6 +141,15 @@ func (item *CorpusItem) RPCInput() rpctype.Input {
 		Signal: item.Signal,
 		Cover:  item.Cover,
 	}
+}
+func (item *UafCorpusItem) RPCInput() rpctype.UafInput {
+	return rpctype.UafInput{
+		Prog:    item.Prog,
+		Signal:  item.Signal,
+		Cover:   item.Cover,
+		UafInfo: item.UafInfo,
+	}
+
 }
 
 const (
@@ -200,11 +208,11 @@ func RunManager(cfg *mgrconfig.Config) {
 	// and start syz-fuzzer there.
 	if cfg.Type != "none" {
 		var err error
-		vmPool, err = vm.CreateWithSched(cfg, *flagDebug, false)
+		vmPool, err = vm.CreateWithSched(cfg, *flagFDebug, false)
 		if err != nil {
 			log.Fatalf("%v", err)
 		}
-		uafPool, err = vm.CreateWithSched(cfg, *flagSchedDebug, true)
+		uafPool, err = vm.CreateWithSched(cfg, *flagSDebug, true)
 		if err != nil {
 			log.Fatalf("%v", err)
 		}
@@ -367,20 +375,24 @@ func (mgr *Manager) vmLoop() {
 	log.Logf(0, "wait for the connection from test machine...")
 	instancesPerRepro := 4
 	vmCount := mgr.vmPool.Count()
+	uafVmCount := mgr.uafPool.Count()
 	maxReproVMs := vmCount - mgr.cfg.FuzzingVMs
 	if instancesPerRepro > maxReproVMs && maxReproVMs > 0 {
 		instancesPerRepro = maxReproVMs
 	}
 	instances := SequentialResourcePool(vmCount, 10*time.Second*mgr.cfg.Timeouts.Scale)
+	uafInstances := SequentialResourcePool(uafVmCount, 10*time.Second*mgr.cfg.Timeouts.Scale)
 	var deadInstances []int
+	var deadUafInstances []int
 	runDone := make(chan *RunResult, 1)
+	uafRunDone := make(chan *RunResult, 1)
 	pendingRepro := make(map[*Crash]bool)
 	reproducing := make(map[string]bool)
 	var reproQueue []*Crash
 	reproDone := make(chan *ReproResult, 1)
 	stopPending := false
 	shutdown := vm.Shutdown
-	for shutdown != nil || instances.Len()+len(deadInstances) != vmCount {
+	for shutdown != nil || instances.Len()+len(deadInstances) != vmCount || uafInstances.Len()+len(deadUafInstances) != uafVmCount {
 		mgr.mu.Lock()
 		phase := mgr.phase
 		mgr.mu.Unlock()
@@ -430,8 +442,19 @@ func (mgr *Manager) vmLoop() {
 				}
 				log.Logf(1, "loop: starting instance %v", *idx)
 				go func() {
-					crash, err := mgr.runInstance(*idx)
+					crash, err := mgr.runInstance(*idx, false)
 					runDone <- &RunResult{*idx, crash, err}
+				}()
+			}
+			for uafInstances.Len() > 0 {
+				idx := uafInstances.TakeOne()
+				if idx == nil {
+					break
+				}
+				log.Logf(1, "loop: starting uaf instance %v", *idx)
+				go func() {
+					crash, err := mgr.runInstance(*idx, true)
+					uafRunDone <- &RunResult{*idx, crash, err}
 				}()
 			}
 		}
@@ -448,6 +471,36 @@ func (mgr *Manager) vmLoop() {
 		case stopRequest <- true:
 			log.Logf(1, "loop: issued stop request")
 			stopPending = true
+		case res := <-uafRunDone:
+			log.Logf(1, "loop: uaf instance %v finished, crash=%v", res.idx, res.crash != nil)
+			if res.err != nil && shutdown != nil {
+				log.Logf(0, "%v", res.err)
+			}
+			stopPending = false
+			// Don/t restart the fuzzer instance if the
+			// fuzzer bailed out voluntarily (ExitBailOut)
+			crash := res.crash
+			reportType := report.Unknown
+			if crash != nil {
+				reportType = crash.Report.Type
+				if reportType == report.BailOut {
+					deadUafInstances = append(deadUafInstances, res.idx)
+				} else {
+					uafInstances.Put(res.idx)
+				}
+			} else {
+				uafInstances.Put(res.idx)
+			}
+			// On shutdown qemu crashes with "qemu: terminating on signal 2",
+			// which we detect as "lost connection". Don't save that as crash.
+			// BailOut crashes aren't true crashes, they don;t need a repro.
+			if shutdown != nil && res.crash != nil && reportType != report.BailOut {
+				needRepro := mgr.saveCrash(res.crash)
+				if needRepro {
+					log.Logf(1, "loop: add pending repro for '%v'", res.crash.Title)
+					// pendingRepro[res.crash] = true
+				}
+			}
 		case res := <-runDone:
 			log.Logf(1, "loop: instance %v finished, crash=%v", res.idx, res.crash != nil)
 			if res.err != nil && shutdown != nil {
@@ -815,12 +868,15 @@ func (mgr *Manager) loadUafProg(data []byte, minimized, smashed bool) bool {
 		return false
 	}
 	uafProg := uaf.Deserialize(data)
-	mgr.uafCandidates = append(mgr.uafCandidates, rpctype.UafCandidate{
-		Prog:      uafProg.Prog,
+	uafInfo := common.UafInfo{
 		FreeIndex: uafProg.FreeIndex,
 		UseIndex:  uafProg.UseIndex,
 		FreeAddr:  uafProg.FreeAddr,
 		UseAddr:   uafProg.UseAddr,
+	}
+	mgr.uafCandidates = append(mgr.uafCandidates, rpctype.UafCandidate{
+		Prog:      uafProg.Prog,
+		UafInfo:   uafInfo,
 		Minimized: minimized,
 		Smashed:   smashed,
 	})
@@ -893,13 +949,18 @@ func checkProgram(target *prog.Target, enabled map[*prog.Syscall]bool, data []by
 	return false, false
 }
 
-func (mgr *Manager) runInstance(index int) (*Crash, error) {
+func (mgr *Manager) runInstance(index int, sched bool) (*Crash, error) {
 	mgr.checkUsedFiles()
-	instanceName := fmt.Sprintf("fuzzer-vm%d", index)
+	var instanceName string
+	if sched {
+		instanceName = fmt.Sprintf("fuzzer-vm%d", index)
+	} else {
+		instanceName = fmt.Sprintf("scheduler-vm%d", index)
+	}
 
-	rep, vmInfo, err := mgr.runInstanceInner(index, instanceName)
+	rep, vmInfo, err := mgr.runInstanceInner(index, instanceName, sched)
 
-	machineInfo := mgr.serv.shutdownInstance(instanceName)
+	machineInfo := mgr.serv.shutdownInstance(instanceName, sched)
 	if len(vmInfo) != 0 {
 		machineInfo = append(append(vmInfo, '\n'), machineInfo...)
 	}
@@ -921,8 +982,15 @@ func (mgr *Manager) runInstance(index int) (*Crash, error) {
 	return crash, nil
 }
 
-func (mgr *Manager) runInstanceInner(index int, instanceName string) (*report.Report, []byte, error) {
-	inst, err := mgr.vmPool.Create(index)
+func (mgr *Manager) runInstanceInner(index int, instanceName string, sched bool) (*report.Report, []byte, error) {
+	var inst *vm.Instance
+	var err error
+	if sched {
+		inst, err = mgr.uafPool.Create(index)
+	} else {
+		inst, err = mgr.vmPool.Create(index)
+
+	}
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create instance: %v", err)
 	}
@@ -932,8 +1000,12 @@ func (mgr *Manager) runInstanceInner(index int, instanceName string) (*report.Re
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to setup port forwarding: %v", err)
 	}
-
-	fuzzerBin, err := inst.Copy(mgr.cfg.FuzzerBin)
+	var fuzzerBin string
+	if sched {
+		fuzzerBin, err = inst.Copy(mgr.cfg.SchedulerBin)
+	} else {
+		fuzzerBin, err = inst.Copy(mgr.cfg.FuzzerBin)
+	}
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to copy binary: %v", err)
 	}
@@ -950,6 +1022,14 @@ func (mgr *Manager) runInstanceInner(index int, instanceName string) (*report.Re
 
 	fuzzerV := 0
 	procs := mgr.cfg.Procs
+	var flagDebug *bool
+	var collide string
+	if sched {
+		flagDebug = flagSDebug
+		collide = "-collide"
+	} else {
+		flagDebug = flagFDebug
+	}
 	if *flagDebug {
 		fuzzerV = 100
 		procs = 1
@@ -961,6 +1041,7 @@ func (mgr *Manager) runInstanceInner(index int, instanceName string) (*report.Re
 	defer atomic.AddUint32(&mgr.numFuzzing, ^uint32(0))
 
 	args := &instance.FuzzerCmdArgs{
+		Collide:   collide,
 		Fuzzer:    fuzzerBin,
 		Executor:  executorBin,
 		Name:      instanceName,
@@ -1401,6 +1482,41 @@ func (mgr *Manager) minimizeCorpus() {
 	mgr.corpusDB.BumpVersion(currentDBVersion)
 }
 
+func (mgr *Manager) minimizeUafCorpus() {
+	if mgr.phase < phaseLoadedCorpus || len(mgr.uafCorpus) <= mgr.lastMinCorpus*103/100 {
+		return
+	}
+	inputs := make([]signal.Context, 0, len(mgr.uafCorpus))
+	for _, inp := range mgr.uafCorpus {
+		inputs = append(inputs, signal.Context{
+			Signal:  inp.Signal.Deserialize(),
+			Context: inp,
+		})
+	}
+	newCorpus := make(map[string]UafCorpusItem)
+	// Note: inputs are unsorted (based on map iteration).
+	// This gives some intentional non-determinism during minimization.
+	for _, ctx := range signal.Minimize(inputs) {
+		inp := ctx.(UafCorpusItem)
+		newCorpus[uaf.ComputeSig(inp.Prog, inp.UafInfo.Serialize())] = inp
+	}
+	log.Logf(1, "minimized corpus: %v -> %v", len(mgr.uafCorpus), len(newCorpus))
+	mgr.uafCorpus = newCorpus
+
+	// Don't minimize persistent corpus until fuzzers have triaged all inputs from it.
+	if mgr.phase < phaseTriagedCorpus {
+		return
+	}
+	for key := range mgr.uafCorpusDB.Records {
+		_, ok1 := mgr.uafCorpus[key]
+		_, ok2 := mgr.disabledHashes[key]
+		if !ok1 && !ok2 {
+			mgr.uafCorpusDB.Delete(key)
+		}
+	}
+	mgr.uafCorpusDB.BumpVersion(currentDBVersion)
+}
+
 type CallCov struct {
 	count int
 	cov   cover.Cover
@@ -1463,6 +1579,38 @@ func (mgr *Manager) fuzzerConnect(modules []host.KernelModule) (
 	return corpus, frames, mgr.coverFilter, mgr.coverFilterBitmap, nil
 }
 
+func (mgr *Manager) schedulerConnect(modules []host.KernelModule) (
+	[]rpctype.UafInput, BugFrames, map[uint32]uint32, []byte, error) {
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+
+	mgr.minimizeUafCorpus()
+	corpus := make([]rpctype.UafInput, 0, len(mgr.corpus))
+	for _, inp := range mgr.uafCorpus {
+		corpus = append(corpus, inp.RPCInput())
+	}
+	frames := BugFrames{
+		memoryLeaks: make([]string, 0, len(mgr.memoryLeakFrames)),
+		dataRaces:   make([]string, 0, len(mgr.dataRaceFrames)),
+	}
+	for frame := range mgr.memoryLeakFrames {
+		frames.memoryLeaks = append(frames.memoryLeaks, frame)
+	}
+	for frame := range mgr.dataRaceFrames {
+		frames.dataRaces = append(frames.dataRaces, frame)
+	}
+	if !mgr.modulesInitialized {
+		var err error
+		mgr.modules = modules
+		mgr.coverFilterBitmap, mgr.coverFilter, err = mgr.createCoverageFilter()
+		if err != nil {
+			log.Fatalf("failed to create coverage filter: %v", err)
+		}
+		mgr.modulesInitialized = true
+	}
+	return corpus, frames, mgr.coverFilter, mgr.coverFilterBitmap, nil
+}
+
 func (mgr *Manager) machineChecked(a *rpctype.CheckArgs, enabledSyscalls map[*prog.Syscall]bool) {
 	mgr.mu.Lock()
 	defer mgr.mu.Unlock()
@@ -1473,32 +1621,51 @@ func (mgr *Manager) machineChecked(a *rpctype.CheckArgs, enabledSyscalls map[*pr
 	mgr.firstConnect = time.Now()
 }
 
-func (mgr *Manager) newUafInput(inp rpctype.UafInput) bool {
+func (mgr *Manager) newUafCandInput(inp rpctype.UafCandInput) bool {
 	mgr.mu.Lock()
 	defer mgr.mu.Unlock()
-	data := uaf.FromRpcType(inp).Serialize()
-	sig := hash.String(data)
-	if old, ok := mgr.uafCorpus[sig]; ok {
-		mgr.uafCorpus[sig] = old
-	} else {
-		item := UafCorpusItem{
-			Prog:      inp.Prog,
-			FreeIndex: inp.FreeIndex,
-			UseIndex:  inp.UseIndex,
-			// the call length is 5.
-			// ffffffff815eaeed:       e8 ce d2 e8 ff          call   ffffffff814781c0 <kvfree>
-			// ffffffff815eaef2:       48 8b 3d bf 64 60 02    mov    0x26064bf(%rip),%rdi        # ffffffff83bf13b8 <seq_file_cache>
-			FreeAddr: uint64(inp.FreeEvent.Trace[inp.FreeEvent.InstrId]) - 5,
-			UseAddr:  uint64(inp.UseEvent.Trace[inp.UseEvent.InstrId]) - 5,
-		}
-		mgr.uafCorpus[sig] = item
-		debug.LogDebug("newUafInput : FreeIndex: %d, UseIndex: %d, FreeAddr: %x, UseAddr: %x\n", item.FreeIndex,
-			item.UseIndex, item.FreeAddr, item.UseAddr)
-		mgr.uafCorpusDB.Save(sig, data, 0)
-		if err := mgr.uafCorpusDB.Flush(); err != nil {
-			log.Logf(0, "failed to save corpus database: %v", err)
-		}
+
+	uafInfo := common.UafInfo{
+		FreeIndex: inp.FreeIndex,
+		UseIndex:  inp.UseIndex,
+		// the call length is 5.
+		// ffffffff815eaeed:       e8 ce d2 e8 ff          call   ffffffff814781c0 <kvfree>
+		// ffffffff815eaef2:       48 8b 3d bf 64 60 02    mov    0x26064bf(%rip),%rdi        # ffffffff83bf13b8 <seq_file_cache>
+		FreeAddr: uint64(inp.FreeEvent.Trace[inp.FreeEvent.InstrId]) - 5,
+		UseAddr:  uint64(inp.UseEvent.Trace[inp.UseEvent.InstrId]) - 5,
 	}
+
+	uafCandiate := rpctype.UafCandidate{
+		Prog:    inp.Prog,
+		UafInfo: uafInfo,
+	}
+
+	mgr.uafCandidates = append(mgr.uafCandidates, uafCandiate)
+
+	// if old, ok := mgr.uafCorpus[sig]; ok {
+	// 	mgr.uafCorpus[sig] = old
+	// } else {
+	// 	uafInfo := common.UafInfo{
+	// 		FreeIndex: inp.FreeIndex,
+	// 		UseIndex:  inp.UseIndex,
+	// 		// the call length is 5.
+	// 		// ffffffff815eaeed:       e8 ce d2 e8 ff          call   ffffffff814781c0 <kvfree>
+	// 		// ffffffff815eaef2:       48 8b 3d bf 64 60 02    mov    0x26064bf(%rip),%rdi        # ffffffff83bf13b8 <seq_file_cache>
+	// 		FreeAddr: uint64(inp.FreeEvent.Trace[inp.FreeEvent.InstrId]) - 5,
+	// 		UseAddr:  uint64(inp.UseEvent.Trace[inp.UseEvent.InstrId]) - 5,
+	// 	}
+	// 	item := UafCorpusItem{
+	// 		Prog:    inp.Prog,
+	// 		UafInfo: uafInfo,
+	// 	}
+	// 	mgr.uafCorpus[sig] = item
+	// 	debug.LogDebug("newUafInput : FreeIndex: %d, UseIndex: %d, FreeAddr: %x, UseAddr: %x\n", item.FreeIndex,
+	// 		item.UseIndex, item.FreeAddr, item.UseAddr)
+	// 	mgr.uafCorpusDB.Save(sig, data, 0)
+	// 	if err := mgr.uafCorpusDB.Flush(); err != nil {
+	// 		log.Logf(0, "failed to save corpus database: %v", err)
+	// 	}
+	// }
 	return true
 }
 
@@ -1543,6 +1710,31 @@ func (mgr *Manager) newInput(inp rpctype.Input, sign signal.Signal) bool {
 	return true
 }
 
+func (mgr *Manager) newUafInput(inp rpctype.UafInput, sign signal.Signal) bool {
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	if mgr.saturatedCalls[inp.Call] {
+		return false
+	}
+
+	sig := hash.String(inp.Prog)
+	if old, ok := mgr.uafCorpus[sig]; ok {
+		mgr.uafCorpus[sig] = old
+	} else {
+		mgr.uafCorpus[sig] = UafCorpusItem{
+			Prog:    inp.Prog,
+			Signal:  inp.Signal,
+			Cover:   inp.Cover,
+			UafInfo: inp.UafInfo,
+		}
+		mgr.corpusDB.Save(sig, inp.Prog, 0)
+		if err := mgr.corpusDB.Flush(); err != nil {
+			log.Logf(0, "failed to save corpus database: %v", err)
+		}
+	}
+	return true
+}
+
 func (mgr *Manager) candidateBatch(size int) []rpctype.Candidate {
 	mgr.mu.Lock()
 	defer mgr.mu.Unlock()
@@ -1555,6 +1747,32 @@ func (mgr *Manager) candidateBatch(size int) []rpctype.Candidate {
 	}
 	if len(mgr.candidates) == 0 {
 		mgr.candidates = nil
+		if mgr.phase == phaseLoadedCorpus {
+			if mgr.cfg.HubClient != "" {
+				mgr.phase = phaseTriagedCorpus
+				go mgr.hubSyncLoop(pickGetter(mgr.cfg.HubKey))
+			} else {
+				mgr.phase = phaseTriagedHub
+			}
+		} else if mgr.phase == phaseQueriedHub {
+			mgr.phase = phaseTriagedHub
+		}
+	}
+	return res
+}
+
+func (mgr *Manager) candidateSchedulerBatch(size int) []rpctype.UafCandidate {
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	var res []rpctype.UafCandidate
+	for i := 0; i < size && len(mgr.uafCandidates) > 0; i++ {
+		last := len(mgr.uafCandidates) - 1
+		res = append(res, mgr.uafCandidates[last])
+		mgr.uafCandidates[last] = rpctype.UafCandidate{}
+		mgr.uafCandidates = mgr.uafCandidates[:last]
+	}
+	if len(mgr.uafCandidates) == 0 {
+		mgr.uafCandidates = nil
 		if mgr.phase == phaseLoadedCorpus {
 			if mgr.cfg.HubClient != "" {
 				mgr.phase = phaseTriagedCorpus
@@ -1591,6 +1809,7 @@ func (mgr *Manager) collectUsedFiles() {
 	}
 	cfg := mgr.cfg
 	addUsedFile(cfg.FuzzerBin)
+	addUsedFile(cfg.SchedulerBin)
 	addUsedFile(cfg.ExecprogBin)
 	addUsedFile(cfg.ExecutorBin)
 	addUsedFile(cfg.SSHKey)
