@@ -322,7 +322,7 @@ func (typ *PtrType) minimize(ctx *minimizeArgsCtx, arg Arg, path string) bool {
 		replaceArg(a, MakeSpecialPointerArg(a.Type(), a.GetDir(), 0))
 		ctx.target.assignSizesCall(ctx.call)
 
-		if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
+		if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf != nil && ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 			*ctx.p0 = ctx.p
 		}
 
@@ -347,7 +347,7 @@ func (typ *ArrayType) minimize(ctx *minimizeArgsCtx, arg Arg, path string) bool 
 			removeArg(elem)
 			ctx.target.assignSizesCall(ctx.call)
 
-			if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
+			if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf != nil && ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 				*ctx.p0 = ctx.p
 			}
 
@@ -393,7 +393,7 @@ func minimizeInt(ctx *minimizeArgsCtx, arg Arg, path string) bool {
 	}
 	v0 := a.Val
 	a.Val = def.Val
-	if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
+	if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf != nil && ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 		*ctx.p0 = ctx.p
 		ctx.triedPaths[path] = true
 		return true
@@ -413,7 +413,7 @@ func (typ *ResourceType) minimize(ctx *minimizeArgsCtx, arg Arg, path string) bo
 	r0 := a.Res
 	delete(a.Res.uses, a)
 	a.Res, a.Val = nil, typ.Default()
-	if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
+	if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf != nil && ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 		*ctx.p0 = ctx.p
 	} else {
 		a.Res, a.Val = r0, 0
@@ -435,7 +435,7 @@ func (typ *BufferType) minimize(ctx *minimizeArgsCtx, arg Arg, path string) bool
 		if len(a.Data())-step >= minLen {
 			a.data = a.Data()[:len(a.Data())-step]
 			ctx.target.assignSizesCall(ctx.call)
-			if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
+			if ctx.pred != nil && ctx.pred(ctx.p, ctx.callIndex0) || ctx.predUaf != nil && ctx.predUaf(ctx.p, ctx.callIndex0, ctx.uafIndex) {
 				continue
 			}
 			a.data = a.Data()[:len(a.Data())+step]

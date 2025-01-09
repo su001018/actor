@@ -164,6 +164,8 @@ func main() {
 		flagManager  = flag.String("manager", "", "manager rpc address")
 		flagProcs    = flag.Int("procs", 1, "number of parallel test processes")
 		flagOutput   = flag.String("output", "stdout", "write programs to none/stdout/dmesg/file")
+		flagTest     = flag.Bool("test", false, "enable image testing mode")      // used by syz-ci
+		flagRunTest  = flag.Bool("runtest", false, "enable program testing mode") // used by pkg/runtest
 		flagRawCover = flag.Bool("raw_cover", false, "fetch raw coverage")
 		flagVanilla  = flag.Bool("vanilla", false, "use vanilla call generation exclusively")
 	)
@@ -203,6 +205,9 @@ func main() {
 		targetRevision: target.Revision,
 	}
 
+	if *flagTest || *flagRunTest {
+		log.Logf(1, "flagTest or flagRunTest is set")
+	}
 	machineInfo, modules := collectMachineInfos(target)
 
 	log.Logf(0, "dialing manager at %v", *flagManager)
@@ -693,8 +698,8 @@ func (scheduler *Scheduler) getStrategies() {
 		Name: scheduler.name,
 	}
 	r := &rpctype.GetStratRes{}
-	if err := scheduler.manager.Call("Manager.GetStrategies", a, r); err != nil {
-		log.Fatalf("Manager.GetStrategies call failed: %v", err)
+	if err := scheduler.manager.Call("Manager.GetSchedulerStrategies", a, r); err != nil {
+		log.Fatalf("Manager.GetSchedulerStrategies call failed: %v", err)
 	}
 	// read data from ivshmem
 	var strats []prog.Strategy
@@ -759,12 +764,15 @@ func (scheduler *Scheduler) snapshot() FuzzerSnapshot {
 	return FuzzerSnapshot{scheduler.corpus, scheduler.corpusPrios, scheduler.sumPrios}
 }
 
-func (fuzzer *FuzzerSnapshot) chooseProgram(r *rand.Rand) *uaf.UafCandiate {
-	randVal := r.Int63n(fuzzer.sumPrios + 1)
-	idx := sort.Search(len(fuzzer.corpusPrios), func(i int) bool {
-		return fuzzer.corpusPrios[i] >= randVal
+func (scheduler *FuzzerSnapshot) chooseProgram(r *rand.Rand) *uaf.UafCandiate {
+	if len(scheduler.corpus) == 0 {
+		return nil
+	}
+	randVal := r.Int63n(scheduler.sumPrios + 1)
+	idx := sort.Search(len(scheduler.corpusPrios), func(i int) bool {
+		return scheduler.corpusPrios[i] >= randVal
 	})
-	return fuzzer.corpus[idx]
+	return scheduler.corpus[idx]
 }
 
 func (scheduler *Scheduler) checkNewSignal(p *prog.Prog, info *ipc.ProgInfo) (calls []int, extra bool) {

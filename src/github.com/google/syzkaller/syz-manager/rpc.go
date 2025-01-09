@@ -740,6 +740,32 @@ func (serv *RPCServer) GetStrategies(a *rpctype.GetStratArg, r *rpctype.GetStrat
 	return nil
 }
 
+func (serv *RPCServer) GetSchedulerStrategies(a *rpctype.GetStratArg, r *rpctype.GetStratRes) error {
+	serv.mu.Lock()
+	defer serv.mu.Unlock()
+
+	s := serv.schedulers[a.Name]
+	if s == nil {
+		log.Fatalf("scheduler %v is not connected", a.Name)
+	}
+
+	writeU64(s.ivshmem, uint64(0))
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(serv.strategies)
+	if err != nil {
+		log.Fatalf("Encoding of strategies failed: %v", err)
+	}
+	n := buf.Len()
+	if n != copy(s.ivshmem[8:], buf.Bytes()) {
+		r.Len = 0
+		log.Fatalf("buffer was too small for strategies")
+	}
+	r.Len = uint64(n)
+
+	return nil
+}
+
 func (serv *RPCServer) PollNew(a *rpctype.PollArgsNew, r *rpctype.PollResNew) error {
 	serv.stats.mergeNamed(a.Stats)
 

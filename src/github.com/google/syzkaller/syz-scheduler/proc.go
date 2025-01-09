@@ -85,6 +85,9 @@ func (proc *Proc) loop() {
 
 		// Mutate an existing prog.
 		u := fuzzerSnapshot.chooseProgram(proc.rnd)
+		if u == nil {
+			continue
+		}
 		p := u.Prog.Clone()
 		idx := p.MutateUaf(proc.rnd, prog.RecommendedCalls, ct, ExtractProgs(fuzzerSnapshot.corpus), evState, [2]int{u.FreeIndex, u.UseIndex})
 		u.FreeIndex = idx[0]
@@ -119,7 +122,7 @@ func (proc *Proc) triageInput(item *WorkTriage) {
 	notexecuted := 0
 	rawCover := []uint32{}
 	for i := 0; i < signalRuns; i++ {
-		info := proc.executeRaw(proc.execOptsCover, item.p, StatTriage, item.UafInfo)
+		info := proc.executeRaw(proc.execOptsCollideCover, item.p, StatTriage, item.UafInfo)
 		if !reexecutionSuccess(info, &item.info, item.call) {
 			// The call was not executed or failed.
 			notexecuted++

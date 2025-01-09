@@ -952,7 +952,7 @@ func checkProgram(target *prog.Target, enabled map[*prog.Syscall]bool, data []by
 func (mgr *Manager) runInstance(index int, sched bool) (*Crash, error) {
 	mgr.checkUsedFiles()
 	var instanceName string
-	if sched {
+	if !sched {
 		instanceName = fmt.Sprintf("fuzzer-vm%d", index)
 	} else {
 		instanceName = fmt.Sprintf("scheduler-vm%d", index)
@@ -1727,8 +1727,8 @@ func (mgr *Manager) newUafInput(inp rpctype.UafInput, sign signal.Signal) bool {
 			Cover:   inp.Cover,
 			UafInfo: inp.UafInfo,
 		}
-		mgr.corpusDB.Save(sig, inp.Prog, 0)
-		if err := mgr.corpusDB.Flush(); err != nil {
+		mgr.uafCorpusDB.Save(sig, inp.Prog, 0)
+		if err := mgr.uafCorpusDB.Flush(); err != nil {
 			log.Logf(0, "failed to save corpus database: %v", err)
 		}
 	}

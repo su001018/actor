@@ -309,7 +309,7 @@ func ctor(env *vmimpl.Env) (vmimpl.Pool, error) {
 }
 
 func (pool *Pool) Count() int {
-	if pool.env.Sched {
+	if !pool.env.Sched {
 		return pool.cfg.Count
 	} else {
 		return pool.cfg.SchedCount
@@ -442,6 +442,9 @@ func (inst *instance) boot() error {
 		"-object", fmt.Sprintf("memory-backend-file,size=512M,share,mem-path=/dev/shm/ivshmemfile%s,id=ivshmem", inst.name),
 		"-device", "ivshmem,x-memdev=ivshmem",
 		"-name", inst.name,
+	}
+	if inst.debug {
+		args = append(args, "-race-debug")
 	}
 	if inst.archConfig.RngDev != "" {
 		args = append(args, "-device", inst.archConfig.RngDev)

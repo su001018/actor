@@ -282,7 +282,7 @@ static void evtrack_stop(evtrack_t* ev)
 static void evtrack_disable(evtrack_t* ev)
 {
 	if (ioctl(ev->fd, EVTRACK_DISABLE, 0))
-		exitf("evtrack disable failed");
+		exitf("evtrack pid=%d disable failed", getpid());
 	else
 		debug("event disabled pid=%d\n", getpid());
 	return;

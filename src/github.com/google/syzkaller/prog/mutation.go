@@ -134,6 +134,9 @@ func (ctx *mutator) splice() bool {
 	p0 := ctx.corpus[r.Intn(len(ctx.corpus))]
 	p0c := p0.Clone()
 	idx := r.Intn(len(p.Calls))
+	for len(p0c.Calls)+len(p.Calls) > ctx.ncalls {
+		p0c.RemoveCall(len(p0c.Calls) - 1)
+	}
 	for i := 0; i < 2; i++ {
 		if ctx.index[i] >= idx {
 			ctx.index[i] += len(p0c.Calls)
@@ -201,6 +204,9 @@ func (ctx *mutator) insertCall() (bool, bool) {
 	}
 	s := analyze(ctx.ct, ctx.corpus, p, c, ctx.evState)
 	calls, usedACTOR := r.generateCalls(s, p, idx, len(p.Calls))
+	for len(calls)+len(p.Calls) > ctx.ncalls {
+		calls = calls[:len(calls)-1]
+	}
 	p.insertBefore(c, calls)
 	for i := 0; i < 2; i++ {
 		if ctx.index[i] >= idx {
@@ -259,13 +265,16 @@ func (ctx *mutator) mutateArg() bool {
 			ok = false
 			continue
 		}
+		for len(calls)+len(p.Calls) > ctx.ncalls {
+			calls = calls[:len(calls)-1]
+		}
+		p.insertBefore(c, calls)
+		idx += len(calls)
 		for i := 0; i < 2; i++ {
 			if ctx.index[i] >= idx {
 				ctx.index[i] += len(calls)
 			}
 		}
-		p.insertBefore(c, calls)
-		idx += len(calls)
 		// for len(p.Calls) > ctx.ncalls {
 		// 	idx--
 		// 	p.RemoveCall(idx)

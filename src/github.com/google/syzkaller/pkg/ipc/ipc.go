@@ -1043,6 +1043,7 @@ func (c *command) execUaf(opts *ExecOpts, progData []byte, uafInfo common.UafInf
 		bp1:        uafInfo.UseAddr,
 		sched:      uint64(uafInfo.Sched),
 	}
+	fmt.Printf("execUaf: info is %+v, req is %+v, bp0 is %x, bp1 is %x\n", uafInfo, req, uafInfo.FreeAddr, uafInfo.UseAddr)
 	reqData := (*[unsafe.Sizeof(*req)]byte)(unsafe.Pointer(req))[:]
 	if _, err := c.outwp.Write(reqData); err != nil {
 		output = <-c.readDone

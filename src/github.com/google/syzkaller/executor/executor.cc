@@ -201,7 +201,6 @@ static uint64 program_timeout_ms;
 static uint64 slowdown_scale;
 
 //razzer
-bool collide;
 pthread_barrier_t ready_barrier;
 bool race_result[2];
 int race_done[2];
@@ -303,8 +302,10 @@ struct evtrack_t {
 struct thread_t {
 	int id;
 	bool created;
+	pthread_t t;
 	event_t ready;
 	event_t done;
+	event_t disabled;
 	uint64* copyout_pos;
 	uint64 copyout_index;
 	bool executing; // alias "handled" in razzer
@@ -331,6 +332,7 @@ static thread_t threads[kMaxThreads];
 static thread_t* last_scheduled;
 // Threads use this variable to access information about themselves.
 static __thread struct thread_t* current_thread;
+
 
 static cover_t extra_cov;
 
@@ -459,6 +461,7 @@ static void setup_features(char** enable, int n);
 
 // razzer
 void set_cpu_affinity(thread_t* th);
+
 
 
 #include "syscalls.h"
@@ -864,7 +867,6 @@ void realloc_output_data()
 // execute_one executes program stored in input_data.
 void execute_one()
 {
-	bool colliding = false;
 
 #if SYZ_EXECUTOR_USES_SHMEM
 	realloc_output_data();
@@ -874,18 +876,18 @@ void execute_one()
 	uint64 start = current_time_ms();
 	prepare_race();
 
-retry:
 	uint64* input_pos = (uint64*)input_data;
 
+
 	if (cover_collection_required()) {
-		if (!flag_threaded && !colliding)
+		if (!flag_threaded)
 			cover_enable(&threads[0].cov, flag_comparisons, false);
 		if (flag_extra_coverage)
 			cover_reset(&extra_cov);
 	}
 
 	if (flag_collect_event) {
-		if (!flag_threaded && !colliding)
+		if (!flag_threaded)
 			evtrack_enable(&threads[0].ev);
 	}
 
@@ -1010,10 +1012,10 @@ retry:
 			args[i] = read_arg(&input_pos);
 		for (uint64 i = num_args; i < kMaxArgs; i++)
 			args[i] = 0;
-		thread_t* th = schedule_call(call_index++, call_num, colliding, copyout_index,
+		thread_t* th = schedule_call(call_index++, call_num, flag_collide, copyout_index,
 					     num_args, args, input_pos, call_props);
 
-		if (colliding /* call_props.async && flag_threaded */) {
+		if ((call_props.async && flag_threaded) || flag_collide) {
 			// Don't wait for an async call to finish. We'll wait at the end.
 			// If we're not in the threaded mode, just ignore the async flag - during repro simplification syzkaller
 			// will anyway try to make it non-threaded.
@@ -1081,10 +1083,18 @@ retry:
 		}
 	}
 
-	for (int i = 0; i < kMaxThreads; i++) {
+	// 每个线程th在各自的worker_thread中进行的evtrack_enable，由当前线程进行evtrack_disable会报错
+	for(int i = 0; i < kMaxThreads; i++){
 		thread_t* th = &threads[i];
-		evtrack_disable(&th->ev);
+		if(!flag_threaded){
+			evtrack_disable(&(th->ev));
+		}else{
+			event_set(&th->disabled);
+			event_set(&th->ready);
+		}
+		
 	}
+	
 
 #if SYZ_HAVE_CLOSE_FDS
 	close_fds();
@@ -1106,12 +1116,6 @@ retry:
 		write_extra_output();
 	}
 
-	// razzer
-	if (flag_collide && !colliding && !collide) {
-		debug("enabling collider\n");
-		collide = colliding = true;
-		goto retry;
-	}
 
 	// razzer
 	int res = finish_race();
@@ -1449,6 +1453,7 @@ void thread_create(thread_t* th, int id, bool need_coverage)
 	}
 	event_init(&th->ready);
 	event_init(&th->done);
+	event_init(&th->disabled);
 	event_set(&th->done);
 	if (flag_threaded)
 		thread_start(worker_thread, th);
@@ -1465,12 +1470,22 @@ void thread_mmap_cover(thread_t* th)
 void* worker_thread(void* arg)
 {
 	thread_t* th = (thread_t*)arg;
+
 	current_thread = th;
 	if (cover_collection_required())
 		cover_enable(&th->cov, flag_comparisons, false);
+
 	for (;;) {
+
 		event_wait(&th->ready);
 		event_reset(&th->ready);
+
+		// in threaded mode, evtrack_disable should be done by each thread
+		if(event_isset(&th->disabled)){
+			event_reset(&th->disabled);
+			evtrack_disable(&th->ev);
+			continue;
+		}
 
 		// razzer
 		set_cpu_affinity(th);
@@ -1498,7 +1513,7 @@ void* worker_thread(void* arg)
 // razzer
 uint64 hypercall(int id, long cmd, unsigned long bp, int sched)
 {
-	if (collide)
+	if (flag_collide)
 		return syscall(SYS_hypercall, id, cmd, bp, sched);
 	return 0;
 }
@@ -2102,3 +2117,4 @@ void debug_dump_data(const char* data, int length)
 	if (i % 16 != 0)
 		debug("\n");
 }
+
