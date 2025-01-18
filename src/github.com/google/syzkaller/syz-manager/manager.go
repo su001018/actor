@@ -27,6 +27,9 @@ import (
 	"github.com/google/syzkaller/pkg/cover"
 	"github.com/google/syzkaller/pkg/csource"
 	"github.com/google/syzkaller/pkg/db"
+	"github.com/google/syzkaller/pkg/debug"
+
+	// "github.com/google/syzkaller/pkg/debug"
 	"github.com/google/syzkaller/pkg/gce"
 	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/host"
@@ -495,7 +498,7 @@ func (mgr *Manager) vmLoop() {
 			// which we detect as "lost connection". Don't save that as crash.
 			// BailOut crashes aren't true crashes, they don;t need a repro.
 			if shutdown != nil && res.crash != nil && reportType != report.BailOut {
-				needRepro := mgr.saveCrash(res.crash)
+				needRepro := mgr.saveCrash(res.crash, true)
 				if needRepro {
 					log.Logf(1, "loop: add pending repro for '%v'", res.crash.Title)
 					// pendingRepro[res.crash] = true
@@ -525,7 +528,7 @@ func (mgr *Manager) vmLoop() {
 			// which we detect as "lost connection". Don't save that as crash.
 			// BailOut crashes aren't true crashes, they don;t need a repro.
 			if shutdown != nil && res.crash != nil && reportType != report.BailOut {
-				needRepro := mgr.saveCrash(res.crash)
+				needRepro := mgr.saveCrash(res.crash, false)
 				if needRepro {
 					log.Logf(1, "loop: add pending repro for '%v'", res.crash.Title)
 					pendingRepro[res.crash] = true
@@ -1098,7 +1101,7 @@ func (mgr *Manager) emailCrash(crash *Crash) {
 	}
 }
 
-func (mgr *Manager) saveCrash(crash *Crash) bool {
+func (mgr *Manager) saveCrash(crash *Crash, sched bool) bool {
 	if err := mgr.reporter.Symbolize(crash.Report); err != nil {
 		log.Logf(0, "failed to symbolize report: %v", err)
 	}
@@ -1119,7 +1122,13 @@ func (mgr *Manager) saveCrash(crash *Crash) bool {
 	if crash.Suppressed {
 		flags += " [suppressed]"
 	}
-	log.Logf(0, "vm-%v: crash: %v%v", crash.vmIndex, crash.Title, flags)
+	var name string
+	if sched {
+		name = "scheduler"
+	} else {
+		name = "fuzzer"
+	}
+	log.Logf(0, "%s-%v: crash: %v%v", name, crash.vmIndex, crash.Title, flags)
 
 	if crash.Suppressed {
 		// Collect all of them into a single bucket so that it's possible to control and assess them,
@@ -1635,12 +1644,13 @@ func (mgr *Manager) newUafCandInput(inp rpctype.UafCandInput) bool {
 		UseAddr:  uint64(inp.UseEvent.Trace[inp.UseEvent.InstrId]) - 5,
 	}
 
-	uafCandiate := rpctype.UafCandidate{
+	uafCand := rpctype.UafCandidate{
 		Prog:    inp.Prog,
 		UafInfo: uafInfo,
 	}
+	debug.LogDebug("newUafCandInput: uafCand info:%v, freeAddr:%x,useAddr:%x\n", uafInfo, uafInfo.FreeAddr, uafInfo.UseAddr)
 
-	mgr.uafCandidates = append(mgr.uafCandidates, uafCandiate)
+	mgr.uafCandidates = append(mgr.uafCandidates, uafCand)
 
 	// if old, ok := mgr.uafCorpus[sig]; ok {
 	// 	mgr.uafCorpus[sig] = old
@@ -1717,17 +1727,18 @@ func (mgr *Manager) newUafInput(inp rpctype.UafInput, sign signal.Signal) bool {
 		return false
 	}
 
-	sig := hash.String(inp.Prog)
+	sig := hash.String(inp.Prog, inp.UafInfo.Serialize())
 	if old, ok := mgr.uafCorpus[sig]; ok {
 		mgr.uafCorpus[sig] = old
 	} else {
-		mgr.uafCorpus[sig] = UafCorpusItem{
+		item := UafCorpusItem{
 			Prog:    inp.Prog,
 			Signal:  inp.Signal,
 			Cover:   inp.Cover,
 			UafInfo: inp.UafInfo,
 		}
-		mgr.uafCorpusDB.Save(sig, inp.Prog, 0)
+		mgr.uafCorpus[sig] = item
+		mgr.uafCorpusDB.Save(sig, item.Serialize(), 0)
 		if err := mgr.uafCorpusDB.Flush(); err != nil {
 			log.Logf(0, "failed to save corpus database: %v", err)
 		}

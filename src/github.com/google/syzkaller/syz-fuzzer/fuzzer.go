@@ -81,6 +81,10 @@ type Fuzzer struct {
 	checkResult *rpctype.CheckArgs
 	logMu       sync.Mutex
 	ivshmem     []byte
+
+	// uaf
+	allocMap map[uint64]uint64
+	allocMu  sync.Mutex
 }
 
 type FuzzerSnapshot struct {
@@ -309,6 +313,7 @@ func main() {
 		hasBatch:                 hasBatch,
 		vanilla:                  *flagVanilla,
 		banned:                   make(map[string]bool),
+		allocMap:                 make(map[uint64]uint64),
 	}
 	gateCallback := fuzzer.useBugFrames(r, *flagProcs)
 	fuzzer.gate = ipc.NewGate(2**flagProcs, gateCallback)

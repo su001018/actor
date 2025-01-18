@@ -289,6 +289,7 @@ func buildCallList(target *prog.Target, enabledCalls []int, sandbox string) (
 			}
 			calls[target.Syscalls[n]] = true
 		}
+		log.Logf(0, "enabledCalls len: %d, calls len: %d\n", len(enabledCalls), len(calls))
 	} else {
 		for _, c := range target.Syscalls {
 			calls[c] = true
@@ -301,7 +302,7 @@ func buildCallList(target *prog.Target, enabledCalls []int, sandbox string) (
 	}
 	for c := range calls {
 		if reason, ok := unsupported[c]; ok {
-			log.Logf(1, "unsupported syscall: %v: %v", c.Name, reason)
+			log.Logf(0, "unsupported syscall: %v: %v", c.Name, reason)
 			disabled = append(disabled, rpctype.SyscallReason{
 				ID:     c.ID,
 				Reason: reason,
@@ -312,7 +313,7 @@ func buildCallList(target *prog.Target, enabledCalls []int, sandbox string) (
 	_, unsupported = target.TransitivelyEnabledCalls(calls)
 	for c := range calls {
 		if reason, ok := unsupported[c]; ok {
-			log.Logf(1, "transitively unsupported: %v: %v", c.Name, reason)
+			log.Logf(0, "transitively unsupported: %v: %v", c.Name, reason)
 			disabled = append(disabled, rpctype.SyscallReason{
 				ID:     c.ID,
 				Reason: reason,

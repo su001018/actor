@@ -75,7 +75,7 @@ func (proc *Proc) loop() {
 			case *WorkTriage:
 				proc.triageInput(item)
 			case *WorkCandidate:
-				proc.execute(proc.execOpts, item.p, item.flags, StatCandidate, false)
+				proc.executeWithFail(proc.execOpts, item.p, item.flags, StatCandidate, false)
 			case *WorkSmash:
 				proc.smashInput(item)
 			default:
@@ -100,6 +100,15 @@ func (proc *Proc) loop() {
 			proc.executeAndCollide(proc.execOpts, p, ProgNormal, StatFuzz, true)
 		}
 	}
+}
+
+func (proc *Proc) executeWithFail(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes, stat Stat, keepEvts bool) {
+	if proc.rnd.Intn(100) == 0 && proc.fuzzer.faultInjectionEnabled {
+		idx := proc.rnd.Intn(len(p.Calls))
+		log.Logf(1, "#%v: fail prog call :%d\n", proc.pid, idx)
+		proc.failCall(p, idx)
+	}
+	proc.execute(execOpts, p, flags, stat, keepEvts)
 }
 
 func (proc *Proc) triageInput(item *WorkTriage) {
@@ -260,7 +269,6 @@ func (proc *Proc) execute(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes,
 	if info == nil {
 		return nil
 	}
-	proc.storeUafInput(p, info)
 	calls, extra := proc.fuzzer.checkNewSignal(p, info)
 	for _, callIndex := range calls {
 		proc.enqueueCallTriage(p, flags, callIndex, info.Calls[callIndex])
@@ -343,6 +351,9 @@ func (proc *Proc) executeRaw(opts *ipc.ExecOpts, p *prog.Prog, stat Stat) *ipc.P
 			continue
 		}
 		log.Logf(2, "result hanged=%v: %s", hanged, output)
+		if info != nil {
+			proc.storeUafInput(p, info)
+		}
 		return info
 	}
 }
@@ -385,7 +396,9 @@ func (proc *Proc) logProgram(opts *ipc.ExecOpts, p *prog.Prog) {
 }
 
 func (proc *Proc) storeUafInput(p *prog.Prog, info *ipc.ProgInfo) {
-	uafProgs := uaf.BuildUafProgList(p, info)
+	proc.fuzzer.allocMu.Lock()
+	uafProgs := uaf.BuildUafProgList(proc.fuzzer.allocMap, p, info)
+	proc.fuzzer.allocMu.Unlock()
 
 	if len(uafProgs) == 0 {
 		return

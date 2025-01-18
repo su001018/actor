@@ -17,7 +17,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/google/syzkaller/pkg/debug"
 	"github.com/google/syzkaller/pkg/evtrack"
 	"github.com/google/syzkaller/pkg/log"
 	"github.com/google/syzkaller/pkg/osutil"
@@ -589,7 +588,7 @@ func (serv *RPCServer) Find_trigg_instruction(evt *prog.EvtrackEvent) string {
 	// 	return ""
 	// }
 	// defer debugFile.Close()
-	debug.LogDebug("find_trigg_instruction: event is: %+v, trace list is: %#x\n", evt, evt.Trace)
+	// debug.LogDebug("find_trigg_instruction: event is: %+v, trace list is: %#x\n", evt, evt.Trace)
 
 	for i := uint32(2); i < evt.NumTrace; i++ {
 		serv.cacheMu.Lock()
@@ -643,7 +642,7 @@ func (serv *RPCServer) Find_trigg_instruction(evt *prog.EvtrackEvent) string {
 				prev_bound = false
 			}
 		}
-		debug.LogDebug("Trace is %x, InstrId is %d\n", evt.Trace[i], evt.InstrId)
+		// debug.LogDebug("Trace is %x, InstrId is %d\n", evt.Trace[i], evt.InstrId)
 	}
 	serv.cacheMu.Lock()
 	serv.cacheMisses += misses

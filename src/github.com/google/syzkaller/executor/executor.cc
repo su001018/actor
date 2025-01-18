@@ -1130,10 +1130,26 @@ thread_t* schedule_call(int call_index, int call_num, bool colliding, uint64 cop
 
 	// razzer
 	int i = 0, first_call_index = 0;
-	if (colliding && call_index > (int)(race_info[0].race_index)) {
-		i++;
-		first_call_index = race_info[0].race_index + 1;
+	if(colliding){
+		if (call_index > (int)(race_info[0].race_index)) {
+			i++;
+			first_call_index = race_info[0].race_index + 1;
+		}
+	}else{
+		for (; i < kMaxThreads; i++) {
+			thread_t* th = &threads[i];
+			if (!th->created)
+				thread_create(th, i, cover_collection_required());
+			if (event_isset(&th->done)) {
+				if (th->executing)
+					handle_completion(th);
+				break;
+			}
+		}
 	}
+	if (i == kMaxThreads)
+		exitf("out of threads");
+	
 	thread_t* th = &threads[i];
 	if (!th->created)
 		thread_create(th, i, cover_collection_required());

@@ -57,9 +57,9 @@ func (p *Prog) Mutate(rs rand.Source, ncalls int, ct *ChoiceTable, corpus []*Pro
 	}
 	p.sanitizeFix()
 	p.debugValidate()
-	if got := len(p.Calls); got < 1 || got > ncalls {
-		panic(fmt.Sprintf("bad number of calls after mutation: %v, want [1, %v]", got, ncalls))
-	}
+	// if got := len(p.Calls); got < 1 || got > ncalls {
+	// 	panic(fmt.Sprintf("bad number of calls after mutation: %v, want [1, %v]", got, ncalls))
+	// }
 }
 
 // Mutate program p.
@@ -105,9 +105,9 @@ func (p *Prog) MutateUaf(rs rand.Source, ncalls int, ct *ChoiceTable, corpus []*
 	}
 	p.sanitizeFix()
 	p.debugValidate()
-	if got := len(p.Calls); got < 1 || got > ncalls {
-		panic(fmt.Sprintf("bad number of calls after mutation: %v, want [1, %v]", got, ncalls))
-	}
+	// if got := len(p.Calls); got < 1 || got > ncalls {
+	// 	panic(fmt.Sprintf("bad number of calls after mutation: %v, want [1, %v]", got, ncalls))
+	// }
 	return ctx.index
 }
 
@@ -134,18 +134,18 @@ func (ctx *mutator) splice() bool {
 	p0 := ctx.corpus[r.Intn(len(ctx.corpus))]
 	p0c := p0.Clone()
 	idx := r.Intn(len(p.Calls))
-	for len(p0c.Calls)+len(p.Calls) > ctx.ncalls {
-		p0c.RemoveCall(len(p0c.Calls) - 1)
-	}
+	// for len(p0c.Calls)+len(p.Calls) > ctx.ncalls {
+	// 	p0c.RemoveCall(len(p0c.Calls) - 1)
+	// }
 	for i := 0; i < 2; i++ {
 		if ctx.index[i] >= idx {
 			ctx.index[i] += len(p0c.Calls)
 		}
 	}
 	p.Calls = append(p.Calls[:idx], append(p0c.Calls, p.Calls[idx:]...)...)
-	// for i := len(p.Calls) - 1; i >= ctx.ncalls; i-- {
-	// 	p.RemoveCall(i)
-	// }
+	for i := len(p.Calls) - 1; i >= ctx.ncalls; i-- {
+		p.RemoveCall(i)
+	}
 	return true
 }
 
@@ -204,9 +204,9 @@ func (ctx *mutator) insertCall() (bool, bool) {
 	}
 	s := analyze(ctx.ct, ctx.corpus, p, c, ctx.evState)
 	calls, usedACTOR := r.generateCalls(s, p, idx, len(p.Calls))
-	for len(calls)+len(p.Calls) > ctx.ncalls {
-		calls = calls[:len(calls)-1]
-	}
+	// for len(calls)+len(p.Calls) > ctx.ncalls {
+	// 	calls = calls[:len(calls)-1]
+	// }
 	p.insertBefore(c, calls)
 	for i := 0; i < 2; i++ {
 		if ctx.index[i] >= idx {
@@ -265,9 +265,9 @@ func (ctx *mutator) mutateArg() bool {
 			ok = false
 			continue
 		}
-		for len(calls)+len(p.Calls) > ctx.ncalls {
-			calls = calls[:len(calls)-1]
-		}
+		// for len(calls)+len(p.Calls) > ctx.ncalls {
+		// 	calls = calls[:len(calls)-1]
+		// }
 		p.insertBefore(c, calls)
 		idx += len(calls)
 		for i := 0; i < 2; i++ {

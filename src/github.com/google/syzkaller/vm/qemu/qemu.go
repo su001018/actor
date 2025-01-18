@@ -135,6 +135,18 @@ var archConfigs = map[string]*archConfig{
 		CmdLine: []string{
 			"root=/dev/sda",
 			"console=ttyS0",
+			"kvm-intel.nested=1",
+			"kvm-intel.unrestricted_guest=1",
+			"kvm-intel.vmm_exclusive=1",
+			"kvm-intel.fasteoi=1",
+			"kvm-intel.ept=1",
+			"kvm-intel.flexpriority=1",
+			"kvm-intel.vpid=1",
+			"kvm-intel.emulate_invalid_guest_state=1",
+			"kvm-intel.eptad=1",
+			"kvm-intel.enable_shadow_vmcs=1",
+			"kvm-intel.pml=1",
+			"kvm-intel.enable_apicv=1",
 		},
 	},
 	"linux/386": {
@@ -267,6 +279,7 @@ func ctor(env *vmimpl.Env) (vmimpl.Pool, error) {
 	if env.Debug && cfg.Count > 1 {
 		log.Logf(0, "limiting number of VMs from %v to 1 in debug mode", cfg.Count)
 		cfg.Count = 1
+		cfg.SchedCount = 1
 	}
 	if _, err := exec.LookPath(cfg.Qemu); err != nil {
 		return nil, err

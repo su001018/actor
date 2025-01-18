@@ -50,7 +50,7 @@ var (
 	// of syzkaller, but do not process it, as there's no such functionality anymore.
 	// Note, however, that we do not have to do the same for `syz-prog2c`, as `collide` was there false
 	// by default.
-	flagCollide = flag.Bool("collide", false, "(DEPRECATED) collide syscalls to provoke data races")
+	flagCollide = flag.Bool("collided", false, "(DEPRECATED) collide syscalls to provoke data races")
 )
 
 func main() {

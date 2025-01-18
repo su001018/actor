@@ -23,16 +23,27 @@ create_file() {
 }
 
 # 使用循环创建文件
-for i in {0..3}; do
+for i in {0..8}; do
     FUZZER_FILE="${TARGET_PATH}/${FUZZER_PREFIX}${i}"
-    SCHEDULER_FILE="${TARGET_PATH}/${SCHEDULER_PREFIX}${i}"
+
     create_file "$FUZZER_FILE"
+
+done
+for i in {0..3}; do
+
+    SCHEDULER_FILE="${TARGET_PATH}/${SCHEDULER_PREFIX}${i}"
+
     create_file "$SCHEDULER_FILE"
 done
 
-DEBUG=""
+FDEBUG=""
 if [ -n "$1" ]; then
-    DEBUG="$1"
+    FDEBUG="$1"
 fi
 
-$SYZ_HOME/bin/syz-manager -config actor.config "$DEBUG"
+SDEBUG=""
+if [ -n "$2" ]; then
+    SDEBUG="$2"
+fi
+
+$SYZ_HOME/bin/syz-manager -config actor.config "$FDEBUG" "$SDEBUG"

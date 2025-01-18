@@ -125,10 +125,7 @@ func FromRpcType(inp rpctype.UafCandInput) *UafProg {
 //	}
 //}
 
-func BuildFreeMap(info *ipc.ProgInfo) map[uint64]Address {
-
-	// alloc内存操作对应的地址、大小
-	allocMap := make(map[uint64]Address)
+func BuildFreeMap(allocMap map[uint64]uint64, info *ipc.ProgInfo, p *prog.Prog) map[uint64]Address {
 
 	// free内存操作对应的地址、大小、调用函数索引
 	freeMap := make(map[uint64]Address)
@@ -140,13 +137,11 @@ func BuildFreeMap(info *ipc.ProgInfo) map[uint64]Address {
 			// 如果是alloc操作
 			if ev.EventType == prog.EVTRACK_EVENT_HEAP_ALLOCATION {
 				// 记录alloc内存操作对应的地址、大小
-				allocMap[ev.Ptr] = Address{
-					ptr:  ev.Ptr,
-					size: uint64(ev.Size),
-				}
+				allocMap[ev.Ptr] = uint64(ev.Size)
 			}
 		}
 	}
+	clean := make(map[uint64]bool)
 
 	// 遍历函数调用信息数据
 	for callIndex, call := range info.Calls {
@@ -156,23 +151,29 @@ func BuildFreeMap(info *ipc.ProgInfo) map[uint64]Address {
 			if ev.EventType == prog.EVTRACK_EVENT_HEAP_DEALLOCATION {
 				// 检查是否是已分配的地址
 				if add, ok := allocMap[ev.Ptr]; ok {
-					freeMap[ev.Ptr] = Address{
+					addr := Address{
 						ptr:        ev.Ptr,
-						size:       add.size,
+						size:       add,
 						callIndex:  callIndex,
 						eventIndex: evIdx,
 					}
+					freeMap[ev.Ptr] = addr
+					clean[ev.Ptr] = true
 				}
 			}
 		}
 	}
+
+	for c, _ := range clean {
+		delete(allocMap, c)
+	}
 	return freeMap
 }
 
-func BuildCallPairMap(info *ipc.ProgInfo) []UafPair {
+func BuildCallPairMap(allocMap map[uint64]uint64, info *ipc.ProgInfo, p *prog.Prog) []UafPair {
 
 	// free内存操作对应的地址、大小、调用函数索引
-	freeMap := BuildFreeMap(info)
+	freeMap := BuildFreeMap(allocMap, info, p)
 
 	// free操作和访问操作内存地址有重叠的函数调用对
 	callPairs := make([]UafPair, 0)
@@ -212,11 +213,11 @@ func BuildCallPairMap(info *ipc.ProgInfo) []UafPair {
 	return callPairs
 }
 
-func BuildUafProgList(p *prog.Prog, info *ipc.ProgInfo) []UafProg {
+func BuildUafProgList(allocMap map[uint64]uint64, p *prog.Prog, info *ipc.ProgInfo) []UafProg {
 	if p == nil {
 		return nil
 	}
-	callPairs := BuildCallPairMap(info)
+	callPairs := BuildCallPairMap(allocMap, info, p)
 	if len(callPairs) == 0 {
 		return nil
 	}
