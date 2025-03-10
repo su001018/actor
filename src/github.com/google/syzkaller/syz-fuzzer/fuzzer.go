@@ -85,6 +85,8 @@ type Fuzzer struct {
 	// uaf
 	allocMap map[uint64]uint64
 	allocMu  sync.Mutex
+
+	raceMode bool
 }
 
 type FuzzerSnapshot struct {
@@ -180,6 +182,7 @@ func main() {
 		flagRunTest  = flag.Bool("runtest", false, "enable program testing mode") // used by pkg/runtest
 		flagRawCover = flag.Bool("raw_cover", false, "fetch raw coverage")
 		flagVanilla  = flag.Bool("vanilla", false, "use vanilla call generation exclusively")
+		flagRace     = flag.Bool("race", false, "enable race mode to collect data race")
 	)
 	defer tool.Init()()
 	outputType := parseOutputType(*flagOutput)
@@ -314,6 +317,7 @@ func main() {
 		vanilla:                  *flagVanilla,
 		banned:                   make(map[string]bool),
 		allocMap:                 make(map[uint64]uint64),
+		raceMode:                 *flagRace,
 	}
 	gateCallback := fuzzer.useBugFrames(r, *flagProcs)
 	fuzzer.gate = ipc.NewGate(2**flagProcs, gateCallback)

@@ -1,9 +1,9 @@
 package ivshmem
 
 import (
+	"io/ioutil"
 	"os"
 	"syscall"
-	"io/ioutil"
 
 	"golang.org/x/sys/unix"
 )
@@ -35,7 +35,7 @@ func GetSharedMappingGuest(path string) ([]byte, error) {
 		return nil, err
 	}
 	// The offset is necessary to map the right mapping of the uio device (map1).
-	shmem, err := syscall.Mmap(int(f.Fd()), 4096 * 1, 512 << 20, syscall.PROT_READ | syscall.PROT_WRITE, syscall.MAP_SHARED);
+	shmem, err := syscall.Mmap(int(f.Fd()), 4096*1, 512<<20, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func GetSharedMappingHost(path string) ([]byte, error) {
 		return nil, err
 	}
 	// The offset is necessary to map the right mapping of the uio device (map1).
-	shmem, err := syscall.Mmap(int(f.Fd()), 0, 512 << 20, syscall.PROT_READ | syscall.PROT_WRITE, syscall.MAP_SHARED);
+	shmem, err := syscall.Mmap(int(f.Fd()), 0, 512<<20, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED)
 	if err != nil {
 		return nil, err
 	}

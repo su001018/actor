@@ -1,14 +1,14 @@
 package evtrack
 
 import (
-	"fmt"
 	"bytes"
-	"io/ioutil"
 	"encoding/gob"
+	"fmt"
+	"io/ioutil"
 
-	"google.golang.org/protobuf/proto"
-	"github.com/google/syzkaller/prog"
 	pb "github.com/google/syzkaller/pkg/protobuf"
+	"github.com/google/syzkaller/prog"
+	"google.golang.org/protobuf/proto"
 )
 
 func EncodeBatchGob(batch prog.Batch) []byte {
@@ -133,14 +133,15 @@ func eventToPb(evt prog.EvtrackEvent) *pb.EvtrackEvent {
 		args = append(args, argToPb(evt.Args[i]))
 	}
 	return &pb.EvtrackEvent{
-		EventId: evt.EventId,
+		EventId:   evt.EventId,
 		EventType: uint32(evt.EventType),
-		Ptr: evt.Ptr,
-		Size: uint32(evt.Size),
-		NumTrace: evt.NumTrace,
-		Trace: evt.Trace,
-		Syscall: evt.Syscall,
-		Args: args,
+		Ptr:       evt.Ptr,
+		AllocPtr:  evt.AllocPtr,
+		Size:      uint32(evt.Size),
+		NumTrace:  evt.NumTrace,
+		Trace:     evt.Trace,
+		Syscall:   evt.Syscall,
+		Args:      args,
 	}
 }
 
@@ -150,14 +151,15 @@ func pbToEvent(evt *pb.EvtrackEvent) prog.EvtrackEvent {
 		args = append(args, pbToArg(evt.Args[i]))
 	}
 	return prog.EvtrackEvent{
-		EventId: evt.EventId,
+		EventId:   evt.EventId,
 		EventType: prog.EvtrackEventType(evt.EventType),
-		Ptr: evt.Ptr,
-		Size: prog.Size_t(evt.Size),
-		NumTrace: evt.NumTrace,
-		Trace: evt.Trace,
-		Syscall: evt.Syscall,
-		Args: args,
+		Ptr:       evt.Ptr,
+		AllocPtr:  evt.AllocPtr,
+		Size:      prog.Size_t(evt.Size),
+		NumTrace:  evt.NumTrace,
+		Trace:     evt.Trace,
+		Syscall:   evt.Syscall,
+		Args:      args,
 	}
 }
 
@@ -213,7 +215,7 @@ func ptrToPb(a *prog.PointerArg) *pb.Arg {
 			PtrArg: &pb.Arg_PointerArg{
 				Address: a.Address,
 				VmaSize: a.VmaSize,
-				Res: res,
+				Res:     res,
 			},
 		},
 	}
@@ -231,15 +233,15 @@ func pbToPtr(a *pb.Arg) prog.Arg {
 		},
 		Address: a.Subtype.(*pb.Arg_PtrArg).PtrArg.Address,
 		VmaSize: a.Subtype.(*pb.Arg_PtrArg).PtrArg.VmaSize,
-		Res: res,
+		Res:     res,
 	}
 }
 
 func groupArgToPb(a *prog.GroupArg) *pb.Arg {
 	if len(a.Inner) == 0 {
 		return &pb.Arg{
-			Ref: uint32(a.Ref),
-			Dir: uint32(a.Dir),
+			Ref:     uint32(a.Ref),
+			Dir:     uint32(a.Dir),
 			Subtype: &pb.Arg_GroupArg_{},
 		}
 	}
@@ -310,7 +312,7 @@ func unionToPb(a *prog.UnionArg) *pb.Arg {
 		Subtype: &pb.Arg_UnionArg_{
 			UnionArg: &pb.Arg_UnionArg{
 				ArgOption: argToPb(a.Option),
-				Index: int32(a.Index),
+				Index:     int32(a.Index),
 			},
 		},
 	}
@@ -324,7 +326,7 @@ func pbToUnion(a *pb.Arg) prog.Arg {
 			Dir: prog.Dir(a.Dir),
 		},
 		Option: pbToArg(union.ArgOption),
-		Index: int(union.Index),
+		Index:  int(union.Index),
 	}
 }
 
@@ -338,10 +340,10 @@ func resultToPb(a *prog.ResultArg) *pb.Arg {
 		Dir: uint32(a.Dir),
 		Subtype: &pb.Arg_ResArg{
 			ResArg: &pb.Arg_ResultArg{
-				Res: res,
+				Res:   res,
 				OpDiv: a.OpDiv,
 				OpAdd: a.OpAdd,
-				Val: a.Val,
+				Val:   a.Val,
 			},
 		},
 	}
@@ -355,7 +357,7 @@ func pbToResult(a *pb.Arg) prog.Arg {
 		},
 		OpDiv: a.Subtype.(*pb.Arg_ResArg).ResArg.OpDiv,
 		OpAdd: a.Subtype.(*pb.Arg_ResArg).ResArg.OpAdd,
-		Val: a.Subtype.(*pb.Arg_ResArg).ResArg.Val,
+		Val:   a.Subtype.(*pb.Arg_ResArg).ResArg.Val,
 	}
 	return ret
 }
@@ -432,9 +434,9 @@ func groupToPb(group prog.Group) *pb.Group {
 		}
 	}
 	return &pb.Group{
-		Id: group.ID,
+		Id:        group.ID,
 		NumGroups: group.NumGroups,
-		Events: evts,
+		Events:    evts,
 	}
 }
 
@@ -492,4 +494,3 @@ func load_groups(filename string) [][]prog.EvtrackEvent {
 	}
 	return groups
 }
-

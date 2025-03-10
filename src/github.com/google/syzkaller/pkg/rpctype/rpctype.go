@@ -72,6 +72,7 @@ type UafCandInput struct {
 	Prog      []byte
 	FreeIndex int
 	UseIndex  int
+	Sched     int
 	FreeEvent prog.EvtrackEvent
 	UseEvent  prog.EvtrackEvent
 }

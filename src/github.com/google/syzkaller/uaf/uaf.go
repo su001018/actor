@@ -18,6 +18,7 @@ type UafCandiate struct {
 
 type Address struct {
 	ptr        uint64
+	allocPtr   uint64
 	size       uint64
 	callIndex  int
 	eventIndex int
@@ -35,6 +36,7 @@ type UafPair struct {
 	UseIdx       int
 	FreeEventIdx int
 	UseEventIdx  int
+	Sched        int
 }
 
 func ComputeSig(p, ui []byte) string {
@@ -125,15 +127,60 @@ func FromRpcType(inp rpctype.UafCandInput) *UafProg {
 //	}
 //}
 
-func BuildFreeMap(allocMap map[uint64]uint64, info *ipc.ProgInfo, p *prog.Prog) map[uint64]Address {
+func IsContains(types []prog.EvtrackEventType, target prog.EvtrackEventType) bool {
+	for _, t := range types {
+		if t == target {
+			return true
+		}
+	}
+	return false
+}
+
+func BuildAddrMap(allocMap map[uint64]uint64, info *ipc.ProgInfo, p *prog.Prog, types []prog.EvtrackEventType, cleanMap map[uint64]bool) map[uint64]Address {
 
 	// free内存操作对应的地址、大小、调用函数索引
-	freeMap := make(map[uint64]Address)
+	addrMap := make(map[uint64]Address)
 
+	// 遍历函数调用信息数据
+	for callIndex, call := range info.Calls {
+		// 遍历每个函数对应的事件记录数组
+		for evIdx, ev := range call.EvList {
+			if !IsContains(types, ev.EventType) {
+				continue
+			}
+			var size uint64
+			// 如果是free操作
+			if ev.EventType == prog.EVTRACK_EVENT_HEAP_DEALLOCATION {
+				// 检查是否是已分配的地址
+				if _, ok := allocMap[ev.Ptr]; !ok {
+					continue
+				}
+				cleanMap[ev.Ptr] = true
+				size = allocMap[ev.Ptr]
+
+			} else {
+				size = uint64(ev.Size)
+			}
+			addr := Address{
+				ptr:        ev.Ptr,
+				size:       size,
+				callIndex:  callIndex,
+				eventIndex: evIdx,
+				allocPtr:   ev.AllocPtr,
+			}
+			addrMap[ev.Ptr] = addr
+		}
+	}
+
+	return addrMap
+}
+
+func SaveAlloc(allocMap map[uint64]uint64, info *ipc.ProgInfo) {
 	// 遍历函数调用信息数据
 	for _, call := range info.Calls {
 		// 遍历每个函数对应的事件记录数组
 		for _, ev := range call.EvList {
+			// fmt.Printf("callIndex is %d, Ptr is %x, AllocPtr is %x, type is %d, size is %d\n", callIndex, ev.Ptr, ev.AllocPtr, ev.EventType, ev.Size)
 			// 如果是alloc操作
 			if ev.EventType == prog.EVTRACK_EVENT_HEAP_ALLOCATION {
 				// 记录alloc内存操作对应的地址、大小
@@ -141,42 +188,30 @@ func BuildFreeMap(allocMap map[uint64]uint64, info *ipc.ProgInfo, p *prog.Prog) 
 			}
 		}
 	}
-	clean := make(map[uint64]bool)
-
-	// 遍历函数调用信息数据
-	for callIndex, call := range info.Calls {
-		// 遍历每个函数对应的事件记录数组
-		for evIdx, ev := range call.EvList {
-			// 如果是free操作
-			if ev.EventType == prog.EVTRACK_EVENT_HEAP_DEALLOCATION {
-				// 检查是否是已分配的地址
-				if add, ok := allocMap[ev.Ptr]; ok {
-					addr := Address{
-						ptr:        ev.Ptr,
-						size:       add,
-						callIndex:  callIndex,
-						eventIndex: evIdx,
-					}
-					freeMap[ev.Ptr] = addr
-					clean[ev.Ptr] = true
-				}
-			}
-		}
-	}
-
-	for c, _ := range clean {
-		delete(allocMap, c)
-	}
-	return freeMap
 }
 
-func BuildCallPairMap(allocMap map[uint64]uint64, info *ipc.ProgInfo, p *prog.Prog) []UafPair {
+func CleanDealloc(allocMap map[uint64]uint64, cleanMap map[uint64]bool) {
+	for c, _ := range cleanMap {
+		delete(allocMap, c)
+	}
+}
 
-	// free内存操作对应的地址、大小、调用函数索引
-	freeMap := BuildFreeMap(allocMap, info, p)
+func BuildCallPairMap(allocMap map[uint64]uint64, info *ipc.ProgInfo, p *prog.Prog, raceMode bool) []UafPair {
 
+	cleanMap := make(map[uint64]bool)
 	// free操作和访问操作内存地址有重叠的函数调用对
 	callPairs := make([]UafPair, 0)
+	types := []prog.EvtrackEventType{prog.EVTRACK_EVENT_HEAP_DEALLOCATION}
+
+	SaveAlloc(allocMap, info)
+
+	if raceMode {
+		useTypes := []prog.EvtrackEventType{prog.EVTRACK_EVENT_HEAP_WRITE, prog.EVTRACK_EVENT_HEAP_POINTER_WRITE, prog.EVTRACK_EVENT_HEAP_INDEX_WRITE, prog.EVTRACK_EVENT_HEAP_READ, prog.EVTRACK_EVENT_HEAP_POINTER_READ, prog.EVTRACK_EVENT_HEAP_INDEX_READ}
+		types = append(types, useTypes...)
+	}
+
+	// free内存操作对应的地址、大小、调用函数索引
+	addrMap := BuildAddrMap(allocMap, info, p, types, cleanMap)
 
 	// 遍历函数调用信息数据
 	for callIndex, callInfo := range info.Calls {
@@ -192,32 +227,46 @@ func BuildCallPairMap(allocMap map[uint64]uint64, info *ipc.ProgInfo, p *prog.Pr
 					continue
 				}
 				// 遍历所有free操作记录
-				for _, freeAdress := range freeMap {
+				for _, targetAdress := range addrMap {
 					// 检查是否是同一函数调用
-					if freeAdress.callIndex == callIndex {
+					if targetAdress.callIndex == callIndex {
 						continue
 					}
 					//检查内存地址是否重叠
-					if freeAdress.ptr <= ev.Ptr && freeAdress.ptr+freeAdress.size >= ev.Ptr {
+					// if targetAdress.ptr <= ev.Ptr && targetAdress.ptr+targetAdress.size >= ev.Ptr
+					if targetAdress.allocPtr == ev.AllocPtr {
+						sched := 0
 						callPairs = append(callPairs, UafPair{
-							FreeIdx:      freeAdress.callIndex,
+							FreeIdx:      targetAdress.callIndex,
 							UseIdx:       callIndex,
-							FreeEventIdx: freeAdress.eventIndex,
+							FreeEventIdx: targetAdress.eventIndex,
 							UseEventIdx:  evIdx,
+							Sched:        sched,
 						})
+						if raceMode {
+							callPairs = append(callPairs, UafPair{
+								FreeIdx:      targetAdress.callIndex,
+								UseIdx:       callIndex,
+								FreeEventIdx: targetAdress.eventIndex,
+								UseEventIdx:  evIdx,
+								Sched:        1 - sched,
+							})
+						}
 					}
 				}
 			}
 		}
 	}
+
+	CleanDealloc(allocMap, cleanMap)
 	return callPairs
 }
 
-func BuildUafProgList(allocMap map[uint64]uint64, p *prog.Prog, info *ipc.ProgInfo) []UafProg {
+func BuildUafProgList(allocMap map[uint64]uint64, p *prog.Prog, info *ipc.ProgInfo, raceMode bool) []UafProg {
 	if p == nil {
 		return nil
 	}
-	callPairs := BuildCallPairMap(allocMap, info, p)
+	callPairs := BuildCallPairMap(allocMap, info, p, raceMode)
 	if len(callPairs) == 0 {
 		return nil
 	}
@@ -227,6 +276,7 @@ func BuildUafProgList(allocMap map[uint64]uint64, p *prog.Prog, info *ipc.ProgIn
 		uafInfo := common.UafInfo{
 			FreeIndex: uafPair.FreeIdx,
 			UseIndex:  uafPair.UseIdx,
+			Sched:     uafPair.Sched,
 		}
 		uafProg := UafProg{
 			Prog:      p.Serialize(),

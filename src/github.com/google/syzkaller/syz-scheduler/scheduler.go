@@ -168,6 +168,7 @@ func main() {
 		flagRunTest  = flag.Bool("runtest", false, "enable program testing mode") // used by pkg/runtest
 		flagRawCover = flag.Bool("raw_cover", false, "fetch raw coverage")
 		flagVanilla  = flag.Bool("vanilla", false, "use vanilla call generation exclusively")
+		flagRace     = flag.Bool("race", false, "enable race mode to collect data race")
 	)
 	defer tool.Init()()
 	outputType := parseOutputType(*flagOutput)
@@ -207,6 +208,9 @@ func main() {
 
 	if *flagTest || *flagRunTest {
 		log.Logf(1, "flagTest or flagRunTest is set")
+	}
+	if *flagRace {
+		log.Logf(1, "flagRace or flagRunTest is set")
 	}
 	machineInfo, modules := collectMachineInfos(target)
 
@@ -743,8 +747,8 @@ func (scheduler *Scheduler) pollLoop() {
 			}
 			stats := make(map[string]uint64)
 			for _, proc := range scheduler.procs {
-				stats["exec total"] += atomic.SwapUint64(&proc.env.StatExecs, 0)
-				stats["executor restarts"] += atomic.SwapUint64(&proc.env.StatRestarts, 0)
+				stats["scheduler exec total"] += atomic.SwapUint64(&proc.env.StatExecs, 0)
+				stats["scheduler executor restarts"] += atomic.SwapUint64(&proc.env.StatRestarts, 0)
 			}
 			for stat := Stat(0); stat < StatCount; stat++ {
 				v := atomic.SwapUint64(&scheduler.stats[stat], 0)

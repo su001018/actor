@@ -83,6 +83,7 @@ struct evtrack_event {
 	unsigned int event_id;              // Monotonically increasing event id
 	enum evtrack_event_types type;      // Type of the event
 	uint64 ptr;                         // Pointer associated to the event
+	uint64 alloc_ptr;
 	size_t size;                        // Size associated to the event
 	unsigned int nr_trace;              // Number of entries in the stack trace
 	/*

@@ -51,14 +51,15 @@ message EvtrackEvent {
   uint32 event_id = 1;
   uint32 event_type = 2;
   uint64 ptr = 3;
-  uint32 size = 4;
-  uint32 num_trace = 5;
+  uint64 alloc_ptr = 4;
+  uint32 size = 5;
+  uint32 num_trace = 6;
   // TimeStamp is not used
   // ObjId is not used
   // InstrId is not used
-  repeated uint32 trace = 6;
-  string syscall = 7;
-  repeated Arg args = 8;
+  repeated uint32 trace = 7;
+  string syscall = 8;
+  repeated Arg args = 9;
 }
 
 message EventsList {

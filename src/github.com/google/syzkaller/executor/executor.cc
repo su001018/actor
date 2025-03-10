@@ -1015,7 +1015,10 @@ void execute_one()
 		thread_t* th = schedule_call(call_index++, call_num, flag_collide, copyout_index,
 					     num_args, args, input_pos, call_props);
 
-		if ((call_props.async && flag_threaded) || flag_collide) {
+		if ((call_props.async && flag_threaded && !flag_collide) || (flag_collide && th->call_index == (int)race_info[0].race_index)) {
+
+			debug("execute_one: call_index: %d, don't wait\n",th->call_index);
+
 			// Don't wait for an async call to finish. We'll wait at the end.
 			// If we're not in the threaded mode, just ignore the async flag - during repro simplification syzkaller
 			// will anyway try to make it non-threaded.
@@ -1024,7 +1027,7 @@ void execute_one()
 			uint64 timeout_ms = syscall_timeout_ms + call->attrs.timeout * slowdown_scale;
 			// This is because of printing pre/post call. Ideally we print everything in the main thread
 			// and then remove this (would also avoid intermixed output).
-			if (flag_debug && timeout_ms < 1000)
+			if (timeout_ms < 1000)
 				timeout_ms = 1000;
 			if (event_timedwait(&th->done, timeout_ms))
 				handle_completion(th);
@@ -1130,6 +1133,9 @@ thread_t* schedule_call(int call_index, int call_num, bool colliding, uint64 cop
 
 	// razzer
 	int i = 0, first_call_index = 0;
+	if (call_index > (int)(race_info[0].race_index)){
+		first_call_index = race_info[0].race_index + 1;
+	}
 	if(colliding){
 		if (call_index > (int)(race_info[0].race_index)) {
 			i++;
@@ -1147,6 +1153,25 @@ thread_t* schedule_call(int call_index, int call_num, bool colliding, uint64 cop
 			}
 		}
 	}
+	// for (; i < kMaxThreads; i++) {
+	// 	thread_t* th = &threads[i];
+	// 	if (!th->created)
+	// 		thread_create(th, i, cover_collection_required());
+	// 	if (event_isset(&th->done)) {
+	// 		if (th->executing)
+	// 			handle_completion(th);
+	// 		break;
+	// 	}
+	// }
+	// if(colliding){
+	// 	if(call_index == (int)race_info[0].race_index){
+	// 		i = 0;
+	// 	}else if(call_index == (int)race_info[1].race_index){
+	// 		i = 1;
+	// 	}else if(call_props.async){
+	// 		i = 2;
+	// 	}
+	// }
 	if (i == kMaxThreads)
 		exitf("out of threads");
 	
@@ -1260,6 +1285,8 @@ void write_event(evtrack_event* event)
 	write_output(event->type);
 	write_output((uint32)event->ptr);
 	write_output(((uint32)(event->ptr >> 32)));
+	write_output((uint32)event->alloc_ptr);
+	write_output(((uint32)(event->alloc_ptr >> 32)));
 	write_output((uint32)event->size);
 	write_output(((uint32)(event->size >> 32)));
 	nr_trace = event->nr_trace;
@@ -1513,8 +1540,8 @@ void* worker_thread(void* arg)
 		// razzer
 		if (th->init) {
 #define gettid() syscall(SYS_gettid)
-			debug("[%d] TID: %ld", th->id, gettid());
-			debug("[%d] hypercall CMD_REFRESH", th->id);
+			debug("[%d] TID: %ld\n", th->id, gettid());
+			debug("[%d] hypercall CMD_REFRESH\n", th->id);
 			hypercall(th->id, CMD_REFRESH, 0, 0);
 		}
 
@@ -1637,9 +1664,9 @@ void execute_call(thread_t* th)
 		// TODO: hypercall start, install bp
 		uint64 bp = th->race_info->bp;
 		uint64 sched = (uint64)th->race_info->sched;
-		debug("[%d] hypercall CMD_START", th->id);
-		debug("[%d] \tInstall bp: 0x%llx", th->id, bp);
-		debug("[%d] \tsched: %lld", th->id, sched);
+		debug("[%d] hypercall CMD_START\n", th->id);
+		debug("[%d] \tInstall bp: 0x%llx\n", th->id, bp);
+		debug("[%d] \tsched: %lld\n", th->id, sched);
 
 		uint64 res = hypercall(th->id, CMD_START, bp, sched);
 		if (res == (uint64)-1) {
@@ -1649,7 +1676,7 @@ void execute_call(thread_t* th)
 
 		// TODO: wait until two threads are ready
 		pthread_barrier_wait(&ready_barrier);
-		debug("[%d] barrier", th->id);
+		debug("[%d] barrier\n", th->id);
 	}
 
 	if (flag_coverage)
@@ -1680,9 +1707,9 @@ void execute_call(thread_t* th)
 	// razzer
 	if (th->executing_racy_syscall) {
 		// TODO: hypercall end, check there is a race
-		debug("[%d] hypercall CMD_END", th->id);
+		debug("[%d] hypercall CMD_END\n", th->id);
 		uint64 is_race = hypercall(th->id, CMD_END, 0, 0);
-		debug("[%d] \tis_race: %lld", th->id, is_race);
+		debug("[%d] \tis_race: %lld\n", th->id, is_race);
 		if (is_race == (uint64)-1) {
 			doexit(kHypercallFail);
 		} else {

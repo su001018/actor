@@ -1,0 +1,1 @@
+tools/qemu/build/x86_64-softmmu/qemu-system-x86_64 -kernel linux/arch/x86/boot/bzImage -append "console=ttyS0 root=/dev/sda debug earlyprintk=serial slub_debug=QUZ nokaslr" -hda image/bullseye.img -net user,hostfwd=tcp::10021-:22 -net nic -enable-kvm -nographic -m 4G -smp 2 -vga virtio -device virtio-gpu-pci -netdev user,id=n1 -device e1000,netdev=n1

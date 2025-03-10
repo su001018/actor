@@ -117,7 +117,7 @@ void wait_race(CPUState *cpu) {
     char param[MAX_OPERANDS][100];
 
 #ifndef TIME_LIMIT
-#define TIME_LIMIT 500
+#define TIME_LIMIT 50
 #endif
     qemu_mutex_lock(&qemu_race_mutex);
 	if (is_refresh[cpu->cpu_index]) {
@@ -142,8 +142,8 @@ void wait_race(CPUState *cpu) {
 
         int i;
         for(i=0;i<MAX_OPERANDS;i++) {
-            DAEPRINTF("[%d] %d: (rip: 0x%llx) get_mem_addr() on [%s] (inst_size: %d)\n",
-                      tid, i, regs->rip, param[i], insn_size);
+            // DAEPRINTF("[%d] %d: (rip: 0x%llx) get_mem_addr() on [%s] (inst_size: %d)\n",
+            //           tid, i, regs->rip, param[i], insn_size);
             uint64_t addr = get_mem_addr(param[i], regs, insn_size);
             DAEPRINTF("[%d] \t -> addr: %lx\n", tid, addr);
             if(addr) {
@@ -157,26 +157,26 @@ void wait_race(CPUState *cpu) {
                 break;
             }
         }
-        DAEPRINTF("[%d] reading_addr: %lx\n", tid, reading_addr[cpu->cpu_index]);
-        DAEPRINTF("[%d] writing_addr: %lx\n", tid, writing_addr[cpu->cpu_index]);
+        // DAEPRINTF("[%d] reading_addr: %lx\n", tid, reading_addr[cpu->cpu_index]);
+        // DAEPRINTF("[%d] writing_addr: %lx\n", tid, writing_addr[cpu->cpu_index]);
 
         bool same_addr = false;
         bool is_race = false;
         bool both_bp_hit = false;
         int opponent = !(cpu->cpu_index);
 
-        DAEPRINTF("--------------------------------------------\n");
+        DAEPRINTF("----------------------WAIT-RACE----------------------\n");
         if(phase[opponent] == PHASE_SLEEPING) {
             // This is the second thread
             // Okay race, keep going
-            DAEPRINTF("[Thread %d] triggered second bp (sleeping)", cpu->cpu_index);
+            DAEPRINTF("[Thread %d] triggered second bp (sleeping)\n", cpu->cpu_index);
             both_bp_hit = true;
 			same_addr = is_same_address();
             phase[cpu->cpu_index] = PHASE_PASSED;
             qemu_cond_broadcast(&qemu_race_cond);
             can_go = 0;
         } else if(phase[opponent] == PHASE_PASSED) {
-            DAEPRINTF("[Thread %d] triggered second bp (passed)", cpu->cpu_index);
+            DAEPRINTF("[Thread %d] triggered second bp (passed)\n", cpu->cpu_index);
 
             phase[cpu->cpu_index] = PHASE_PASSED;
             both_bp_hit = false;
@@ -184,7 +184,7 @@ void wait_race(CPUState *cpu) {
         } else {
             // Waiting for others until (TIME_LIMIT)ms
             phase[cpu->cpu_index] = PHASE_SLEEPING;
-            DAEPRINTF("[Thread %d] triggered first bp", cpu->cpu_index);
+            DAEPRINTF("[Thread %d] triggered first bp\n", cpu->cpu_index);
 
             both_bp_hit = qemu_cond_timedwait(&qemu_race_cond, &qemu_race_mutex, TIME_LIMIT);
             if(phase[opponent] == PHASE_PASSED)
@@ -196,20 +196,20 @@ void wait_race(CPUState *cpu) {
             same_addr = is_same_address();
             phase[cpu->cpu_index] = PHASE_PASSED;
         }
-        is_race = both_bp_hit & same_addr;
-        DAEPRINTF("[Thread %d] is race: %d", cpu->cpu_index, (int)is_race);
-        DAEPRINTF("[Thread %d]     Access type: %s", cpu->cpu_index, accessType(cpu->cpu_index));
-        DAEPRINTF("[Thread %d]     Access addr: %lx", cpu->cpu_index, race_addr[cpu->cpu_index]);
-        DAEPRINTF("[Thread %d]     Both bp hit simultaneously: %d", cpu->cpu_index, (int)both_bp_hit);
-        DAEPRINTF("[Thread %d]     Both access same memory: %d", cpu->cpu_index, (int)same_addr);
+        is_race = both_bp_hit;
+        DAEPRINTF("[Thread %d] is race: %d\n", cpu->cpu_index, (int)is_race);
+        // DAEPRINTF("[Thread %d]     Access type: %s\n", cpu->cpu_index, accessType(cpu->cpu_index));
+        // DAEPRINTF("[Thread %d]     Access addr: %lx\n", cpu->cpu_index, race_addr[cpu->cpu_index]);
+        DAEPRINTF("[Thread %d]     Both bp hit simultaneously: %d\n", cpu->cpu_index, (int)both_bp_hit);
+        // DAEPRINTF("[Thread %d]     Both access same memory: %d\n", cpu->cpu_index, (int)same_addr);
         assert(cpu);
         // This is the only location that falsify wait_race
         assert(cpu->wait_race);
         cpu->wait_race = false;
         cpu->done = false;
         cpu->is_race = (int)is_race;
-        DAEPRINTF("[%d] bp[%d]: done , is_race %d\n", cpu->cpu_index, cpu->bp_count, is_race);
-        DAEPRINTF("[%d] bp[%d]: addr0 %lx , addr1 %lx\n", cpu->cpu_index, cpu->bp_count, race_addr[0], race_addr[1]);
+        // DAEPRINTF("[%d] bp[%d]: done , is_race %d\n", cpu->cpu_index, cpu->bp_count, is_race);
+        // DAEPRINTF("[%d] bp[%d]: addr0 %lx , addr1 %lx\n", cpu->cpu_index, cpu->bp_count, race_addr[0], race_addr[1]);
     }
     qemu_mutex_unlock(&qemu_race_mutex);
 
@@ -268,7 +268,6 @@ hcall_type_t check_hypercall(CPUState *cpu) {
     // I really need to fix it
 
     if (regs->rip == _HYPERCALL_ADDR) {
-        DAEPRINTF("check_hypercall: rip is executing hypercall\n");
         regs->rip += 1;
         cpu->update_regs = true;
 
@@ -294,7 +293,6 @@ void get_command(CPUState *cpu, struct hcall_arg *arg) {
 }
 
 static void hypercall_command_start(CPUState *cpu, struct hcall_arg *arg) {
-    DAEPRINTF("hypercall_command_start: start\n");
     struct kvm_regs *regs = _NONZERO(cpu->regs);
     uint32_t tid __attribute__((unused)) = gettid();
     int err;
@@ -391,7 +389,6 @@ static void hypercall_command_refresh(CPUState *cpu, struct hcall_arg __attribut
 }
 
 void handle_hypercall_command(CPUState *cpu) {
-    DAEPRINTF("handle_hypercall_command: start\n");
     struct hcall_arg arg;
 
     cpu->guest_tid = guest_gettid(cpu);
@@ -425,7 +422,7 @@ void handle_hypercall_breakpoint(CPUState *cpu) {
     tid_t guest_tid, guest_tid_;
     int err;
 
-    DAEPRINTF("--------------------------------------------");
+    DAEPRINTF("----------------------BREAKPOINT----------------------\n");
 
     qemu_mutex_lock(&qemu_race_mutex);
     guest_tid_ = guest_gettid(cpu);
@@ -447,12 +444,12 @@ void handle_hypercall_breakpoint(CPUState *cpu) {
 	}
         kvm_update_guest_debug_per_cpu(cpu, 0);
     } else if (cpu->inserted_breakpoint == regs->rip) {
-        DAEPRINTF("[%u] Hypercall BREAKPOINT", tid);
-        DAEPRINTF("[%u] \t thread_id      : %d", tid, cpu->thread_id);
-        DAEPRINTF("[%u] \t guest_tid      : %ld", tid, guest_tid);
-        DAEPRINTF("[%u] \t guest_tid_     : %ld", tid, guest_tid_);
-        DAEPRINTF("[%u] \t regs.rip       : %llx", tid, regs->rip);
-        DAEPRINTF("[%u] \t bp_count       : %d", tid, cpu->bp_count++);
+        DAEPRINTF("[%u][%u] Hypercall BREAKPOINT\n", tid, cpu->cpu_index);
+        DAEPRINTF("[%u] \t thread_id      : %d\n", tid, cpu->thread_id);
+        DAEPRINTF("[%u] \t guest_tid      : %ld\n", tid, guest_tid);
+        DAEPRINTF("[%u] \t guest_tid_     : %ld\n", tid, guest_tid_);
+        DAEPRINTF("[%u] \t regs.rip       : %llx\n", tid, regs->rip);
+        DAEPRINTF("[%u] \t bp_count       : %d\n", tid, cpu->bp_count++);
 
 	// Temporary implementation
 	// Skip breakpoint according to the random value to give a second
@@ -466,6 +463,7 @@ void handle_hypercall_breakpoint(CPUState *cpu) {
             // Need to wait until the other arrives.
             cpu->wait_race = true;
             cpu->go_first = (cpu->race_id == cpu->sched);
+            DAEPRINTF("[%u] \t hit bp and wait_race, go first      : %d\n", tid, cpu->go_first);
         }
 
         // remove breakpoint to continue executing

@@ -979,10 +979,10 @@ func (serv *RPCServer) SchedulerPollNew(a *rpctype.PollArgsNew, r *rpctype.Sched
 
 	r.MaxSignal = scheduler.newMaxSignal.Split(500).Serialize()
 	if a.NeedCandidates {
-		r.Candidates = serv.mgr.candidateSchedulerBatch(serv.batchSize)
+		r.Candidates = serv.mgr.candidateSchedulerBatch(serv.batchSize * 2)
 	}
 	if len(r.Candidates) == 0 {
-		batchSize := serv.batchSize
+		batchSize := serv.batchSize * 2
 		// When the fuzzer starts, it pumps the whole corpus.
 		// If we do it using the final batchSize, it can be very slow
 		// (batch of size 6 can take more than 10 mins for 50K corpus and slow kernel).

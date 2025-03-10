@@ -257,9 +257,11 @@ func (target *Target) Deserialize(data []byte, mode DeserializeMode) (*Prog, err
 	if p.autos != nil {
 		p.fixupAutos(prog)
 	}
+
 	if err := prog.sanitize(mode == NonStrict); err != nil {
 		return nil, err
 	}
+
 	return prog, nil
 }
 

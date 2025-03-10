@@ -13,6 +13,7 @@ openat$sndtimer(fd const[AT_FDCWD], file ptr[in, string["/dev/snd/timer"]], flag
 
 ioctl$SNDRV_TIMER_IOCTL_PVERSION(fd fd_sndtimer, cmd const[SNDRV_TIMER_IOCTL_PVERSION], arg ptr[out, int32])
 ioctl$SNDRV_TIMER_IOCTL_NEXT_DEVICE(fd fd_sndtimer, cmd const[SNDRV_TIMER_IOCTL_NEXT_DEVICE], arg ptr[in, snd_timer_id])
+ioctl$SNDRV_TIMER_IOCTL_NEXT_DEVICE_UAF(fd fd_sndtimer, cmd const[SNDRV_TIMER_IOCTL_NEXT_DEVICE], arg ptr[in, snd_timer_id_uaf])
 ioctl$SNDRV_TIMER_IOCTL_TREAD(fd fd_sndtimer, cmd const[SNDRV_TIMER_IOCTL_TREAD], arg ptr[in, int32[0:1]])
 ioctl$SNDRV_TIMER_IOCTL_GINFO(fd fd_sndtimer, cmd const[SNDRV_TIMER_IOCTL_GINFO], arg ptr[in, snd_timer_ginfo])
 ioctl$SNDRV_TIMER_IOCTL_GPARAMS(fd fd_sndtimer, cmd const[SNDRV_TIMER_IOCTL_GPARAMS], arg ptr[in, snd_timer_gparams])
@@ -48,6 +49,14 @@ snd_timer_ginfo {
 	resmax	intptr
 	clients	int32
 	pad2	array[const[0, int8], 32]
+}
+
+snd_timer_id_uaf {
+	class	const[0xfffffffffffffffc, int32]
+	sclass	const[1, int32]
+	card	const[0x101, int32]
+	dev	const[0, int32]
+	subdev	const[6, int32]
 }
 
 snd_timer_gparams {

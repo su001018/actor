@@ -176,8 +176,8 @@ func NewRepo(os, vm, dir string, opts ...RepoOpt) (Repo, error) {
 	switch os {
 	case targets.Linux:
 		return newLinux(dir, opts), nil
-	case targets.Akaros:
-		return newAkaros(dir, opts), nil
+	// case targets.Akaros:
+	// 	return newAkaros(dir, opts), nil
 	case targets.Fuchsia:
 		return newFuchsia(dir, opts), nil
 	case targets.OpenBSD:

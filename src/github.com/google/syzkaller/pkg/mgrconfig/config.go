@@ -108,6 +108,8 @@ type Config struct {
 	// but to not oversubscribe CPU and memory too severe to not cause OOMs and false hangs/stalls.
 	Procs int `json:"procs"`
 
+	SchedulerProcs int `json:"scheduler_procs"`
+
 	// Maximum number of logs to store per crash (default: 100).
 	MaxCrashLogs int `json:"max_crash_logs"`
 

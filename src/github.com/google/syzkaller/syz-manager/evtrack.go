@@ -489,6 +489,7 @@ func add_event(evt prog.EvtrackEvent, group *prog.Group, types []prog.EvtrackEve
 		event.NumTrace = evt.NumTrace
 		event.ObjId = evt.ObjId
 		event.Ptr = evt.Ptr
+		event.AllocPtr = evt.AllocPtr
 		event.Size = evt.Size
 		event.Syscall = evt.Syscall
 		event.TimeStamp = evt.TimeStamp

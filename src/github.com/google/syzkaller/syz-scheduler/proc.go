@@ -70,6 +70,7 @@ func (proc *Proc) loop() {
 			case *WorkTriage:
 				proc.triageInput(item)
 			case *WorkCandidate:
+				log.Logf(1, "#unique:%v: execute cand", proc.pid)
 				proc.execute(proc.execOpts, item.p, item.flags, StatCandidate, false, item.UafInfo)
 			case *WorkSmash:
 				proc.smashInput(item)
@@ -92,7 +93,7 @@ func (proc *Proc) loop() {
 		idx := p.MutateUaf(proc.rnd, prog.RecommendedCalls, ct, ExtractProgs(fuzzerSnapshot.corpus), evState, [2]int{u.FreeIndex, u.UseIndex})
 		u.FreeIndex = idx[0]
 		u.UseIndex = idx[1]
-		log.Logf(1, "#%v: mutated", proc.pid)
+		log.Logf(1, "unique:#%v: mutated", proc.pid)
 		proc.execute(proc.execOpts, p, ProgNormal, StatFuzz, true, u.UafInfo)
 	}
 }
@@ -122,6 +123,7 @@ func (proc *Proc) triageInput(item *WorkTriage) {
 	notexecuted := 0
 	rawCover := []uint32{}
 	for i := 0; i < signalRuns; i++ {
+		log.Logf(3, "unique: triaging input for %v (new signal=%v), #%d", logCallName, newSignal.Len(), i)
 		info := proc.executeRaw(proc.execOptsCollideCover, item.p, StatTriage, item.UafInfo)
 		if !reexecutionSuccess(info, &item.info, item.call) {
 			// The call was not executed or failed.
@@ -143,34 +145,35 @@ func (proc *Proc) triageInput(item *WorkTriage) {
 		}
 		inputCover.Merge(thisCover)
 	}
-	if item.flags&ProgMinimized == 0 {
-		var idx [2]int
-		item.p, item.call, idx = prog.MinimizeUaf(item.p, item.call, false,
-			func(p1 *prog.Prog, call1 int, index [2]int) bool {
-				for i := 0; i < minimizeAttempts; i++ {
-					uafInfo := item.UafInfo
-					uafInfo.FreeIndex = index[0]
-					uafInfo.UseIndex = index[1]
-					info := proc.execute(proc.execOpts, p1, ProgNormal, StatMinimize, false, uafInfo)
-					if !reexecutionSuccess(info, &item.info, call1) {
-						// The call was not executed or failed.
-						continue
-					}
-					thisSignal, _ := getSignalAndCover(p1, info, call1)
-					if newSignal.Intersection(thisSignal).Len() == newSignal.Len() {
-						return true
-					}
-				}
-				return false
-			}, [2]int{item.UafInfo.FreeIndex, item.UafInfo.UseIndex})
-		item.UafInfo.FreeIndex = idx[0]
-		item.UafInfo.UseIndex = idx[1]
-	}
+	// if item.flags&ProgMinimized == 0 {
+	// 	var idx [2]int
+	// 	item.p, item.call, idx = prog.MinimizeUaf(item.p, item.call, false,
+	// 		func(p1 *prog.Prog, call1 int, index [2]int) bool {
+	// 			for i := 0; i < minimizeAttempts; i++ {
+	// 				uafInfo := item.UafInfo
+	// 				uafInfo.FreeIndex = index[0]
+	// 				uafInfo.UseIndex = index[1]
+	// 				log.Logf(3, "unique: ProgMinimized")
+	// 				info := proc.execute(proc.execOpts, p1, ProgNormal, StatMinimize, false, uafInfo)
+	// 				if !reexecutionSuccess(info, &item.info, call1) {
+	// 					// The call was not executed or failed.
+	// 					continue
+	// 				}
+	// 				thisSignal, _ := getSignalAndCover(p1, info, call1)
+	// 				if newSignal.Intersection(thisSignal).Len() == newSignal.Len() {
+	// 					return true
+	// 				}
+	// 			}
+	// 			return false
+	// 		}, [2]int{item.UafInfo.FreeIndex, item.UafInfo.UseIndex})
+	// 	item.UafInfo.FreeIndex = idx[0]
+	// 	item.UafInfo.UseIndex = idx[1]
+	// }
 
 	data := item.p.Serialize()
 	sig := hash.Hash(data, item.UafInfo.Serialize())
 
-	log.Logf(2, "added new input for %v to corpus:\n%s", logCallName, data)
+	log.Logf(2, "added new input for %v to corpus\n", logCallName)
 	proc.scheduler.sendInputToManager(rpctype.UafInput{
 		Call:     callName,
 		CallID:   item.call,
@@ -252,7 +255,7 @@ func (proc *Proc) smashInput(item *WorkSmash) {
 }
 
 func (proc *Proc) executeRaw(opts *ipc.ExecOpts, p *prog.Prog, stat Stat, uafInfo common.UafInfo) *ipc.ProgInfo {
-	proc.scheduler.checkDisabledCalls(p)
+	// proc.scheduler.checkDisabledCalls(p)
 
 	// Limit concurrency window and do leak checking once in a while.
 	ticket := proc.scheduler.gate.Enter()
@@ -261,7 +264,7 @@ func (proc *Proc) executeRaw(opts *ipc.ExecOpts, p *prog.Prog, stat Stat, uafInf
 	proc.logProgram(opts, p, uafInfo)
 	for try := 0; ; try++ {
 		atomic.AddUint64(&proc.scheduler.stats[stat], 1)
-		output, info, hanged, err := proc.env.ExecUaf(opts, p, uafInfo)
+		output, info, hanged, err, isRace := proc.env.ExecUaf(opts, p, uafInfo)
 		if err != nil {
 			if err == prog.ErrExecBufferTooSmall {
 				// It's bad if we systematically fail to serialize programs,
@@ -277,6 +280,10 @@ func (proc *Proc) executeRaw(opts *ipc.ExecOpts, p *prog.Prog, stat Stat, uafInf
 			time.Sleep(time.Second)
 			continue
 		}
+		if !isRace && try < 1 {
+			log.Logf(4, "fuzzer don't hit bp simultaneously, retrying #%d", try+1)
+			continue
+		}
 		log.Logf(2, "result hanged=%v: %s", hanged, output)
 		return info
 	}
@@ -287,7 +294,8 @@ func (proc *Proc) logProgram(opts *ipc.ExecOpts, p *prog.Prog, uafInfo common.Ua
 		return
 	}
 
-	data := p.Serialize()
+	// data := p.Serialize()
+	data := p.String()
 	info := uafInfo.Serialize()
 
 	// The following output helps to understand what program crashed kernel.
@@ -296,15 +304,15 @@ func (proc *Proc) logProgram(opts *ipc.ExecOpts, p *prog.Prog, uafInfo common.Ua
 	case OutputStdout:
 		now := time.Now()
 		proc.scheduler.logMu.Lock()
-		fmt.Printf("%02v:%02v:%02v executing program %v:\n%s\n%s\n",
+		fmt.Printf("%02v:%02v:%02v scheduler: executing program %v:\n%s\n%s\nfreeAddr: %x, UseAddr: %x\n",
 			now.Hour(), now.Minute(), now.Second(),
-			proc.pid, data, info)
+			proc.pid, data, info, uafInfo.FreeAddr, uafInfo.UseAddr)
 		proc.scheduler.logMu.Unlock()
 	case OutputDmesg:
 		fd, err := syscall.Open("/dev/kmsg", syscall.O_WRONLY, 0)
 		if err == nil {
 			buf := new(bytes.Buffer)
-			fmt.Fprintf(buf, "syzkaller: executing program %v:\n%s\n%s\n",
+			fmt.Fprintf(buf, "syzkaller: scheduler: executing program %v:\n%s\n%s\n",
 				proc.pid, data, info)
 			syscall.Write(fd, buf.Bytes())
 			syscall.Close(fd)
@@ -312,7 +320,7 @@ func (proc *Proc) logProgram(opts *ipc.ExecOpts, p *prog.Prog, uafInfo common.Ua
 	case OutputFile:
 		f, err := os.Create(fmt.Sprintf("%v-%v.prog", proc.scheduler.name, proc.pid))
 		if err == nil {
-			f.Write(data)
+			f.Write([]byte(data))
 			f.Write(info)
 			f.Close()
 		}

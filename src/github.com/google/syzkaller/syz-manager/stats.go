@@ -21,6 +21,8 @@ type Stats struct {
 	newInputs           Stat
 	rotatedInputs       Stat
 	execTotal           Stat
+	schedulerExecTotal  Stat
+	uafCandInput        Stat
 	hubSendProgAdd      Stat
 	hubSendProgDel      Stat
 	hubSendRepro        Stat
@@ -101,6 +103,8 @@ func (stats *Stats) mergeNamed(named map[string]uint64) {
 		switch k {
 		case "exec total":
 			stats.execTotal.add(int(v))
+		case "scheduler exec total":
+			stats.schedulerExecTotal.add(int(v))
 		default:
 			stats.namedStats[k] += v
 		}

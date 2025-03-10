@@ -135,18 +135,6 @@ var archConfigs = map[string]*archConfig{
 		CmdLine: []string{
 			"root=/dev/sda",
 			"console=ttyS0",
-			"kvm-intel.nested=1",
-			"kvm-intel.unrestricted_guest=1",
-			"kvm-intel.vmm_exclusive=1",
-			"kvm-intel.fasteoi=1",
-			"kvm-intel.ept=1",
-			"kvm-intel.flexpriority=1",
-			"kvm-intel.vpid=1",
-			"kvm-intel.emulate_invalid_guest_state=1",
-			"kvm-intel.eptad=1",
-			"kvm-intel.enable_shadow_vmcs=1",
-			"kvm-intel.pml=1",
-			"kvm-intel.enable_apicv=1",
 		},
 	},
 	"linux/386": {
@@ -276,10 +264,14 @@ func ctor(env *vmimpl.Env) (vmimpl.Pool, error) {
 	if cfg.Count < 1 || cfg.Count > 128 {
 		return nil, fmt.Errorf("invalid config param count: %v, want [1, 128]", cfg.Count)
 	}
-	if env.Debug && cfg.Count > 1 {
+	if env.Debug {
 		log.Logf(0, "limiting number of VMs from %v to 1 in debug mode", cfg.Count)
-		cfg.Count = 1
-		cfg.SchedCount = 1
+		if env.Sched {
+			cfg.SchedCount = 1
+		} else {
+			cfg.Count = 1
+		}
+
 	}
 	if _, err := exec.LookPath(cfg.Qemu); err != nil {
 		return nil, err
@@ -361,8 +353,10 @@ func (pool *Pool) Create(workdir string, index int) (vmimpl.Instance, error) {
 
 func (pool *Pool) ctor(workdir, sshkey, sshuser string, index int) (vmimpl.Instance, error) {
 	var name string
+	// de := pool.env.Debug
 	if !pool.env.Sched {
 		name = fmt.Sprintf("fuzzer-vm%d", index)
+		// de = true
 	} else {
 		name = fmt.Sprintf("scheduler-vm%d", index)
 	}
@@ -455,6 +449,8 @@ func (inst *instance) boot() error {
 		"-object", fmt.Sprintf("memory-backend-file,size=512M,share,mem-path=/dev/shm/ivshmemfile%s,id=ivshmem", inst.name),
 		"-device", "ivshmem,x-memdev=ivshmem",
 		"-name", inst.name,
+		"-vga", "virtio",
+		"-device", "virtio-gpu-pci",
 	}
 	if inst.debug {
 		args = append(args, "-race-debug")
@@ -499,7 +495,20 @@ func (inst *instance) boot() error {
 		)
 	}
 	if inst.cfg.Kernel != "" {
-		cmdline := append([]string{}, inst.archConfig.CmdLine...)
+		cmdline := append([]string{
+			"kvm-intel.nested=1",
+			"kvm-intel.unrestricted_guest=1",
+			"kvm-intel.vmm_exclusive=1",
+			"kvm-intel.fasteoi=1",
+			"kvm-intel.ept=1",
+			"kvm-intel.flexpriority=1",
+			"kvm-intel.vpid=1",
+			"kvm-intel.emulate_invalid_guest_state=1",
+			"kvm-intel.eptad=1",
+			"kvm-intel.enable_shadow_vmcs=1",
+			"kvm-intel.pml=1",
+			"kvm-intel.enable_apicv=1",
+		}, inst.archConfig.CmdLine...)
 		if inst.image == "9p" {
 			cmdline = append(cmdline,
 				"root=/dev/root",

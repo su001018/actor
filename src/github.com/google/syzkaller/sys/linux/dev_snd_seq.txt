@@ -155,6 +155,7 @@ snd_timer_id {
 	subdev	int32
 }
 
+
 snd_seq_queue_client {
 	queue	int32
 	client	int32

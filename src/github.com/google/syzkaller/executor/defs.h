@@ -160,7 +160,7 @@ struct call_props_t {
 
 #if GOARCH_386
 #define GOARCH "386"
-#define SYZ_REVISION "2537ce128a4e7e14836133ac9a971a35dbeb1d4d"
+#define SYZ_REVISION "3a6ce38e0fe090fafda8d6216ca1f3ba53be2d99"
 #define SYZ_EXECUTOR_USES_FORK_SERVER 1
 #define SYZ_EXECUTOR_USES_SHMEM 1
 #define SYZ_PAGE_SIZE 4096
@@ -169,14 +169,8 @@ struct call_props_t {
 #ifndef __NR_accept4
 #define __NR_accept4 364
 #endif
-#ifndef __NR_acct
-#define __NR_acct 51
-#endif
 #ifndef __NR_add_key
 #define __NR_add_key 286
-#endif
-#ifndef __NR_alarm
-#define __NR_alarm 27
 #endif
 #ifndef __NR_arch_prctl
 #define __NR_arch_prctl 384
@@ -187,98 +181,11 @@ struct call_props_t {
 #ifndef __NR_bpf
 #define __NR_bpf 357
 #endif
-#ifndef __NR_brk
-#define __NR_brk 45
-#endif
-#ifndef __NR_capget
-#define __NR_capget 184
-#endif
-#ifndef __NR_capset
-#define __NR_capset 185
-#endif
-#ifndef __NR_chdir
-#define __NR_chdir 12
-#endif
-#ifndef __NR_chmod
-#define __NR_chmod 15
-#endif
-#ifndef __NR_chown
-#define __NR_chown 182
-#endif
-#ifndef __NR_chroot
-#define __NR_chroot 61
-#endif
-#ifndef __NR_clock_adjtime
-#define __NR_clock_adjtime 343
-#endif
-#ifndef __NR_clock_getres
-#define __NR_clock_getres 266
-#endif
-#ifndef __NR_clock_gettime
-#define __NR_clock_gettime 265
-#endif
-#ifndef __NR_clock_nanosleep
-#define __NR_clock_nanosleep 267
-#endif
-#ifndef __NR_clock_settime
-#define __NR_clock_settime 264
-#endif
-#ifndef __NR_clone
-#define __NR_clone 120
-#endif
-#ifndef __NR_clone3
-#define __NR_clone3 435
-#endif
 #ifndef __NR_close
 #define __NR_close 6
 #endif
-#ifndef __NR_close_range
-#define __NR_close_range 436
-#endif
 #ifndef __NR_connect
 #define __NR_connect 362
-#endif
-#ifndef __NR_copy_file_range
-#define __NR_copy_file_range 377
-#endif
-#ifndef __NR_creat
-#define __NR_creat 8
-#endif
-#ifndef __NR_delete_module
-#define __NR_delete_module 129
-#endif
-#ifndef __NR_dup
-#define __NR_dup 41
-#endif
-#ifndef __NR_dup2
-#define __NR_dup2 63
-#endif
-#ifndef __NR_dup3
-#define __NR_dup3 330
-#endif
-#ifndef __NR_epoll_create
-#define __NR_epoll_create 254
-#endif
-#ifndef __NR_epoll_create1
-#define __NR_epoll_create1 329
-#endif
-#ifndef __NR_epoll_ctl
-#define __NR_epoll_ctl 255
-#endif
-#ifndef __NR_epoll_pwait
-#define __NR_epoll_pwait 319
-#endif
-#ifndef __NR_epoll_pwait2
-#define __NR_epoll_pwait2 441
-#endif
-#ifndef __NR_epoll_wait
-#define __NR_epoll_wait 256
-#endif
-#ifndef __NR_eventfd
-#define __NR_eventfd 323
-#endif
-#ifndef __NR_eventfd2
-#define __NR_eventfd2 328
 #endif
 #ifndef __NR_execve
 #define __NR_execve 11
@@ -286,98 +193,23 @@ struct call_props_t {
 #ifndef __NR_execveat
 #define __NR_execveat 358
 #endif
-#ifndef __NR_exit
-#define __NR_exit 1
-#endif
-#ifndef __NR_exit_group
-#define __NR_exit_group 252
-#endif
-#ifndef __NR_faccessat
-#define __NR_faccessat 307
-#endif
-#ifndef __NR_faccessat2
-#define __NR_faccessat2 439
-#endif
-#ifndef __NR_fadvise64
-#define __NR_fadvise64 250
-#endif
-#ifndef __NR_fallocate
-#define __NR_fallocate 324
-#endif
 #ifndef __NR_fanotify_init
 #define __NR_fanotify_init 338
 #endif
 #ifndef __NR_fanotify_mark
 #define __NR_fanotify_mark 339
 #endif
-#ifndef __NR_fchdir
-#define __NR_fchdir 133
-#endif
-#ifndef __NR_fchmod
-#define __NR_fchmod 94
-#endif
-#ifndef __NR_fchmodat
-#define __NR_fchmodat 306
-#endif
-#ifndef __NR_fchown
-#define __NR_fchown 95
-#endif
-#ifndef __NR_fchownat
-#define __NR_fchownat 298
-#endif
-#ifndef __NR_fcntl
-#define __NR_fcntl 55
-#endif
-#ifndef __NR_fdatasync
-#define __NR_fdatasync 148
-#endif
 #ifndef __NR_fgetxattr
 #define __NR_fgetxattr 231
-#endif
-#ifndef __NR_finit_module
-#define __NR_finit_module 350
 #endif
 #ifndef __NR_flistxattr
 #define __NR_flistxattr 234
 #endif
-#ifndef __NR_flock
-#define __NR_flock 143
-#endif
 #ifndef __NR_fremovexattr
 #define __NR_fremovexattr 237
 #endif
-#ifndef __NR_fsconfig
-#define __NR_fsconfig 431
-#endif
 #ifndef __NR_fsetxattr
 #define __NR_fsetxattr 228
-#endif
-#ifndef __NR_fsmount
-#define __NR_fsmount 432
-#endif
-#ifndef __NR_fsopen
-#define __NR_fsopen 430
-#endif
-#ifndef __NR_fspick
-#define __NR_fspick 433
-#endif
-#ifndef __NR_fstat
-#define __NR_fstat 108
-#endif
-#ifndef __NR_fstat64
-#define __NR_fstat64 197
-#endif
-#ifndef __NR_fstatat64
-#define __NR_fstatat64 300
-#endif
-#ifndef __NR_fstatfs
-#define __NR_fstatfs 100
-#endif
-#ifndef __NR_fsync
-#define __NR_fsync 118
-#endif
-#ifndef __NR_ftruncate
-#define __NR_ftruncate 93
 #endif
 #ifndef __NR_futex
 #define __NR_futex 240
@@ -385,71 +217,11 @@ struct call_props_t {
 #ifndef __NR_futex_waitv
 #define __NR_futex_waitv 449
 #endif
-#ifndef __NR_futimesat
-#define __NR_futimesat 299
-#endif
-#ifndef __NR_get_mempolicy
-#define __NR_get_mempolicy 275
-#endif
 #ifndef __NR_get_robust_list
 #define __NR_get_robust_list 312
 #endif
-#ifndef __NR_get_thread_area
-#define __NR_get_thread_area 244
-#endif
-#ifndef __NR_getcwd
-#define __NR_getcwd 183
-#endif
-#ifndef __NR_getdents
-#define __NR_getdents 141
-#endif
-#ifndef __NR_getdents64
-#define __NR_getdents64 220
-#endif
-#ifndef __NR_getegid
-#define __NR_getegid 50
-#endif
-#ifndef __NR_geteuid
-#define __NR_geteuid 49
-#endif
-#ifndef __NR_getgid
-#define __NR_getgid 47
-#endif
-#ifndef __NR_getgroups
-#define __NR_getgroups 80
-#endif
-#ifndef __NR_getitimer
-#define __NR_getitimer 105
-#endif
 #ifndef __NR_getpeername
 #define __NR_getpeername 368
-#endif
-#ifndef __NR_getpgid
-#define __NR_getpgid 132
-#endif
-#ifndef __NR_getpgrp
-#define __NR_getpgrp 65
-#endif
-#ifndef __NR_getpid
-#define __NR_getpid 20
-#endif
-#ifndef __NR_getpriority
-#define __NR_getpriority 96
-#endif
-#ifndef __NR_getrandom
-#define __NR_getrandom 355
-#endif
-#ifndef __NR_getresgid
-#define __NR_getresgid 171
-#endif
-#ifndef __NR_getresuid
-#define __NR_getresuid 165
-#endif
-#ifndef __NR_getrlimit
-#define __NR_getrlimit 76
-#endif
-#ifndef __NR_getrusage
-#define __NR_getrusage 77
 #endif
 #ifndef __NR_getsockname
 #define __NR_getsockname 367
@@ -457,17 +229,8 @@ struct call_props_t {
 #ifndef __NR_getsockopt
 #define __NR_getsockopt 365
 #endif
-#ifndef __NR_gettid
-#define __NR_gettid 224
-#endif
-#ifndef __NR_getuid
-#define __NR_getuid 24
-#endif
 #ifndef __NR_getxattr
 #define __NR_getxattr 229
-#endif
-#ifndef __NR_init_module
-#define __NR_init_module 128
 #endif
 #ifndef __NR_inotify_add_watch
 #define __NR_inotify_add_watch 292
@@ -511,24 +274,6 @@ struct call_props_t {
 #ifndef __NR_ioctl
 #define __NR_ioctl 54
 #endif
-#ifndef __NR_ioperm
-#define __NR_ioperm 101
-#endif
-#ifndef __NR_iopl
-#define __NR_iopl 110
-#endif
-#ifndef __NR_ioprio_get
-#define __NR_ioprio_get 290
-#endif
-#ifndef __NR_ioprio_set
-#define __NR_ioprio_set 289
-#endif
-#ifndef __NR_kcmp
-#define __NR_kcmp 349
-#endif
-#ifndef __NR_kexec_load
-#define __NR_kexec_load 283
-#endif
 #ifndef __NR_keyctl
 #define __NR_keyctl 288
 #endif
@@ -541,17 +286,8 @@ struct call_props_t {
 #ifndef __NR_landlock_restrict_self
 #define __NR_landlock_restrict_self 446
 #endif
-#ifndef __NR_lchown
-#define __NR_lchown 16
-#endif
 #ifndef __NR_lgetxattr
 #define __NR_lgetxattr 230
-#endif
-#ifndef __NR_link
-#define __NR_link 9
-#endif
-#ifndef __NR_linkat
-#define __NR_linkat 303
 #endif
 #ifndef __NR_listen
 #define __NR_listen 363
@@ -562,107 +298,20 @@ struct call_props_t {
 #ifndef __NR_llistxattr
 #define __NR_llistxattr 233
 #endif
-#ifndef __NR_lookup_dcookie
-#define __NR_lookup_dcookie 253
-#endif
 #ifndef __NR_lremovexattr
 #define __NR_lremovexattr 236
-#endif
-#ifndef __NR_lseek
-#define __NR_lseek 19
 #endif
 #ifndef __NR_lsetxattr
 #define __NR_lsetxattr 227
 #endif
-#ifndef __NR_lstat
-#define __NR_lstat 107
-#endif
-#ifndef __NR_lstat64
-#define __NR_lstat64 196
-#endif
-#ifndef __NR_madvise
-#define __NR_madvise 219
-#endif
-#ifndef __NR_mbind
-#define __NR_mbind 274
-#endif
-#ifndef __NR_membarrier
-#define __NR_membarrier 375
-#endif
-#ifndef __NR_memfd_create
-#define __NR_memfd_create 356
-#endif
-#ifndef __NR_memfd_secret
-#define __NR_memfd_secret 447
-#endif
-#ifndef __NR_migrate_pages
-#define __NR_migrate_pages 294
-#endif
-#ifndef __NR_mincore
-#define __NR_mincore 218
-#endif
-#ifndef __NR_mkdir
-#define __NR_mkdir 39
-#endif
 #ifndef __NR_mkdirat
 #define __NR_mkdirat 296
-#endif
-#ifndef __NR_mknod
-#define __NR_mknod 14
-#endif
-#ifndef __NR_mknodat
-#define __NR_mknodat 297
-#endif
-#ifndef __NR_mlock
-#define __NR_mlock 150
-#endif
-#ifndef __NR_mlock2
-#define __NR_mlock2 376
-#endif
-#ifndef __NR_mlockall
-#define __NR_mlockall 152
 #endif
 #ifndef __NR_mmap
 #define __NR_mmap 192
 #endif
-#ifndef __NR_modify_ldt
-#define __NR_modify_ldt 123
-#endif
 #ifndef __NR_mount
 #define __NR_mount 21
-#endif
-#ifndef __NR_mount_setattr
-#define __NR_mount_setattr 442
-#endif
-#ifndef __NR_move_mount
-#define __NR_move_mount 429
-#endif
-#ifndef __NR_move_pages
-#define __NR_move_pages 317
-#endif
-#ifndef __NR_mprotect
-#define __NR_mprotect 125
-#endif
-#ifndef __NR_mq_getsetattr
-#define __NR_mq_getsetattr 282
-#endif
-#ifndef __NR_mq_notify
-#define __NR_mq_notify 281
-#endif
-#ifndef __NR_mq_open
-#define __NR_mq_open 277
-#endif
-#ifndef __NR_mq_timedreceive
-#define __NR_mq_timedreceive 280
-#endif
-#ifndef __NR_mq_timedsend
-#define __NR_mq_timedsend 279
-#endif
-#ifndef __NR_mq_unlink
-#define __NR_mq_unlink 278
-#endif
-#ifndef __NR_mremap
-#define __NR_mremap 163
 #endif
 #ifndef __NR_msgctl
 #define __NR_msgctl 402
@@ -676,140 +325,20 @@ struct call_props_t {
 #ifndef __NR_msgsnd
 #define __NR_msgsnd 400
 #endif
-#ifndef __NR_msync
-#define __NR_msync 144
-#endif
-#ifndef __NR_munlock
-#define __NR_munlock 151
-#endif
-#ifndef __NR_munlockall
-#define __NR_munlockall 153
-#endif
-#ifndef __NR_munmap
-#define __NR_munmap 91
-#endif
-#ifndef __NR_name_to_handle_at
-#define __NR_name_to_handle_at 341
-#endif
-#ifndef __NR_nanosleep
-#define __NR_nanosleep 162
-#endif
-#ifndef __NR_open
-#define __NR_open 5
-#endif
-#ifndef __NR_open_by_handle_at
-#define __NR_open_by_handle_at 342
-#endif
-#ifndef __NR_open_tree
-#define __NR_open_tree 428
-#endif
 #ifndef __NR_openat
 #define __NR_openat 295
-#endif
-#ifndef __NR_openat2
-#define __NR_openat2 437
-#endif
-#ifndef __NR_pause
-#define __NR_pause 29
 #endif
 #ifndef __NR_perf_event_open
 #define __NR_perf_event_open 336
 #endif
-#ifndef __NR_personality
-#define __NR_personality 136
-#endif
-#ifndef __NR_pidfd_getfd
-#define __NR_pidfd_getfd 438
-#endif
-#ifndef __NR_pidfd_open
-#define __NR_pidfd_open 434
-#endif
-#ifndef __NR_pidfd_send_signal
-#define __NR_pidfd_send_signal 424
-#endif
-#ifndef __NR_pipe
-#define __NR_pipe 42
-#endif
 #ifndef __NR_pipe2
 #define __NR_pipe2 331
-#endif
-#ifndef __NR_pivot_root
-#define __NR_pivot_root 217
-#endif
-#ifndef __NR_pkey_alloc
-#define __NR_pkey_alloc 381
-#endif
-#ifndef __NR_pkey_free
-#define __NR_pkey_free 382
-#endif
-#ifndef __NR_pkey_mprotect
-#define __NR_pkey_mprotect 380
-#endif
-#ifndef __NR_poll
-#define __NR_poll 168
-#endif
-#ifndef __NR_ppoll
-#define __NR_ppoll 309
 #endif
 #ifndef __NR_prctl
 #define __NR_prctl 172
 #endif
-#ifndef __NR_pread64
-#define __NR_pread64 180
-#endif
-#ifndef __NR_preadv
-#define __NR_preadv 333
-#endif
-#ifndef __NR_preadv2
-#define __NR_preadv2 378
-#endif
-#ifndef __NR_prlimit64
-#define __NR_prlimit64 340
-#endif
-#ifndef __NR_process_madvise
-#define __NR_process_madvise 440
-#endif
-#ifndef __NR_process_mrelease
-#define __NR_process_mrelease 448
-#endif
-#ifndef __NR_process_vm_readv
-#define __NR_process_vm_readv 347
-#endif
-#ifndef __NR_process_vm_writev
-#define __NR_process_vm_writev 348
-#endif
-#ifndef __NR_pselect6
-#define __NR_pselect6 308
-#endif
-#ifndef __NR_ptrace
-#define __NR_ptrace 26
-#endif
-#ifndef __NR_pwrite64
-#define __NR_pwrite64 181
-#endif
-#ifndef __NR_pwritev
-#define __NR_pwritev 334
-#endif
-#ifndef __NR_pwritev2
-#define __NR_pwritev2 379
-#endif
-#ifndef __NR_quotactl
-#define __NR_quotactl 131
-#endif
 #ifndef __NR_read
 #define __NR_read 3
-#endif
-#ifndef __NR_readahead
-#define __NR_readahead 225
-#endif
-#ifndef __NR_readlink
-#define __NR_readlink 85
-#endif
-#ifndef __NR_readlinkat
-#define __NR_readlinkat 305
-#endif
-#ifndef __NR_readv
-#define __NR_readv 145
 #endif
 #ifndef __NR_recvfrom
 #define __NR_recvfrom 371
@@ -820,104 +349,20 @@ struct call_props_t {
 #ifndef __NR_recvmsg
 #define __NR_recvmsg 372
 #endif
-#ifndef __NR_remap_file_pages
-#define __NR_remap_file_pages 257
-#endif
 #ifndef __NR_removexattr
 #define __NR_removexattr 235
-#endif
-#ifndef __NR_rename
-#define __NR_rename 38
-#endif
-#ifndef __NR_renameat
-#define __NR_renameat 302
-#endif
-#ifndef __NR_renameat2
-#define __NR_renameat2 353
 #endif
 #ifndef __NR_request_key
 #define __NR_request_key 287
 #endif
-#ifndef __NR_restart_syscall
-#define __NR_restart_syscall 0
-#endif
-#ifndef __NR_rmdir
-#define __NR_rmdir 40
-#endif
-#ifndef __NR_rseq
-#define __NR_rseq 386
-#endif
-#ifndef __NR_rt_sigaction
-#define __NR_rt_sigaction 174
-#endif
-#ifndef __NR_rt_sigpending
-#define __NR_rt_sigpending 176
-#endif
-#ifndef __NR_rt_sigprocmask
-#define __NR_rt_sigprocmask 175
-#endif
-#ifndef __NR_rt_sigqueueinfo
-#define __NR_rt_sigqueueinfo 178
-#endif
-#ifndef __NR_rt_sigreturn
-#define __NR_rt_sigreturn 173
-#endif
-#ifndef __NR_rt_sigsuspend
-#define __NR_rt_sigsuspend 179
-#endif
-#ifndef __NR_rt_sigtimedwait
-#define __NR_rt_sigtimedwait 177
-#endif
-#ifndef __NR_rt_tgsigqueueinfo
-#define __NR_rt_tgsigqueueinfo 335
-#endif
-#ifndef __NR_sched_getaffinity
-#define __NR_sched_getaffinity 242
-#endif
-#ifndef __NR_sched_getattr
-#define __NR_sched_getattr 352
-#endif
-#ifndef __NR_sched_getparam
-#define __NR_sched_getparam 155
-#endif
-#ifndef __NR_sched_getscheduler
-#define __NR_sched_getscheduler 157
-#endif
-#ifndef __NR_sched_rr_get_interval
-#define __NR_sched_rr_get_interval 161
-#endif
-#ifndef __NR_sched_setaffinity
-#define __NR_sched_setaffinity 241
-#endif
-#ifndef __NR_sched_setattr
-#define __NR_sched_setattr 351
-#endif
-#ifndef __NR_sched_setparam
-#define __NR_sched_setparam 154
-#endif
-#ifndef __NR_sched_setscheduler
-#define __NR_sched_setscheduler 156
-#endif
-#ifndef __NR_sched_yield
-#define __NR_sched_yield 158
-#endif
 #ifndef __NR_seccomp
 #define __NR_seccomp 354
-#endif
-#ifndef __NR_select
-#define __NR_select 82
 #endif
 #ifndef __NR_semctl
 #define __NR_semctl 394
 #endif
 #ifndef __NR_semget
 #define __NR_semget 393
-#endif
-#ifndef __NR_sendfile
-#define __NR_sendfile 187
-#endif
-#ifndef __NR_sendfile64
-#define __NR_sendfile64 239
 #endif
 #ifndef __NR_sendmmsg
 #define __NR_sendmmsg 345
@@ -928,62 +373,14 @@ struct call_props_t {
 #ifndef __NR_sendto
 #define __NR_sendto 369
 #endif
-#ifndef __NR_set_mempolicy
-#define __NR_set_mempolicy 276
-#endif
 #ifndef __NR_set_robust_list
 #define __NR_set_robust_list 311
-#endif
-#ifndef __NR_set_thread_area
-#define __NR_set_thread_area 243
-#endif
-#ifndef __NR_set_tid_address
-#define __NR_set_tid_address 258
-#endif
-#ifndef __NR_setfsgid
-#define __NR_setfsgid 139
-#endif
-#ifndef __NR_setfsuid
-#define __NR_setfsuid 138
-#endif
-#ifndef __NR_setgid
-#define __NR_setgid 46
-#endif
-#ifndef __NR_setgroups
-#define __NR_setgroups 81
-#endif
-#ifndef __NR_setitimer
-#define __NR_setitimer 104
 #endif
 #ifndef __NR_setns
 #define __NR_setns 346
 #endif
-#ifndef __NR_setpgid
-#define __NR_setpgid 57
-#endif
-#ifndef __NR_setpriority
-#define __NR_setpriority 97
-#endif
-#ifndef __NR_setregid
-#define __NR_setregid 71
-#endif
-#ifndef __NR_setresgid
-#define __NR_setresgid 170
-#endif
-#ifndef __NR_setresuid
-#define __NR_setresuid 164
-#endif
-#ifndef __NR_setreuid
-#define __NR_setreuid 70
-#endif
-#ifndef __NR_setrlimit
-#define __NR_setrlimit 75
-#endif
 #ifndef __NR_setsockopt
 #define __NR_setsockopt 366
-#endif
-#ifndef __NR_setuid
-#define __NR_setuid 23
 #endif
 #ifndef __NR_setxattr
 #define __NR_setxattr 226
@@ -1003,110 +400,11 @@ struct call_props_t {
 #ifndef __NR_shutdown
 #define __NR_shutdown 373
 #endif
-#ifndef __NR_sigaltstack
-#define __NR_sigaltstack 186
-#endif
-#ifndef __NR_signalfd
-#define __NR_signalfd 321
-#endif
-#ifndef __NR_signalfd4
-#define __NR_signalfd4 327
-#endif
 #ifndef __NR_socket
 #define __NR_socket 359
 #endif
 #ifndef __NR_socketpair
 #define __NR_socketpair 360
-#endif
-#ifndef __NR_splice
-#define __NR_splice 313
-#endif
-#ifndef __NR_stat
-#define __NR_stat 106
-#endif
-#ifndef __NR_stat64
-#define __NR_stat64 195
-#endif
-#ifndef __NR_statfs
-#define __NR_statfs 99
-#endif
-#ifndef __NR_statx
-#define __NR_statx 383
-#endif
-#ifndef __NR_symlink
-#define __NR_symlink 83
-#endif
-#ifndef __NR_symlinkat
-#define __NR_symlinkat 304
-#endif
-#ifndef __NR_sync
-#define __NR_sync 36
-#endif
-#ifndef __NR_sync_file_range
-#define __NR_sync_file_range 314
-#endif
-#ifndef __NR_syncfs
-#define __NR_syncfs 344
-#endif
-#ifndef __NR_sysfs
-#define __NR_sysfs 135
-#endif
-#ifndef __NR_sysinfo
-#define __NR_sysinfo 116
-#endif
-#ifndef __NR_syslog
-#define __NR_syslog 103
-#endif
-#ifndef __NR_tee
-#define __NR_tee 315
-#endif
-#ifndef __NR_tgkill
-#define __NR_tgkill 270
-#endif
-#ifndef __NR_time
-#define __NR_time 13
-#endif
-#ifndef __NR_timer_create
-#define __NR_timer_create 259
-#endif
-#ifndef __NR_timer_delete
-#define __NR_timer_delete 263
-#endif
-#ifndef __NR_timer_getoverrun
-#define __NR_timer_getoverrun 262
-#endif
-#ifndef __NR_timer_gettime
-#define __NR_timer_gettime 261
-#endif
-#ifndef __NR_timer_settime
-#define __NR_timer_settime 260
-#endif
-#ifndef __NR_timerfd_create
-#define __NR_timerfd_create 322
-#endif
-#ifndef __NR_timerfd_gettime
-#define __NR_timerfd_gettime 326
-#endif
-#ifndef __NR_timerfd_settime
-#define __NR_timerfd_settime 325
-#endif
-#ifndef __NR_times
-#define __NR_times 43
-#endif
-#ifndef __NR_tkill
-#define __NR_tkill 238
-#endif
-#ifndef __NR_truncate
-#define __NR_truncate 92
-#endif
-#ifndef __NR_umount2
-#define __NR_umount2 52
-#endif
-#ifndef __NR_uname
-#define __NR_uname 122
-#endif
-#ifndef __NR_unlink
-#define __NR_unlink 10
 #endif
 #ifndef __NR_unlinkat
 #define __NR_unlinkat 301
@@ -1114,44 +412,17 @@ struct call_props_t {
 #ifndef __NR_unshare
 #define __NR_unshare 310
 #endif
-#ifndef __NR_uselib
-#define __NR_uselib 86
-#endif
 #ifndef __NR_userfaultfd
 #define __NR_userfaultfd 374
 #endif
-#ifndef __NR_ustat
-#define __NR_ustat 62
-#endif
-#ifndef __NR_utime
-#define __NR_utime 30
-#endif
-#ifndef __NR_utimensat
-#define __NR_utimensat 320
-#endif
-#ifndef __NR_utimes
-#define __NR_utimes 271
-#endif
-#ifndef __NR_vmsplice
-#define __NR_vmsplice 316
-#endif
-#ifndef __NR_wait4
-#define __NR_wait4 114
-#endif
-#ifndef __NR_waitid
-#define __NR_waitid 284
-#endif
 #ifndef __NR_write
 #define __NR_write 4
-#endif
-#ifndef __NR_writev
-#define __NR_writev 146
 #endif
 #endif
 
 #if GOARCH_amd64
 #define GOARCH "amd64"
-#define SYZ_REVISION "a15dc2960895a627f507d9854d64eaebe4c21a4e"
+#define SYZ_REVISION "fdba5d0e10281d2d9df000039d3a7fb78a8328d4"
 #define SYZ_EXECUTOR_USES_FORK_SERVER 1
 #define SYZ_EXECUTOR_USES_SHMEM 1
 #define SYZ_PAGE_SIZE 4096
@@ -1299,7 +570,7 @@ struct call_props_t {
 
 #if GOARCH_arm
 #define GOARCH "arm"
-#define SYZ_REVISION "9d02430406f7db27f486f37090743ea19f67fba8"
+#define SYZ_REVISION "20a0890f56dffc59e109716b4c7219a17b65702f"
 #define SYZ_EXECUTOR_USES_FORK_SERVER 1
 #define SYZ_EXECUTOR_USES_SHMEM 1
 #define SYZ_PAGE_SIZE 4096
@@ -1311,9 +582,6 @@ struct call_props_t {
 #ifndef __NR_accept4
 #define __NR_accept4 366
 #endif
-#ifndef __NR_acct
-#define __NR_acct 51
-#endif
 #ifndef __NR_add_key
 #define __NR_add_key 309
 #endif
@@ -1323,98 +591,11 @@ struct call_props_t {
 #ifndef __NR_bpf
 #define __NR_bpf 386
 #endif
-#ifndef __NR_brk
-#define __NR_brk 45
-#endif
-#ifndef __NR_capget
-#define __NR_capget 184
-#endif
-#ifndef __NR_capset
-#define __NR_capset 185
-#endif
-#ifndef __NR_chdir
-#define __NR_chdir 12
-#endif
-#ifndef __NR_chmod
-#define __NR_chmod 15
-#endif
-#ifndef __NR_chown
-#define __NR_chown 182
-#endif
-#ifndef __NR_chroot
-#define __NR_chroot 61
-#endif
-#ifndef __NR_clock_adjtime
-#define __NR_clock_adjtime 372
-#endif
-#ifndef __NR_clock_getres
-#define __NR_clock_getres 264
-#endif
-#ifndef __NR_clock_gettime
-#define __NR_clock_gettime 263
-#endif
-#ifndef __NR_clock_nanosleep
-#define __NR_clock_nanosleep 265
-#endif
-#ifndef __NR_clock_settime
-#define __NR_clock_settime 262
-#endif
-#ifndef __NR_clone
-#define __NR_clone 120
-#endif
-#ifndef __NR_clone3
-#define __NR_clone3 435
-#endif
 #ifndef __NR_close
 #define __NR_close 6
 #endif
-#ifndef __NR_close_range
-#define __NR_close_range 436
-#endif
 #ifndef __NR_connect
 #define __NR_connect 283
-#endif
-#ifndef __NR_copy_file_range
-#define __NR_copy_file_range 391
-#endif
-#ifndef __NR_creat
-#define __NR_creat 8
-#endif
-#ifndef __NR_delete_module
-#define __NR_delete_module 129
-#endif
-#ifndef __NR_dup
-#define __NR_dup 41
-#endif
-#ifndef __NR_dup2
-#define __NR_dup2 63
-#endif
-#ifndef __NR_dup3
-#define __NR_dup3 358
-#endif
-#ifndef __NR_epoll_create
-#define __NR_epoll_create 250
-#endif
-#ifndef __NR_epoll_create1
-#define __NR_epoll_create1 357
-#endif
-#ifndef __NR_epoll_ctl
-#define __NR_epoll_ctl 251
-#endif
-#ifndef __NR_epoll_pwait
-#define __NR_epoll_pwait 346
-#endif
-#ifndef __NR_epoll_pwait2
-#define __NR_epoll_pwait2 441
-#endif
-#ifndef __NR_epoll_wait
-#define __NR_epoll_wait 252
-#endif
-#ifndef __NR_eventfd
-#define __NR_eventfd 351
-#endif
-#ifndef __NR_eventfd2
-#define __NR_eventfd2 356
 #endif
 #ifndef __NR_execve
 #define __NR_execve 11
@@ -1422,95 +603,23 @@ struct call_props_t {
 #ifndef __NR_execveat
 #define __NR_execveat 387
 #endif
-#ifndef __NR_exit
-#define __NR_exit 1
-#endif
-#ifndef __NR_exit_group
-#define __NR_exit_group 248
-#endif
-#ifndef __NR_faccessat
-#define __NR_faccessat 334
-#endif
-#ifndef __NR_faccessat2
-#define __NR_faccessat2 439
-#endif
-#ifndef __NR_fallocate
-#define __NR_fallocate 352
-#endif
 #ifndef __NR_fanotify_init
 #define __NR_fanotify_init 367
 #endif
 #ifndef __NR_fanotify_mark
 #define __NR_fanotify_mark 368
 #endif
-#ifndef __NR_fchdir
-#define __NR_fchdir 133
-#endif
-#ifndef __NR_fchmod
-#define __NR_fchmod 94
-#endif
-#ifndef __NR_fchmodat
-#define __NR_fchmodat 333
-#endif
-#ifndef __NR_fchown
-#define __NR_fchown 95
-#endif
-#ifndef __NR_fchownat
-#define __NR_fchownat 325
-#endif
-#ifndef __NR_fcntl
-#define __NR_fcntl 55
-#endif
-#ifndef __NR_fdatasync
-#define __NR_fdatasync 148
-#endif
 #ifndef __NR_fgetxattr
 #define __NR_fgetxattr 231
-#endif
-#ifndef __NR_finit_module
-#define __NR_finit_module 379
 #endif
 #ifndef __NR_flistxattr
 #define __NR_flistxattr 234
 #endif
-#ifndef __NR_flock
-#define __NR_flock 143
-#endif
 #ifndef __NR_fremovexattr
 #define __NR_fremovexattr 237
 #endif
-#ifndef __NR_fsconfig
-#define __NR_fsconfig 431
-#endif
 #ifndef __NR_fsetxattr
 #define __NR_fsetxattr 228
-#endif
-#ifndef __NR_fsmount
-#define __NR_fsmount 432
-#endif
-#ifndef __NR_fsopen
-#define __NR_fsopen 430
-#endif
-#ifndef __NR_fspick
-#define __NR_fspick 433
-#endif
-#ifndef __NR_fstat
-#define __NR_fstat 108
-#endif
-#ifndef __NR_fstat64
-#define __NR_fstat64 197
-#endif
-#ifndef __NR_fstatat64
-#define __NR_fstatat64 327
-#endif
-#ifndef __NR_fstatfs
-#define __NR_fstatfs 100
-#endif
-#ifndef __NR_fsync
-#define __NR_fsync 118
-#endif
-#ifndef __NR_ftruncate
-#define __NR_ftruncate 93
 #endif
 #ifndef __NR_futex
 #define __NR_futex 240
@@ -1518,65 +627,11 @@ struct call_props_t {
 #ifndef __NR_futex_waitv
 #define __NR_futex_waitv 449
 #endif
-#ifndef __NR_futimesat
-#define __NR_futimesat 326
-#endif
-#ifndef __NR_get_mempolicy
-#define __NR_get_mempolicy 320
-#endif
 #ifndef __NR_get_robust_list
 #define __NR_get_robust_list 339
 #endif
-#ifndef __NR_getcwd
-#define __NR_getcwd 183
-#endif
-#ifndef __NR_getdents
-#define __NR_getdents 141
-#endif
-#ifndef __NR_getdents64
-#define __NR_getdents64 217
-#endif
-#ifndef __NR_getegid
-#define __NR_getegid 50
-#endif
-#ifndef __NR_geteuid
-#define __NR_geteuid 49
-#endif
-#ifndef __NR_getgid
-#define __NR_getgid 47
-#endif
-#ifndef __NR_getgroups
-#define __NR_getgroups 80
-#endif
-#ifndef __NR_getitimer
-#define __NR_getitimer 105
-#endif
 #ifndef __NR_getpeername
 #define __NR_getpeername 287
-#endif
-#ifndef __NR_getpgid
-#define __NR_getpgid 132
-#endif
-#ifndef __NR_getpgrp
-#define __NR_getpgrp 65
-#endif
-#ifndef __NR_getpid
-#define __NR_getpid 20
-#endif
-#ifndef __NR_getpriority
-#define __NR_getpriority 96
-#endif
-#ifndef __NR_getrandom
-#define __NR_getrandom 384
-#endif
-#ifndef __NR_getresgid
-#define __NR_getresgid 171
-#endif
-#ifndef __NR_getresuid
-#define __NR_getresuid 165
-#endif
-#ifndef __NR_getrusage
-#define __NR_getrusage 77
 #endif
 #ifndef __NR_getsockname
 #define __NR_getsockname 286
@@ -1584,17 +639,8 @@ struct call_props_t {
 #ifndef __NR_getsockopt
 #define __NR_getsockopt 295
 #endif
-#ifndef __NR_gettid
-#define __NR_gettid 224
-#endif
-#ifndef __NR_getuid
-#define __NR_getuid 24
-#endif
 #ifndef __NR_getxattr
 #define __NR_getxattr 229
-#endif
-#ifndef __NR_init_module
-#define __NR_init_module 128
 #endif
 #ifndef __NR_inotify_add_watch
 #define __NR_inotify_add_watch 317
@@ -1638,18 +684,6 @@ struct call_props_t {
 #ifndef __NR_ioctl
 #define __NR_ioctl 54
 #endif
-#ifndef __NR_ioprio_get
-#define __NR_ioprio_get 315
-#endif
-#ifndef __NR_ioprio_set
-#define __NR_ioprio_set 314
-#endif
-#ifndef __NR_kcmp
-#define __NR_kcmp 378
-#endif
-#ifndef __NR_kexec_load
-#define __NR_kexec_load 347
-#endif
 #ifndef __NR_keyctl
 #define __NR_keyctl 311
 #endif
@@ -1662,17 +696,8 @@ struct call_props_t {
 #ifndef __NR_landlock_restrict_self
 #define __NR_landlock_restrict_self 446
 #endif
-#ifndef __NR_lchown
-#define __NR_lchown 16
-#endif
 #ifndef __NR_lgetxattr
 #define __NR_lgetxattr 230
-#endif
-#ifndef __NR_link
-#define __NR_link 9
-#endif
-#ifndef __NR_linkat
-#define __NR_linkat 330
 #endif
 #ifndef __NR_listen
 #define __NR_listen 284
@@ -1683,101 +708,20 @@ struct call_props_t {
 #ifndef __NR_llistxattr
 #define __NR_llistxattr 233
 #endif
-#ifndef __NR_lookup_dcookie
-#define __NR_lookup_dcookie 249
-#endif
 #ifndef __NR_lremovexattr
 #define __NR_lremovexattr 236
-#endif
-#ifndef __NR_lseek
-#define __NR_lseek 19
 #endif
 #ifndef __NR_lsetxattr
 #define __NR_lsetxattr 227
 #endif
-#ifndef __NR_lstat
-#define __NR_lstat 107
-#endif
-#ifndef __NR_lstat64
-#define __NR_lstat64 196
-#endif
-#ifndef __NR_madvise
-#define __NR_madvise 220
-#endif
-#ifndef __NR_mbind
-#define __NR_mbind 319
-#endif
-#ifndef __NR_membarrier
-#define __NR_membarrier 389
-#endif
-#ifndef __NR_memfd_create
-#define __NR_memfd_create 385
-#endif
-#ifndef __NR_migrate_pages
-#define __NR_migrate_pages 400
-#endif
-#ifndef __NR_mincore
-#define __NR_mincore 219
-#endif
-#ifndef __NR_mkdir
-#define __NR_mkdir 39
-#endif
 #ifndef __NR_mkdirat
 #define __NR_mkdirat 323
-#endif
-#ifndef __NR_mknod
-#define __NR_mknod 14
-#endif
-#ifndef __NR_mknodat
-#define __NR_mknodat 324
-#endif
-#ifndef __NR_mlock
-#define __NR_mlock 150
-#endif
-#ifndef __NR_mlock2
-#define __NR_mlock2 390
-#endif
-#ifndef __NR_mlockall
-#define __NR_mlockall 152
 #endif
 #ifndef __NR_mmap
 #define __NR_mmap 192
 #endif
 #ifndef __NR_mount
 #define __NR_mount 21
-#endif
-#ifndef __NR_mount_setattr
-#define __NR_mount_setattr 442
-#endif
-#ifndef __NR_move_mount
-#define __NR_move_mount 429
-#endif
-#ifndef __NR_move_pages
-#define __NR_move_pages 344
-#endif
-#ifndef __NR_mprotect
-#define __NR_mprotect 125
-#endif
-#ifndef __NR_mq_getsetattr
-#define __NR_mq_getsetattr 279
-#endif
-#ifndef __NR_mq_notify
-#define __NR_mq_notify 278
-#endif
-#ifndef __NR_mq_open
-#define __NR_mq_open 274
-#endif
-#ifndef __NR_mq_timedreceive
-#define __NR_mq_timedreceive 277
-#endif
-#ifndef __NR_mq_timedsend
-#define __NR_mq_timedsend 276
-#endif
-#ifndef __NR_mq_unlink
-#define __NR_mq_unlink 275
-#endif
-#ifndef __NR_mremap
-#define __NR_mremap 163
 #endif
 #ifndef __NR_msgctl
 #define __NR_msgctl 304
@@ -1791,140 +735,20 @@ struct call_props_t {
 #ifndef __NR_msgsnd
 #define __NR_msgsnd 301
 #endif
-#ifndef __NR_msync
-#define __NR_msync 144
-#endif
-#ifndef __NR_munlock
-#define __NR_munlock 151
-#endif
-#ifndef __NR_munlockall
-#define __NR_munlockall 153
-#endif
-#ifndef __NR_munmap
-#define __NR_munmap 91
-#endif
-#ifndef __NR_name_to_handle_at
-#define __NR_name_to_handle_at 370
-#endif
-#ifndef __NR_nanosleep
-#define __NR_nanosleep 162
-#endif
-#ifndef __NR_open
-#define __NR_open 5
-#endif
-#ifndef __NR_open_by_handle_at
-#define __NR_open_by_handle_at 371
-#endif
-#ifndef __NR_open_tree
-#define __NR_open_tree 428
-#endif
 #ifndef __NR_openat
 #define __NR_openat 322
-#endif
-#ifndef __NR_openat2
-#define __NR_openat2 437
-#endif
-#ifndef __NR_pause
-#define __NR_pause 29
 #endif
 #ifndef __NR_perf_event_open
 #define __NR_perf_event_open 364
 #endif
-#ifndef __NR_personality
-#define __NR_personality 136
-#endif
-#ifndef __NR_pidfd_getfd
-#define __NR_pidfd_getfd 438
-#endif
-#ifndef __NR_pidfd_open
-#define __NR_pidfd_open 434
-#endif
-#ifndef __NR_pidfd_send_signal
-#define __NR_pidfd_send_signal 424
-#endif
-#ifndef __NR_pipe
-#define __NR_pipe 42
-#endif
 #ifndef __NR_pipe2
 #define __NR_pipe2 359
-#endif
-#ifndef __NR_pivot_root
-#define __NR_pivot_root 218
-#endif
-#ifndef __NR_pkey_alloc
-#define __NR_pkey_alloc 395
-#endif
-#ifndef __NR_pkey_free
-#define __NR_pkey_free 396
-#endif
-#ifndef __NR_pkey_mprotect
-#define __NR_pkey_mprotect 394
-#endif
-#ifndef __NR_poll
-#define __NR_poll 168
-#endif
-#ifndef __NR_ppoll
-#define __NR_ppoll 336
 #endif
 #ifndef __NR_prctl
 #define __NR_prctl 172
 #endif
-#ifndef __NR_pread64
-#define __NR_pread64 180
-#endif
-#ifndef __NR_preadv
-#define __NR_preadv 361
-#endif
-#ifndef __NR_preadv2
-#define __NR_preadv2 392
-#endif
-#ifndef __NR_prlimit64
-#define __NR_prlimit64 369
-#endif
-#ifndef __NR_process_madvise
-#define __NR_process_madvise 440
-#endif
-#ifndef __NR_process_mrelease
-#define __NR_process_mrelease 448
-#endif
-#ifndef __NR_process_vm_readv
-#define __NR_process_vm_readv 376
-#endif
-#ifndef __NR_process_vm_writev
-#define __NR_process_vm_writev 377
-#endif
-#ifndef __NR_pselect6
-#define __NR_pselect6 335
-#endif
-#ifndef __NR_ptrace
-#define __NR_ptrace 26
-#endif
-#ifndef __NR_pwrite64
-#define __NR_pwrite64 181
-#endif
-#ifndef __NR_pwritev
-#define __NR_pwritev 362
-#endif
-#ifndef __NR_pwritev2
-#define __NR_pwritev2 393
-#endif
-#ifndef __NR_quotactl
-#define __NR_quotactl 131
-#endif
 #ifndef __NR_read
 #define __NR_read 3
-#endif
-#ifndef __NR_readahead
-#define __NR_readahead 225
-#endif
-#ifndef __NR_readlink
-#define __NR_readlink 85
-#endif
-#ifndef __NR_readlinkat
-#define __NR_readlinkat 332
-#endif
-#ifndef __NR_readv
-#define __NR_readv 145
 #endif
 #ifndef __NR_recvfrom
 #define __NR_recvfrom 292
@@ -1935,86 +759,11 @@ struct call_props_t {
 #ifndef __NR_recvmsg
 #define __NR_recvmsg 297
 #endif
-#ifndef __NR_remap_file_pages
-#define __NR_remap_file_pages 253
-#endif
 #ifndef __NR_removexattr
 #define __NR_removexattr 235
 #endif
-#ifndef __NR_rename
-#define __NR_rename 38
-#endif
-#ifndef __NR_renameat
-#define __NR_renameat 329
-#endif
-#ifndef __NR_renameat2
-#define __NR_renameat2 382
-#endif
 #ifndef __NR_request_key
 #define __NR_request_key 310
-#endif
-#ifndef __NR_restart_syscall
-#define __NR_restart_syscall 0
-#endif
-#ifndef __NR_rmdir
-#define __NR_rmdir 40
-#endif
-#ifndef __NR_rseq
-#define __NR_rseq 398
-#endif
-#ifndef __NR_rt_sigaction
-#define __NR_rt_sigaction 174
-#endif
-#ifndef __NR_rt_sigpending
-#define __NR_rt_sigpending 176
-#endif
-#ifndef __NR_rt_sigprocmask
-#define __NR_rt_sigprocmask 175
-#endif
-#ifndef __NR_rt_sigqueueinfo
-#define __NR_rt_sigqueueinfo 178
-#endif
-#ifndef __NR_rt_sigreturn
-#define __NR_rt_sigreturn 173
-#endif
-#ifndef __NR_rt_sigsuspend
-#define __NR_rt_sigsuspend 179
-#endif
-#ifndef __NR_rt_sigtimedwait
-#define __NR_rt_sigtimedwait 177
-#endif
-#ifndef __NR_rt_tgsigqueueinfo
-#define __NR_rt_tgsigqueueinfo 363
-#endif
-#ifndef __NR_sched_getaffinity
-#define __NR_sched_getaffinity 242
-#endif
-#ifndef __NR_sched_getattr
-#define __NR_sched_getattr 381
-#endif
-#ifndef __NR_sched_getparam
-#define __NR_sched_getparam 155
-#endif
-#ifndef __NR_sched_getscheduler
-#define __NR_sched_getscheduler 157
-#endif
-#ifndef __NR_sched_rr_get_interval
-#define __NR_sched_rr_get_interval 161
-#endif
-#ifndef __NR_sched_setaffinity
-#define __NR_sched_setaffinity 241
-#endif
-#ifndef __NR_sched_setattr
-#define __NR_sched_setattr 380
-#endif
-#ifndef __NR_sched_setparam
-#define __NR_sched_setparam 154
-#endif
-#ifndef __NR_sched_setscheduler
-#define __NR_sched_setscheduler 156
-#endif
-#ifndef __NR_sched_yield
-#define __NR_sched_yield 158
 #endif
 #ifndef __NR_seccomp
 #define __NR_seccomp 383
@@ -2031,12 +780,6 @@ struct call_props_t {
 #ifndef __NR_semtimedop
 #define __NR_semtimedop 312
 #endif
-#ifndef __NR_sendfile
-#define __NR_sendfile 187
-#endif
-#ifndef __NR_sendfile64
-#define __NR_sendfile64 239
-#endif
 #ifndef __NR_sendmmsg
 #define __NR_sendmmsg 374
 #endif
@@ -2046,59 +789,14 @@ struct call_props_t {
 #ifndef __NR_sendto
 #define __NR_sendto 290
 #endif
-#ifndef __NR_set_mempolicy
-#define __NR_set_mempolicy 321
-#endif
 #ifndef __NR_set_robust_list
 #define __NR_set_robust_list 338
-#endif
-#ifndef __NR_set_tid_address
-#define __NR_set_tid_address 256
-#endif
-#ifndef __NR_setfsgid
-#define __NR_setfsgid 139
-#endif
-#ifndef __NR_setfsuid
-#define __NR_setfsuid 138
-#endif
-#ifndef __NR_setgid
-#define __NR_setgid 46
-#endif
-#ifndef __NR_setgroups
-#define __NR_setgroups 81
-#endif
-#ifndef __NR_setitimer
-#define __NR_setitimer 104
 #endif
 #ifndef __NR_setns
 #define __NR_setns 375
 #endif
-#ifndef __NR_setpgid
-#define __NR_setpgid 57
-#endif
-#ifndef __NR_setpriority
-#define __NR_setpriority 97
-#endif
-#ifndef __NR_setregid
-#define __NR_setregid 71
-#endif
-#ifndef __NR_setresgid
-#define __NR_setresgid 170
-#endif
-#ifndef __NR_setresuid
-#define __NR_setresuid 164
-#endif
-#ifndef __NR_setreuid
-#define __NR_setreuid 70
-#endif
-#ifndef __NR_setrlimit
-#define __NR_setrlimit 75
-#endif
 #ifndef __NR_setsockopt
 #define __NR_setsockopt 294
-#endif
-#ifndef __NR_setuid
-#define __NR_setuid 23
 #endif
 #ifndef __NR_setxattr
 #define __NR_setxattr 226
@@ -2118,104 +816,11 @@ struct call_props_t {
 #ifndef __NR_shutdown
 #define __NR_shutdown 293
 #endif
-#ifndef __NR_sigaltstack
-#define __NR_sigaltstack 186
-#endif
-#ifndef __NR_signalfd
-#define __NR_signalfd 349
-#endif
-#ifndef __NR_signalfd4
-#define __NR_signalfd4 355
-#endif
 #ifndef __NR_socket
 #define __NR_socket 281
 #endif
 #ifndef __NR_socketpair
 #define __NR_socketpair 288
-#endif
-#ifndef __NR_splice
-#define __NR_splice 340
-#endif
-#ifndef __NR_stat
-#define __NR_stat 106
-#endif
-#ifndef __NR_stat64
-#define __NR_stat64 195
-#endif
-#ifndef __NR_statfs
-#define __NR_statfs 99
-#endif
-#ifndef __NR_statx
-#define __NR_statx 397
-#endif
-#ifndef __NR_symlink
-#define __NR_symlink 83
-#endif
-#ifndef __NR_symlinkat
-#define __NR_symlinkat 331
-#endif
-#ifndef __NR_sync
-#define __NR_sync 36
-#endif
-#ifndef __NR_syncfs
-#define __NR_syncfs 373
-#endif
-#ifndef __NR_sysfs
-#define __NR_sysfs 135
-#endif
-#ifndef __NR_sysinfo
-#define __NR_sysinfo 116
-#endif
-#ifndef __NR_syslog
-#define __NR_syslog 103
-#endif
-#ifndef __NR_tee
-#define __NR_tee 342
-#endif
-#ifndef __NR_tgkill
-#define __NR_tgkill 268
-#endif
-#ifndef __NR_timer_create
-#define __NR_timer_create 257
-#endif
-#ifndef __NR_timer_delete
-#define __NR_timer_delete 261
-#endif
-#ifndef __NR_timer_getoverrun
-#define __NR_timer_getoverrun 260
-#endif
-#ifndef __NR_timer_gettime
-#define __NR_timer_gettime 259
-#endif
-#ifndef __NR_timer_settime
-#define __NR_timer_settime 258
-#endif
-#ifndef __NR_timerfd_create
-#define __NR_timerfd_create 350
-#endif
-#ifndef __NR_timerfd_gettime
-#define __NR_timerfd_gettime 354
-#endif
-#ifndef __NR_timerfd_settime
-#define __NR_timerfd_settime 353
-#endif
-#ifndef __NR_times
-#define __NR_times 43
-#endif
-#ifndef __NR_tkill
-#define __NR_tkill 238
-#endif
-#ifndef __NR_truncate
-#define __NR_truncate 92
-#endif
-#ifndef __NR_umount2
-#define __NR_umount2 52
-#endif
-#ifndef __NR_uname
-#define __NR_uname 122
-#endif
-#ifndef __NR_unlink
-#define __NR_unlink 10
 #endif
 #ifndef __NR_unlinkat
 #define __NR_unlinkat 328
@@ -2223,41 +828,17 @@ struct call_props_t {
 #ifndef __NR_unshare
 #define __NR_unshare 337
 #endif
-#ifndef __NR_uselib
-#define __NR_uselib 86
-#endif
 #ifndef __NR_userfaultfd
 #define __NR_userfaultfd 388
 #endif
-#ifndef __NR_ustat
-#define __NR_ustat 62
-#endif
-#ifndef __NR_utimensat
-#define __NR_utimensat 348
-#endif
-#ifndef __NR_utimes
-#define __NR_utimes 269
-#endif
-#ifndef __NR_vmsplice
-#define __NR_vmsplice 343
-#endif
-#ifndef __NR_wait4
-#define __NR_wait4 114
-#endif
-#ifndef __NR_waitid
-#define __NR_waitid 280
-#endif
 #ifndef __NR_write
 #define __NR_write 4
-#endif
-#ifndef __NR_writev
-#define __NR_writev 146
 #endif
 #endif
 
 #if GOARCH_arm64
 #define GOARCH "arm64"
-#define SYZ_REVISION "4c00f0013375f5ca8299af788076b1ef67619c1b"
+#define SYZ_REVISION "70bf79abc3188a595264439aec80cb4884637f0c"
 #define SYZ_EXECUTOR_USES_FORK_SERVER 1
 #define SYZ_EXECUTOR_USES_SHMEM 1
 #define SYZ_PAGE_SIZE 4096
@@ -2269,9 +850,6 @@ struct call_props_t {
 #ifndef __NR_accept4
 #define __NR_accept4 242
 #endif
-#ifndef __NR_acct
-#define __NR_acct 89
-#endif
 #ifndef __NR_add_key
 #define __NR_add_key 217
 #endif
@@ -2281,77 +859,11 @@ struct call_props_t {
 #ifndef __NR_bpf
 #define __NR_bpf 280
 #endif
-#ifndef __NR_brk
-#define __NR_brk 214
-#endif
-#ifndef __NR_capget
-#define __NR_capget 90
-#endif
-#ifndef __NR_capset
-#define __NR_capset 91
-#endif
-#ifndef __NR_chdir
-#define __NR_chdir 49
-#endif
-#ifndef __NR_chroot
-#define __NR_chroot 51
-#endif
-#ifndef __NR_clock_adjtime
-#define __NR_clock_adjtime 266
-#endif
-#ifndef __NR_clock_getres
-#define __NR_clock_getres 114
-#endif
-#ifndef __NR_clock_gettime
-#define __NR_clock_gettime 113
-#endif
-#ifndef __NR_clock_nanosleep
-#define __NR_clock_nanosleep 115
-#endif
-#ifndef __NR_clock_settime
-#define __NR_clock_settime 112
-#endif
-#ifndef __NR_clone
-#define __NR_clone 220
-#endif
-#ifndef __NR_clone3
-#define __NR_clone3 435
-#endif
 #ifndef __NR_close
 #define __NR_close 57
 #endif
-#ifndef __NR_close_range
-#define __NR_close_range 436
-#endif
 #ifndef __NR_connect
 #define __NR_connect 203
-#endif
-#ifndef __NR_copy_file_range
-#define __NR_copy_file_range 285
-#endif
-#ifndef __NR_delete_module
-#define __NR_delete_module 106
-#endif
-#ifndef __NR_dup
-#define __NR_dup 23
-#endif
-#ifndef __NR_dup3
-#define __NR_dup3 24
-#endif
-#ifndef __NR_epoll_create1
-#define __NR_epoll_create1 20
-#endif
-#ifndef __NR_epoll_ctl
-#define __NR_epoll_ctl 21
-#endif
-#ifndef __NR_epoll_pwait
-#define __NR_epoll_pwait 22
-#endif
-#ifndef __NR_epoll_pwait2
-#define __NR_epoll_pwait2 441
-#endif
-#ifndef __NR_eventfd2
-#define __NR_eventfd2 19
 #endif
 #ifndef __NR_execve
 #define __NR_execve 221
@@ -2359,92 +871,23 @@ struct call_props_t {
 #ifndef __NR_execveat
 #define __NR_execveat 281
 #endif
-#ifndef __NR_exit
-#define __NR_exit 93
-#endif
-#ifndef __NR_exit_group
-#define __NR_exit_group 94
-#endif
-#ifndef __NR_faccessat
-#define __NR_faccessat 48
-#endif
-#ifndef __NR_faccessat2
-#define __NR_faccessat2 439
-#endif
-#ifndef __NR_fadvise64
-#define __NR_fadvise64 223
-#endif
-#ifndef __NR_fallocate
-#define __NR_fallocate 47
-#endif
 #ifndef __NR_fanotify_init
 #define __NR_fanotify_init 262
 #endif
 #ifndef __NR_fanotify_mark
 #define __NR_fanotify_mark 263
 #endif
-#ifndef __NR_fchdir
-#define __NR_fchdir 50
-#endif
-#ifndef __NR_fchmod
-#define __NR_fchmod 52
-#endif
-#ifndef __NR_fchmodat
-#define __NR_fchmodat 53
-#endif
-#ifndef __NR_fchown
-#define __NR_fchown 55
-#endif
-#ifndef __NR_fchownat
-#define __NR_fchownat 54
-#endif
-#ifndef __NR_fcntl
-#define __NR_fcntl 25
-#endif
-#ifndef __NR_fdatasync
-#define __NR_fdatasync 83
-#endif
 #ifndef __NR_fgetxattr
 #define __NR_fgetxattr 10
-#endif
-#ifndef __NR_finit_module
-#define __NR_finit_module 273
 #endif
 #ifndef __NR_flistxattr
 #define __NR_flistxattr 13
 #endif
-#ifndef __NR_flock
-#define __NR_flock 32
-#endif
 #ifndef __NR_fremovexattr
 #define __NR_fremovexattr 16
 #endif
-#ifndef __NR_fsconfig
-#define __NR_fsconfig 431
-#endif
 #ifndef __NR_fsetxattr
 #define __NR_fsetxattr 7
-#endif
-#ifndef __NR_fsmount
-#define __NR_fsmount 432
-#endif
-#ifndef __NR_fsopen
-#define __NR_fsopen 430
-#endif
-#ifndef __NR_fspick
-#define __NR_fspick 433
-#endif
-#ifndef __NR_fstat
-#define __NR_fstat 80
-#endif
-#ifndef __NR_fstatfs
-#define __NR_fstatfs 44
-#endif
-#ifndef __NR_fsync
-#define __NR_fsync 82
-#endif
-#ifndef __NR_ftruncate
-#define __NR_ftruncate 46
 #endif
 #ifndef __NR_futex
 #define __NR_futex 98
@@ -2452,59 +895,11 @@ struct call_props_t {
 #ifndef __NR_futex_waitv
 #define __NR_futex_waitv 449
 #endif
-#ifndef __NR_get_mempolicy
-#define __NR_get_mempolicy 236
-#endif
 #ifndef __NR_get_robust_list
 #define __NR_get_robust_list 100
 #endif
-#ifndef __NR_getcwd
-#define __NR_getcwd 17
-#endif
-#ifndef __NR_getdents64
-#define __NR_getdents64 61
-#endif
-#ifndef __NR_getegid
-#define __NR_getegid 177
-#endif
-#ifndef __NR_geteuid
-#define __NR_geteuid 175
-#endif
-#ifndef __NR_getgid
-#define __NR_getgid 176
-#endif
-#ifndef __NR_getgroups
-#define __NR_getgroups 158
-#endif
-#ifndef __NR_getitimer
-#define __NR_getitimer 102
-#endif
 #ifndef __NR_getpeername
 #define __NR_getpeername 205
-#endif
-#ifndef __NR_getpgid
-#define __NR_getpgid 155
-#endif
-#ifndef __NR_getpid
-#define __NR_getpid 172
-#endif
-#ifndef __NR_getpriority
-#define __NR_getpriority 141
-#endif
-#ifndef __NR_getrandom
-#define __NR_getrandom 278
-#endif
-#ifndef __NR_getresgid
-#define __NR_getresgid 150
-#endif
-#ifndef __NR_getresuid
-#define __NR_getresuid 148
-#endif
-#ifndef __NR_getrlimit
-#define __NR_getrlimit 163
-#endif
-#ifndef __NR_getrusage
-#define __NR_getrusage 165
 #endif
 #ifndef __NR_getsockname
 #define __NR_getsockname 204
@@ -2512,17 +907,8 @@ struct call_props_t {
 #ifndef __NR_getsockopt
 #define __NR_getsockopt 209
 #endif
-#ifndef __NR_gettid
-#define __NR_gettid 178
-#endif
-#ifndef __NR_getuid
-#define __NR_getuid 174
-#endif
 #ifndef __NR_getxattr
 #define __NR_getxattr 8
-#endif
-#ifndef __NR_init_module
-#define __NR_init_module 105
 #endif
 #ifndef __NR_inotify_add_watch
 #define __NR_inotify_add_watch 27
@@ -2563,18 +949,6 @@ struct call_props_t {
 #ifndef __NR_ioctl
 #define __NR_ioctl 29
 #endif
-#ifndef __NR_ioprio_get
-#define __NR_ioprio_get 31
-#endif
-#ifndef __NR_ioprio_set
-#define __NR_ioprio_set 30
-#endif
-#ifndef __NR_kcmp
-#define __NR_kcmp 272
-#endif
-#ifndef __NR_kexec_load
-#define __NR_kexec_load 104
-#endif
 #ifndef __NR_keyctl
 #define __NR_keyctl 219
 #endif
@@ -2590,9 +964,6 @@ struct call_props_t {
 #ifndef __NR_lgetxattr
 #define __NR_lgetxattr 9
 #endif
-#ifndef __NR_linkat
-#define __NR_linkat 37
-#endif
 #ifndef __NR_listen
 #define __NR_listen 201
 #endif
@@ -2602,92 +973,20 @@ struct call_props_t {
 #ifndef __NR_llistxattr
 #define __NR_llistxattr 12
 #endif
-#ifndef __NR_lookup_dcookie
-#define __NR_lookup_dcookie 18
-#endif
 #ifndef __NR_lremovexattr
 #define __NR_lremovexattr 15
-#endif
-#ifndef __NR_lseek
-#define __NR_lseek 62
 #endif
 #ifndef __NR_lsetxattr
 #define __NR_lsetxattr 6
 #endif
-#ifndef __NR_madvise
-#define __NR_madvise 233
-#endif
-#ifndef __NR_mbind
-#define __NR_mbind 235
-#endif
-#ifndef __NR_membarrier
-#define __NR_membarrier 283
-#endif
-#ifndef __NR_memfd_create
-#define __NR_memfd_create 279
-#endif
-#ifndef __NR_memfd_secret
-#define __NR_memfd_secret 447
-#endif
-#ifndef __NR_migrate_pages
-#define __NR_migrate_pages 238
-#endif
-#ifndef __NR_mincore
-#define __NR_mincore 232
-#endif
 #ifndef __NR_mkdirat
 #define __NR_mkdirat 34
-#endif
-#ifndef __NR_mknodat
-#define __NR_mknodat 33
-#endif
-#ifndef __NR_mlock
-#define __NR_mlock 228
-#endif
-#ifndef __NR_mlock2
-#define __NR_mlock2 284
-#endif
-#ifndef __NR_mlockall
-#define __NR_mlockall 230
 #endif
 #ifndef __NR_mmap
 #define __NR_mmap 222
 #endif
 #ifndef __NR_mount
 #define __NR_mount 40
-#endif
-#ifndef __NR_mount_setattr
-#define __NR_mount_setattr 442
-#endif
-#ifndef __NR_move_mount
-#define __NR_move_mount 429
-#endif
-#ifndef __NR_move_pages
-#define __NR_move_pages 239
-#endif
-#ifndef __NR_mprotect
-#define __NR_mprotect 226
-#endif
-#ifndef __NR_mq_getsetattr
-#define __NR_mq_getsetattr 185
-#endif
-#ifndef __NR_mq_notify
-#define __NR_mq_notify 184
-#endif
-#ifndef __NR_mq_open
-#define __NR_mq_open 180
-#endif
-#ifndef __NR_mq_timedreceive
-#define __NR_mq_timedreceive 183
-#endif
-#ifndef __NR_mq_timedsend
-#define __NR_mq_timedsend 182
-#endif
-#ifndef __NR_mq_unlink
-#define __NR_mq_unlink 181
-#endif
-#ifndef __NR_mremap
-#define __NR_mremap 216
 #endif
 #ifndef __NR_msgctl
 #define __NR_msgctl 187
@@ -2701,128 +1000,20 @@ struct call_props_t {
 #ifndef __NR_msgsnd
 #define __NR_msgsnd 189
 #endif
-#ifndef __NR_msync
-#define __NR_msync 227
-#endif
-#ifndef __NR_munlock
-#define __NR_munlock 229
-#endif
-#ifndef __NR_munlockall
-#define __NR_munlockall 231
-#endif
-#ifndef __NR_munmap
-#define __NR_munmap 215
-#endif
-#ifndef __NR_name_to_handle_at
-#define __NR_name_to_handle_at 264
-#endif
-#ifndef __NR_nanosleep
-#define __NR_nanosleep 101
-#endif
-#ifndef __NR_newfstatat
-#define __NR_newfstatat 79
-#endif
-#ifndef __NR_open_by_handle_at
-#define __NR_open_by_handle_at 265
-#endif
-#ifndef __NR_open_tree
-#define __NR_open_tree 428
-#endif
 #ifndef __NR_openat
 #define __NR_openat 56
-#endif
-#ifndef __NR_openat2
-#define __NR_openat2 437
 #endif
 #ifndef __NR_perf_event_open
 #define __NR_perf_event_open 241
 #endif
-#ifndef __NR_personality
-#define __NR_personality 92
-#endif
-#ifndef __NR_pidfd_getfd
-#define __NR_pidfd_getfd 438
-#endif
-#ifndef __NR_pidfd_open
-#define __NR_pidfd_open 434
-#endif
-#ifndef __NR_pidfd_send_signal
-#define __NR_pidfd_send_signal 424
-#endif
 #ifndef __NR_pipe2
 #define __NR_pipe2 59
-#endif
-#ifndef __NR_pivot_root
-#define __NR_pivot_root 41
-#endif
-#ifndef __NR_pkey_alloc
-#define __NR_pkey_alloc 289
-#endif
-#ifndef __NR_pkey_free
-#define __NR_pkey_free 290
-#endif
-#ifndef __NR_pkey_mprotect
-#define __NR_pkey_mprotect 288
-#endif
-#ifndef __NR_ppoll
-#define __NR_ppoll 73
 #endif
 #ifndef __NR_prctl
 #define __NR_prctl 167
 #endif
-#ifndef __NR_pread64
-#define __NR_pread64 67
-#endif
-#ifndef __NR_preadv
-#define __NR_preadv 69
-#endif
-#ifndef __NR_preadv2
-#define __NR_preadv2 286
-#endif
-#ifndef __NR_prlimit64
-#define __NR_prlimit64 261
-#endif
-#ifndef __NR_process_madvise
-#define __NR_process_madvise 440
-#endif
-#ifndef __NR_process_mrelease
-#define __NR_process_mrelease 448
-#endif
-#ifndef __NR_process_vm_readv
-#define __NR_process_vm_readv 270
-#endif
-#ifndef __NR_process_vm_writev
-#define __NR_process_vm_writev 271
-#endif
-#ifndef __NR_pselect6
-#define __NR_pselect6 72
-#endif
-#ifndef __NR_ptrace
-#define __NR_ptrace 117
-#endif
-#ifndef __NR_pwrite64
-#define __NR_pwrite64 68
-#endif
-#ifndef __NR_pwritev
-#define __NR_pwritev 70
-#endif
-#ifndef __NR_pwritev2
-#define __NR_pwritev2 287
-#endif
-#ifndef __NR_quotactl
-#define __NR_quotactl 60
-#endif
 #ifndef __NR_read
 #define __NR_read 63
-#endif
-#ifndef __NR_readahead
-#define __NR_readahead 213
-#endif
-#ifndef __NR_readlinkat
-#define __NR_readlinkat 78
-#endif
-#ifndef __NR_readv
-#define __NR_readv 65
 #endif
 #ifndef __NR_recvfrom
 #define __NR_recvfrom 207
@@ -2833,80 +1024,11 @@ struct call_props_t {
 #ifndef __NR_recvmsg
 #define __NR_recvmsg 212
 #endif
-#ifndef __NR_remap_file_pages
-#define __NR_remap_file_pages 234
-#endif
 #ifndef __NR_removexattr
 #define __NR_removexattr 14
 #endif
-#ifndef __NR_renameat
-#define __NR_renameat 38
-#endif
-#ifndef __NR_renameat2
-#define __NR_renameat2 276
-#endif
 #ifndef __NR_request_key
 #define __NR_request_key 218
-#endif
-#ifndef __NR_restart_syscall
-#define __NR_restart_syscall 128
-#endif
-#ifndef __NR_rseq
-#define __NR_rseq 293
-#endif
-#ifndef __NR_rt_sigaction
-#define __NR_rt_sigaction 134
-#endif
-#ifndef __NR_rt_sigpending
-#define __NR_rt_sigpending 136
-#endif
-#ifndef __NR_rt_sigprocmask
-#define __NR_rt_sigprocmask 135
-#endif
-#ifndef __NR_rt_sigqueueinfo
-#define __NR_rt_sigqueueinfo 138
-#endif
-#ifndef __NR_rt_sigreturn
-#define __NR_rt_sigreturn 139
-#endif
-#ifndef __NR_rt_sigsuspend
-#define __NR_rt_sigsuspend 133
-#endif
-#ifndef __NR_rt_sigtimedwait
-#define __NR_rt_sigtimedwait 137
-#endif
-#ifndef __NR_rt_tgsigqueueinfo
-#define __NR_rt_tgsigqueueinfo 240
-#endif
-#ifndef __NR_sched_getaffinity
-#define __NR_sched_getaffinity 123
-#endif
-#ifndef __NR_sched_getattr
-#define __NR_sched_getattr 275
-#endif
-#ifndef __NR_sched_getparam
-#define __NR_sched_getparam 121
-#endif
-#ifndef __NR_sched_getscheduler
-#define __NR_sched_getscheduler 120
-#endif
-#ifndef __NR_sched_rr_get_interval
-#define __NR_sched_rr_get_interval 127
-#endif
-#ifndef __NR_sched_setaffinity
-#define __NR_sched_setaffinity 122
-#endif
-#ifndef __NR_sched_setattr
-#define __NR_sched_setattr 274
-#endif
-#ifndef __NR_sched_setparam
-#define __NR_sched_setparam 118
-#endif
-#ifndef __NR_sched_setscheduler
-#define __NR_sched_setscheduler 119
-#endif
-#ifndef __NR_sched_yield
-#define __NR_sched_yield 124
 #endif
 #ifndef __NR_seccomp
 #define __NR_seccomp 277
@@ -2923,9 +1045,6 @@ struct call_props_t {
 #ifndef __NR_semtimedop
 #define __NR_semtimedop 192
 #endif
-#ifndef __NR_sendfile
-#define __NR_sendfile 71
-#endif
 #ifndef __NR_sendmmsg
 #define __NR_sendmmsg 269
 #endif
@@ -2935,59 +1054,14 @@ struct call_props_t {
 #ifndef __NR_sendto
 #define __NR_sendto 206
 #endif
-#ifndef __NR_set_mempolicy
-#define __NR_set_mempolicy 237
-#endif
 #ifndef __NR_set_robust_list
 #define __NR_set_robust_list 99
-#endif
-#ifndef __NR_set_tid_address
-#define __NR_set_tid_address 96
-#endif
-#ifndef __NR_setfsgid
-#define __NR_setfsgid 152
-#endif
-#ifndef __NR_setfsuid
-#define __NR_setfsuid 151
-#endif
-#ifndef __NR_setgid
-#define __NR_setgid 144
-#endif
-#ifndef __NR_setgroups
-#define __NR_setgroups 159
-#endif
-#ifndef __NR_setitimer
-#define __NR_setitimer 103
 #endif
 #ifndef __NR_setns
 #define __NR_setns 268
 #endif
-#ifndef __NR_setpgid
-#define __NR_setpgid 154
-#endif
-#ifndef __NR_setpriority
-#define __NR_setpriority 140
-#endif
-#ifndef __NR_setregid
-#define __NR_setregid 143
-#endif
-#ifndef __NR_setresgid
-#define __NR_setresgid 149
-#endif
-#ifndef __NR_setresuid
-#define __NR_setresuid 147
-#endif
-#ifndef __NR_setreuid
-#define __NR_setreuid 145
-#endif
-#ifndef __NR_setrlimit
-#define __NR_setrlimit 164
-#endif
 #ifndef __NR_setsockopt
 #define __NR_setsockopt 208
-#endif
-#ifndef __NR_setuid
-#define __NR_setuid 146
 #endif
 #ifndef __NR_setxattr
 #define __NR_setxattr 5
@@ -3007,89 +1081,11 @@ struct call_props_t {
 #ifndef __NR_shutdown
 #define __NR_shutdown 210
 #endif
-#ifndef __NR_sigaltstack
-#define __NR_sigaltstack 132
-#endif
-#ifndef __NR_signalfd4
-#define __NR_signalfd4 74
-#endif
 #ifndef __NR_socket
 #define __NR_socket 198
 #endif
 #ifndef __NR_socketpair
 #define __NR_socketpair 199
-#endif
-#ifndef __NR_splice
-#define __NR_splice 76
-#endif
-#ifndef __NR_statfs
-#define __NR_statfs 43
-#endif
-#ifndef __NR_statx
-#define __NR_statx 291
-#endif
-#ifndef __NR_symlinkat
-#define __NR_symlinkat 36
-#endif
-#ifndef __NR_sync
-#define __NR_sync 81
-#endif
-#ifndef __NR_sync_file_range
-#define __NR_sync_file_range 84
-#endif
-#ifndef __NR_syncfs
-#define __NR_syncfs 267
-#endif
-#ifndef __NR_sysinfo
-#define __NR_sysinfo 179
-#endif
-#ifndef __NR_syslog
-#define __NR_syslog 116
-#endif
-#ifndef __NR_tee
-#define __NR_tee 77
-#endif
-#ifndef __NR_tgkill
-#define __NR_tgkill 131
-#endif
-#ifndef __NR_timer_create
-#define __NR_timer_create 107
-#endif
-#ifndef __NR_timer_delete
-#define __NR_timer_delete 111
-#endif
-#ifndef __NR_timer_getoverrun
-#define __NR_timer_getoverrun 109
-#endif
-#ifndef __NR_timer_gettime
-#define __NR_timer_gettime 108
-#endif
-#ifndef __NR_timer_settime
-#define __NR_timer_settime 110
-#endif
-#ifndef __NR_timerfd_create
-#define __NR_timerfd_create 85
-#endif
-#ifndef __NR_timerfd_gettime
-#define __NR_timerfd_gettime 87
-#endif
-#ifndef __NR_timerfd_settime
-#define __NR_timerfd_settime 86
-#endif
-#ifndef __NR_times
-#define __NR_times 153
-#endif
-#ifndef __NR_tkill
-#define __NR_tkill 130
-#endif
-#ifndef __NR_truncate
-#define __NR_truncate 45
-#endif
-#ifndef __NR_umount2
-#define __NR_umount2 39
-#endif
-#ifndef __NR_uname
-#define __NR_uname 160
 #endif
 #ifndef __NR_unlinkat
 #define __NR_unlinkat 35
@@ -3100,29 +1096,14 @@ struct call_props_t {
 #ifndef __NR_userfaultfd
 #define __NR_userfaultfd 282
 #endif
-#ifndef __NR_utimensat
-#define __NR_utimensat 88
-#endif
-#ifndef __NR_vmsplice
-#define __NR_vmsplice 75
-#endif
-#ifndef __NR_wait4
-#define __NR_wait4 260
-#endif
-#ifndef __NR_waitid
-#define __NR_waitid 95
-#endif
 #ifndef __NR_write
 #define __NR_write 64
-#endif
-#ifndef __NR_writev
-#define __NR_writev 66
 #endif
 #endif
 
 #if GOARCH_mips64le
 #define GOARCH "mips64le"
-#define SYZ_REVISION "19040335715d4f1a9c4282d41dd778cc7d8ad12b"
+#define SYZ_REVISION "727dd98c5f3b70f6767fee3754e87172c804bc28"
 #define SYZ_EXECUTOR_USES_FORK_SERVER 1
 #define SYZ_EXECUTOR_USES_SHMEM 1
 #define SYZ_PAGE_SIZE 4096
@@ -3134,14 +1115,8 @@ struct call_props_t {
 #ifndef __NR_accept4
 #define __NR_accept4 5293
 #endif
-#ifndef __NR_acct
-#define __NR_acct 5158
-#endif
 #ifndef __NR_add_key
 #define __NR_add_key 5239
-#endif
-#ifndef __NR_alarm
-#define __NR_alarm 5037
 #endif
 #ifndef __NR_bind
 #define __NR_bind 5048
@@ -3149,98 +1124,11 @@ struct call_props_t {
 #ifndef __NR_bpf
 #define __NR_bpf 5315
 #endif
-#ifndef __NR_brk
-#define __NR_brk 5012
-#endif
-#ifndef __NR_capget
-#define __NR_capget 5123
-#endif
-#ifndef __NR_capset
-#define __NR_capset 5124
-#endif
-#ifndef __NR_chdir
-#define __NR_chdir 5078
-#endif
-#ifndef __NR_chmod
-#define __NR_chmod 5088
-#endif
-#ifndef __NR_chown
-#define __NR_chown 5090
-#endif
-#ifndef __NR_chroot
-#define __NR_chroot 5156
-#endif
-#ifndef __NR_clock_adjtime
-#define __NR_clock_adjtime 5300
-#endif
-#ifndef __NR_clock_getres
-#define __NR_clock_getres 5223
-#endif
-#ifndef __NR_clock_gettime
-#define __NR_clock_gettime 5222
-#endif
-#ifndef __NR_clock_nanosleep
-#define __NR_clock_nanosleep 5224
-#endif
-#ifndef __NR_clock_settime
-#define __NR_clock_settime 5221
-#endif
-#ifndef __NR_clone
-#define __NR_clone 5055
-#endif
-#ifndef __NR_clone3
-#define __NR_clone3 5435
-#endif
 #ifndef __NR_close
 #define __NR_close 5003
 #endif
-#ifndef __NR_close_range
-#define __NR_close_range 5436
-#endif
 #ifndef __NR_connect
 #define __NR_connect 5041
-#endif
-#ifndef __NR_copy_file_range
-#define __NR_copy_file_range 5320
-#endif
-#ifndef __NR_creat
-#define __NR_creat 5083
-#endif
-#ifndef __NR_delete_module
-#define __NR_delete_module 5169
-#endif
-#ifndef __NR_dup
-#define __NR_dup 5031
-#endif
-#ifndef __NR_dup2
-#define __NR_dup2 5032
-#endif
-#ifndef __NR_dup3
-#define __NR_dup3 5286
-#endif
-#ifndef __NR_epoll_create
-#define __NR_epoll_create 5207
-#endif
-#ifndef __NR_epoll_create1
-#define __NR_epoll_create1 5285
-#endif
-#ifndef __NR_epoll_ctl
-#define __NR_epoll_ctl 5208
-#endif
-#ifndef __NR_epoll_pwait
-#define __NR_epoll_pwait 5272
-#endif
-#ifndef __NR_epoll_pwait2
-#define __NR_epoll_pwait2 5441
-#endif
-#ifndef __NR_epoll_wait
-#define __NR_epoll_wait 5209
-#endif
-#ifndef __NR_eventfd
-#define __NR_eventfd 5278
-#endif
-#ifndef __NR_eventfd2
-#define __NR_eventfd2 5284
 #endif
 #ifndef __NR_execve
 #define __NR_execve 5057
@@ -3248,92 +1136,23 @@ struct call_props_t {
 #ifndef __NR_execveat
 #define __NR_execveat 5316
 #endif
-#ifndef __NR_exit
-#define __NR_exit 5058
-#endif
-#ifndef __NR_exit_group
-#define __NR_exit_group 5205
-#endif
-#ifndef __NR_faccessat
-#define __NR_faccessat 5259
-#endif
-#ifndef __NR_faccessat2
-#define __NR_faccessat2 5439
-#endif
-#ifndef __NR_fadvise64
-#define __NR_fadvise64 5215
-#endif
-#ifndef __NR_fallocate
-#define __NR_fallocate 5279
-#endif
 #ifndef __NR_fanotify_init
 #define __NR_fanotify_init 5295
 #endif
 #ifndef __NR_fanotify_mark
 #define __NR_fanotify_mark 5296
 #endif
-#ifndef __NR_fchdir
-#define __NR_fchdir 5079
-#endif
-#ifndef __NR_fchmod
-#define __NR_fchmod 5089
-#endif
-#ifndef __NR_fchmodat
-#define __NR_fchmodat 5258
-#endif
-#ifndef __NR_fchown
-#define __NR_fchown 5091
-#endif
-#ifndef __NR_fchownat
-#define __NR_fchownat 5250
-#endif
-#ifndef __NR_fcntl
-#define __NR_fcntl 5070
-#endif
-#ifndef __NR_fdatasync
-#define __NR_fdatasync 5073
-#endif
 #ifndef __NR_fgetxattr
 #define __NR_fgetxattr 5185
-#endif
-#ifndef __NR_finit_module
-#define __NR_finit_module 5307
 #endif
 #ifndef __NR_flistxattr
 #define __NR_flistxattr 5188
 #endif
-#ifndef __NR_flock
-#define __NR_flock 5071
-#endif
 #ifndef __NR_fremovexattr
 #define __NR_fremovexattr 5191
 #endif
-#ifndef __NR_fsconfig
-#define __NR_fsconfig 5431
-#endif
 #ifndef __NR_fsetxattr
 #define __NR_fsetxattr 5182
-#endif
-#ifndef __NR_fsmount
-#define __NR_fsmount 5432
-#endif
-#ifndef __NR_fsopen
-#define __NR_fsopen 5430
-#endif
-#ifndef __NR_fspick
-#define __NR_fspick 5433
-#endif
-#ifndef __NR_fstat
-#define __NR_fstat 5005
-#endif
-#ifndef __NR_fstatfs
-#define __NR_fstatfs 5135
-#endif
-#ifndef __NR_fsync
-#define __NR_fsync 5072
-#endif
-#ifndef __NR_ftruncate
-#define __NR_ftruncate 5075
 #endif
 #ifndef __NR_futex
 #define __NR_futex 5194
@@ -3341,68 +1160,11 @@ struct call_props_t {
 #ifndef __NR_futex_waitv
 #define __NR_futex_waitv 5449
 #endif
-#ifndef __NR_futimesat
-#define __NR_futimesat 5251
-#endif
-#ifndef __NR_get_mempolicy
-#define __NR_get_mempolicy 5228
-#endif
 #ifndef __NR_get_robust_list
 #define __NR_get_robust_list 5269
 #endif
-#ifndef __NR_getcwd
-#define __NR_getcwd 5077
-#endif
-#ifndef __NR_getdents
-#define __NR_getdents 5076
-#endif
-#ifndef __NR_getdents64
-#define __NR_getdents64 5308
-#endif
-#ifndef __NR_getegid
-#define __NR_getegid 5106
-#endif
-#ifndef __NR_geteuid
-#define __NR_geteuid 5105
-#endif
-#ifndef __NR_getgid
-#define __NR_getgid 5102
-#endif
-#ifndef __NR_getgroups
-#define __NR_getgroups 5113
-#endif
-#ifndef __NR_getitimer
-#define __NR_getitimer 5035
-#endif
 #ifndef __NR_getpeername
 #define __NR_getpeername 5051
-#endif
-#ifndef __NR_getpgid
-#define __NR_getpgid 5119
-#endif
-#ifndef __NR_getpgrp
-#define __NR_getpgrp 5109
-#endif
-#ifndef __NR_getpid
-#define __NR_getpid 5038
-#endif
-#ifndef __NR_getpriority
-#define __NR_getpriority 5137
-#endif
-#ifndef __NR_getrandom
-#define __NR_getrandom 5313
-#endif
-#ifndef __NR_getresgid
-#define __NR_getresgid 5118
-#endif
-#ifndef __NR_getresuid
-#define __NR_getresuid 5116
-#endif
-#ifndef __NR_getrlimit
-#define __NR_getrlimit 5095
-#endif
-#ifndef __NR_getrusage
-#define __NR_getrusage 5096
 #endif
 #ifndef __NR_getsockname
 #define __NR_getsockname 5050
@@ -3410,17 +1172,8 @@ struct call_props_t {
 #ifndef __NR_getsockopt
 #define __NR_getsockopt 5054
 #endif
-#ifndef __NR_gettid
-#define __NR_gettid 5178
-#endif
-#ifndef __NR_getuid
-#define __NR_getuid 5100
-#endif
 #ifndef __NR_getxattr
 #define __NR_getxattr 5183
-#endif
-#ifndef __NR_init_module
-#define __NR_init_module 5168
 #endif
 #ifndef __NR_inotify_add_watch
 #define __NR_inotify_add_watch 5244
@@ -3464,18 +1217,6 @@ struct call_props_t {
 #ifndef __NR_ioctl
 #define __NR_ioctl 5015
 #endif
-#ifndef __NR_ioprio_get
-#define __NR_ioprio_get 5274
-#endif
-#ifndef __NR_ioprio_set
-#define __NR_ioprio_set 5273
-#endif
-#ifndef __NR_kcmp
-#define __NR_kcmp 5306
-#endif
-#ifndef __NR_kexec_load
-#define __NR_kexec_load 5270
-#endif
 #ifndef __NR_keyctl
 #define __NR_keyctl 5241
 #endif
@@ -3488,17 +1229,8 @@ struct call_props_t {
 #ifndef __NR_landlock_restrict_self
 #define __NR_landlock_restrict_self 5446
 #endif
-#ifndef __NR_lchown
-#define __NR_lchown 5092
-#endif
 #ifndef __NR_lgetxattr
 #define __NR_lgetxattr 5184
-#endif
-#ifndef __NR_link
-#define __NR_link 5084
-#endif
-#ifndef __NR_linkat
-#define __NR_linkat 5255
 #endif
 #ifndef __NR_listen
 #define __NR_listen 5049
@@ -3509,98 +1241,20 @@ struct call_props_t {
 #ifndef __NR_llistxattr
 #define __NR_llistxattr 5187
 #endif
-#ifndef __NR_lookup_dcookie
-#define __NR_lookup_dcookie 5206
-#endif
 #ifndef __NR_lremovexattr
 #define __NR_lremovexattr 5190
-#endif
-#ifndef __NR_lseek
-#define __NR_lseek 5008
 #endif
 #ifndef __NR_lsetxattr
 #define __NR_lsetxattr 5181
 #endif
-#ifndef __NR_lstat
-#define __NR_lstat 5006
-#endif
-#ifndef __NR_madvise
-#define __NR_madvise 5027
-#endif
-#ifndef __NR_mbind
-#define __NR_mbind 5227
-#endif
-#ifndef __NR_membarrier
-#define __NR_membarrier 5318
-#endif
-#ifndef __NR_memfd_create
-#define __NR_memfd_create 5314
-#endif
-#ifndef __NR_migrate_pages
-#define __NR_migrate_pages 5246
-#endif
-#ifndef __NR_mincore
-#define __NR_mincore 5026
-#endif
-#ifndef __NR_mkdir
-#define __NR_mkdir 5081
-#endif
 #ifndef __NR_mkdirat
 #define __NR_mkdirat 5248
-#endif
-#ifndef __NR_mknod
-#define __NR_mknod 5131
-#endif
-#ifndef __NR_mknodat
-#define __NR_mknodat 5249
-#endif
-#ifndef __NR_mlock
-#define __NR_mlock 5146
-#endif
-#ifndef __NR_mlock2
-#define __NR_mlock2 5319
-#endif
-#ifndef __NR_mlockall
-#define __NR_mlockall 5148
 #endif
 #ifndef __NR_mmap
 #define __NR_mmap 5009
 #endif
 #ifndef __NR_mount
 #define __NR_mount 5160
-#endif
-#ifndef __NR_mount_setattr
-#define __NR_mount_setattr 5442
-#endif
-#ifndef __NR_move_mount
-#define __NR_move_mount 5429
-#endif
-#ifndef __NR_move_pages
-#define __NR_move_pages 5267
-#endif
-#ifndef __NR_mprotect
-#define __NR_mprotect 5010
-#endif
-#ifndef __NR_mq_getsetattr
-#define __NR_mq_getsetattr 5235
-#endif
-#ifndef __NR_mq_notify
-#define __NR_mq_notify 5234
-#endif
-#ifndef __NR_mq_open
-#define __NR_mq_open 5230
-#endif
-#ifndef __NR_mq_timedreceive
-#define __NR_mq_timedreceive 5233
-#endif
-#ifndef __NR_mq_timedsend
-#define __NR_mq_timedsend 5232
-#endif
-#ifndef __NR_mq_unlink
-#define __NR_mq_unlink 5231
-#endif
-#ifndef __NR_mremap
-#define __NR_mremap 5024
 #endif
 #ifndef __NR_msgctl
 #define __NR_msgctl 5069
@@ -3614,143 +1268,20 @@ struct call_props_t {
 #ifndef __NR_msgsnd
 #define __NR_msgsnd 5067
 #endif
-#ifndef __NR_msync
-#define __NR_msync 5025
-#endif
-#ifndef __NR_munlock
-#define __NR_munlock 5147
-#endif
-#ifndef __NR_munlockall
-#define __NR_munlockall 5149
-#endif
-#ifndef __NR_munmap
-#define __NR_munmap 5011
-#endif
-#ifndef __NR_name_to_handle_at
-#define __NR_name_to_handle_at 5298
-#endif
-#ifndef __NR_nanosleep
-#define __NR_nanosleep 5034
-#endif
-#ifndef __NR_newfstatat
-#define __NR_newfstatat 5252
-#endif
-#ifndef __NR_open
-#define __NR_open 5002
-#endif
-#ifndef __NR_open_by_handle_at
-#define __NR_open_by_handle_at 5299
-#endif
-#ifndef __NR_open_tree
-#define __NR_open_tree 5428
-#endif
 #ifndef __NR_openat
 #define __NR_openat 5247
-#endif
-#ifndef __NR_openat2
-#define __NR_openat2 5437
-#endif
-#ifndef __NR_pause
-#define __NR_pause 5033
 #endif
 #ifndef __NR_perf_event_open
 #define __NR_perf_event_open 5292
 #endif
-#ifndef __NR_personality
-#define __NR_personality 5132
-#endif
-#ifndef __NR_pidfd_getfd
-#define __NR_pidfd_getfd 5438
-#endif
-#ifndef __NR_pidfd_open
-#define __NR_pidfd_open 5434
-#endif
-#ifndef __NR_pidfd_send_signal
-#define __NR_pidfd_send_signal 5424
-#endif
-#ifndef __NR_pipe
-#define __NR_pipe 5021
-#endif
 #ifndef __NR_pipe2
 #define __NR_pipe2 5287
-#endif
-#ifndef __NR_pivot_root
-#define __NR_pivot_root 5151
-#endif
-#ifndef __NR_pkey_alloc
-#define __NR_pkey_alloc 5324
-#endif
-#ifndef __NR_pkey_free
-#define __NR_pkey_free 5325
-#endif
-#ifndef __NR_pkey_mprotect
-#define __NR_pkey_mprotect 5323
-#endif
-#ifndef __NR_poll
-#define __NR_poll 5007
-#endif
-#ifndef __NR_ppoll
-#define __NR_ppoll 5261
 #endif
 #ifndef __NR_prctl
 #define __NR_prctl 5153
 #endif
-#ifndef __NR_pread64
-#define __NR_pread64 5016
-#endif
-#ifndef __NR_preadv
-#define __NR_preadv 5289
-#endif
-#ifndef __NR_preadv2
-#define __NR_preadv2 5321
-#endif
-#ifndef __NR_prlimit64
-#define __NR_prlimit64 5297
-#endif
-#ifndef __NR_process_madvise
-#define __NR_process_madvise 5440
-#endif
-#ifndef __NR_process_mrelease
-#define __NR_process_mrelease 5448
-#endif
-#ifndef __NR_process_vm_readv
-#define __NR_process_vm_readv 5304
-#endif
-#ifndef __NR_process_vm_writev
-#define __NR_process_vm_writev 5305
-#endif
-#ifndef __NR_pselect6
-#define __NR_pselect6 5260
-#endif
-#ifndef __NR_ptrace
-#define __NR_ptrace 5099
-#endif
-#ifndef __NR_pwrite64
-#define __NR_pwrite64 5017
-#endif
-#ifndef __NR_pwritev
-#define __NR_pwritev 5290
-#endif
-#ifndef __NR_pwritev2
-#define __NR_pwritev2 5322
-#endif
-#ifndef __NR_quotactl
-#define __NR_quotactl 5172
-#endif
 #ifndef __NR_read
 #define __NR_read 5000
-#endif
-#ifndef __NR_readahead
-#define __NR_readahead 5179
-#endif
-#ifndef __NR_readlink
-#define __NR_readlink 5087
-#endif
-#ifndef __NR_readlinkat
-#define __NR_readlinkat 5257
-#endif
-#ifndef __NR_readv
-#define __NR_readv 5018
 #endif
 #ifndef __NR_recvfrom
 #define __NR_recvfrom 5044
@@ -3761,86 +1292,11 @@ struct call_props_t {
 #ifndef __NR_recvmsg
 #define __NR_recvmsg 5046
 #endif
-#ifndef __NR_remap_file_pages
-#define __NR_remap_file_pages 5210
-#endif
 #ifndef __NR_removexattr
 #define __NR_removexattr 5189
 #endif
-#ifndef __NR_rename
-#define __NR_rename 5080
-#endif
-#ifndef __NR_renameat
-#define __NR_renameat 5254
-#endif
-#ifndef __NR_renameat2
-#define __NR_renameat2 5311
-#endif
 #ifndef __NR_request_key
 #define __NR_request_key 5240
-#endif
-#ifndef __NR_restart_syscall
-#define __NR_restart_syscall 5213
-#endif
-#ifndef __NR_rmdir
-#define __NR_rmdir 5082
-#endif
-#ifndef __NR_rseq
-#define __NR_rseq 5327
-#endif
-#ifndef __NR_rt_sigaction
-#define __NR_rt_sigaction 5013
-#endif
-#ifndef __NR_rt_sigpending
-#define __NR_rt_sigpending 5125
-#endif
-#ifndef __NR_rt_sigprocmask
-#define __NR_rt_sigprocmask 5014
-#endif
-#ifndef __NR_rt_sigqueueinfo
-#define __NR_rt_sigqueueinfo 5127
-#endif
-#ifndef __NR_rt_sigreturn
-#define __NR_rt_sigreturn 5211
-#endif
-#ifndef __NR_rt_sigsuspend
-#define __NR_rt_sigsuspend 5128
-#endif
-#ifndef __NR_rt_sigtimedwait
-#define __NR_rt_sigtimedwait 5126
-#endif
-#ifndef __NR_rt_tgsigqueueinfo
-#define __NR_rt_tgsigqueueinfo 5291
-#endif
-#ifndef __NR_sched_getaffinity
-#define __NR_sched_getaffinity 5196
-#endif
-#ifndef __NR_sched_getattr
-#define __NR_sched_getattr 5310
-#endif
-#ifndef __NR_sched_getparam
-#define __NR_sched_getparam 5140
-#endif
-#ifndef __NR_sched_getscheduler
-#define __NR_sched_getscheduler 5142
-#endif
-#ifndef __NR_sched_rr_get_interval
-#define __NR_sched_rr_get_interval 5145
-#endif
-#ifndef __NR_sched_setaffinity
-#define __NR_sched_setaffinity 5195
-#endif
-#ifndef __NR_sched_setattr
-#define __NR_sched_setattr 5309
-#endif
-#ifndef __NR_sched_setparam
-#define __NR_sched_setparam 5139
-#endif
-#ifndef __NR_sched_setscheduler
-#define __NR_sched_setscheduler 5141
-#endif
-#ifndef __NR_sched_yield
-#define __NR_sched_yield 5023
 #endif
 #ifndef __NR_seccomp
 #define __NR_seccomp 5312
@@ -3857,9 +1313,6 @@ struct call_props_t {
 #ifndef __NR_semtimedop
 #define __NR_semtimedop 5214
 #endif
-#ifndef __NR_sendfile
-#define __NR_sendfile 5039
-#endif
 #ifndef __NR_sendmmsg
 #define __NR_sendmmsg 5302
 #endif
@@ -3869,62 +1322,14 @@ struct call_props_t {
 #ifndef __NR_sendto
 #define __NR_sendto 5043
 #endif
-#ifndef __NR_set_mempolicy
-#define __NR_set_mempolicy 5229
-#endif
 #ifndef __NR_set_robust_list
 #define __NR_set_robust_list 5268
-#endif
-#ifndef __NR_set_thread_area
-#define __NR_set_thread_area 5242
-#endif
-#ifndef __NR_set_tid_address
-#define __NR_set_tid_address 5212
-#endif
-#ifndef __NR_setfsgid
-#define __NR_setfsgid 5121
-#endif
-#ifndef __NR_setfsuid
-#define __NR_setfsuid 5120
-#endif
-#ifndef __NR_setgid
-#define __NR_setgid 5104
-#endif
-#ifndef __NR_setgroups
-#define __NR_setgroups 5114
-#endif
-#ifndef __NR_setitimer
-#define __NR_setitimer 5036
 #endif
 #ifndef __NR_setns
 #define __NR_setns 5303
 #endif
-#ifndef __NR_setpgid
-#define __NR_setpgid 5107
-#endif
-#ifndef __NR_setpriority
-#define __NR_setpriority 5138
-#endif
-#ifndef __NR_setregid
-#define __NR_setregid 5112
-#endif
-#ifndef __NR_setresgid
-#define __NR_setresgid 5117
-#endif
-#ifndef __NR_setresuid
-#define __NR_setresuid 5115
-#endif
-#ifndef __NR_setreuid
-#define __NR_setreuid 5111
-#endif
-#ifndef __NR_setrlimit
-#define __NR_setrlimit 5155
-#endif
 #ifndef __NR_setsockopt
 #define __NR_setsockopt 5053
-#endif
-#ifndef __NR_setuid
-#define __NR_setuid 5103
 #endif
 #ifndef __NR_setxattr
 #define __NR_setxattr 5180
@@ -3944,104 +1349,11 @@ struct call_props_t {
 #ifndef __NR_shutdown
 #define __NR_shutdown 5047
 #endif
-#ifndef __NR_sigaltstack
-#define __NR_sigaltstack 5129
-#endif
-#ifndef __NR_signalfd
-#define __NR_signalfd 5276
-#endif
-#ifndef __NR_signalfd4
-#define __NR_signalfd4 5283
-#endif
 #ifndef __NR_socket
 #define __NR_socket 5040
 #endif
 #ifndef __NR_socketpair
 #define __NR_socketpair 5052
-#endif
-#ifndef __NR_splice
-#define __NR_splice 5263
-#endif
-#ifndef __NR_stat
-#define __NR_stat 5004
-#endif
-#ifndef __NR_statfs
-#define __NR_statfs 5134
-#endif
-#ifndef __NR_statx
-#define __NR_statx 5326
-#endif
-#ifndef __NR_symlink
-#define __NR_symlink 5086
-#endif
-#ifndef __NR_symlinkat
-#define __NR_symlinkat 5256
-#endif
-#ifndef __NR_sync
-#define __NR_sync 5157
-#endif
-#ifndef __NR_sync_file_range
-#define __NR_sync_file_range 5264
-#endif
-#ifndef __NR_syncfs
-#define __NR_syncfs 5301
-#endif
-#ifndef __NR_sysfs
-#define __NR_sysfs 5136
-#endif
-#ifndef __NR_sysinfo
-#define __NR_sysinfo 5097
-#endif
-#ifndef __NR_syslog
-#define __NR_syslog 5101
-#endif
-#ifndef __NR_tee
-#define __NR_tee 5265
-#endif
-#ifndef __NR_tgkill
-#define __NR_tgkill 5225
-#endif
-#ifndef __NR_timer_create
-#define __NR_timer_create 5216
-#endif
-#ifndef __NR_timer_delete
-#define __NR_timer_delete 5220
-#endif
-#ifndef __NR_timer_getoverrun
-#define __NR_timer_getoverrun 5219
-#endif
-#ifndef __NR_timer_gettime
-#define __NR_timer_gettime 5218
-#endif
-#ifndef __NR_timer_settime
-#define __NR_timer_settime 5217
-#endif
-#ifndef __NR_timerfd_create
-#define __NR_timerfd_create 5280
-#endif
-#ifndef __NR_timerfd_gettime
-#define __NR_timerfd_gettime 5281
-#endif
-#ifndef __NR_timerfd_settime
-#define __NR_timerfd_settime 5282
-#endif
-#ifndef __NR_times
-#define __NR_times 5098
-#endif
-#ifndef __NR_tkill
-#define __NR_tkill 5192
-#endif
-#ifndef __NR_truncate
-#define __NR_truncate 5074
-#endif
-#ifndef __NR_umount2
-#define __NR_umount2 5161
-#endif
-#ifndef __NR_uname
-#define __NR_uname 5061
-#endif
-#ifndef __NR_unlink
-#define __NR_unlink 5085
 #endif
 #ifndef __NR_unlinkat
 #define __NR_unlinkat 5253
@@ -4052,38 +1364,14 @@ struct call_props_t {
 #ifndef __NR_userfaultfd
 #define __NR_userfaultfd 5317
 #endif
-#ifndef __NR_ustat
-#define __NR_ustat 5133
-#endif
-#ifndef __NR_utime
-#define __NR_utime 5130
-#endif
-#ifndef __NR_utimensat
-#define __NR_utimensat 5275
-#endif
-#ifndef __NR_utimes
-#define __NR_utimes 5226
-#endif
-#ifndef __NR_vmsplice
-#define __NR_vmsplice 5266
-#endif
-#ifndef __NR_wait4
-#define __NR_wait4 5059
-#endif
-#ifndef __NR_waitid
-#define __NR_waitid 5237
-#endif
 #ifndef __NR_write
 #define __NR_write 5001
-#endif
-#ifndef __NR_writev
-#define __NR_writev 5019
 #endif
 #endif
 
 #if GOARCH_ppc64le
 #define GOARCH "ppc64le"
-#define SYZ_REVISION "33e2a746760fcd5a149d56219cfc59bb54131a9a"
+#define SYZ_REVISION "7f88cf139171a0081bffa21877addff772f6bc97"
 #define SYZ_EXECUTOR_USES_FORK_SERVER 1
 #define SYZ_EXECUTOR_USES_SHMEM 1
 #define SYZ_PAGE_SIZE 65536
@@ -4095,14 +1383,8 @@ struct call_props_t {
 #ifndef __NR_accept4
 #define __NR_accept4 344
 #endif
-#ifndef __NR_acct
-#define __NR_acct 51
-#endif
 #ifndef __NR_add_key
 #define __NR_add_key 269
-#endif
-#ifndef __NR_alarm
-#define __NR_alarm 27
 #endif
 #ifndef __NR_bind
 #define __NR_bind 327
@@ -4110,98 +1392,11 @@ struct call_props_t {
 #ifndef __NR_bpf
 #define __NR_bpf 361
 #endif
-#ifndef __NR_brk
-#define __NR_brk 45
-#endif
-#ifndef __NR_capget
-#define __NR_capget 183
-#endif
-#ifndef __NR_capset
-#define __NR_capset 184
-#endif
-#ifndef __NR_chdir
-#define __NR_chdir 12
-#endif
-#ifndef __NR_chmod
-#define __NR_chmod 15
-#endif
-#ifndef __NR_chown
-#define __NR_chown 181
-#endif
-#ifndef __NR_chroot
-#define __NR_chroot 61
-#endif
-#ifndef __NR_clock_adjtime
-#define __NR_clock_adjtime 347
-#endif
-#ifndef __NR_clock_getres
-#define __NR_clock_getres 247
-#endif
-#ifndef __NR_clock_gettime
-#define __NR_clock_gettime 246
-#endif
-#ifndef __NR_clock_nanosleep
-#define __NR_clock_nanosleep 248
-#endif
-#ifndef __NR_clock_settime
-#define __NR_clock_settime 245
-#endif
-#ifndef __NR_clone
-#define __NR_clone 120
-#endif
-#ifndef __NR_clone3
-#define __NR_clone3 435
-#endif
 #ifndef __NR_close
 #define __NR_close 6
 #endif
-#ifndef __NR_close_range
-#define __NR_close_range 436
-#endif
 #ifndef __NR_connect
 #define __NR_connect 328
-#endif
-#ifndef __NR_copy_file_range
-#define __NR_copy_file_range 379
-#endif
-#ifndef __NR_creat
-#define __NR_creat 8
-#endif
-#ifndef __NR_delete_module
-#define __NR_delete_module 129
-#endif
-#ifndef __NR_dup
-#define __NR_dup 41
-#endif
-#ifndef __NR_dup2
-#define __NR_dup2 63
-#endif
-#ifndef __NR_dup3
-#define __NR_dup3 316
-#endif
-#ifndef __NR_epoll_create
-#define __NR_epoll_create 236
-#endif
-#ifndef __NR_epoll_create1
-#define __NR_epoll_create1 315
-#endif
-#ifndef __NR_epoll_ctl
-#define __NR_epoll_ctl 237
-#endif
-#ifndef __NR_epoll_pwait
-#define __NR_epoll_pwait 303
-#endif
-#ifndef __NR_epoll_pwait2
-#define __NR_epoll_pwait2 441
-#endif
-#ifndef __NR_epoll_wait
-#define __NR_epoll_wait 238
-#endif
-#ifndef __NR_eventfd
-#define __NR_eventfd 307
-#endif
-#ifndef __NR_eventfd2
-#define __NR_eventfd2 314
 #endif
 #ifndef __NR_execve
 #define __NR_execve 11
@@ -4209,92 +1404,23 @@ struct call_props_t {
 #ifndef __NR_execveat
 #define __NR_execveat 362
 #endif
-#ifndef __NR_exit
-#define __NR_exit 1
-#endif
-#ifndef __NR_exit_group
-#define __NR_exit_group 234
-#endif
-#ifndef __NR_faccessat
-#define __NR_faccessat 298
-#endif
-#ifndef __NR_faccessat2
-#define __NR_faccessat2 439
-#endif
-#ifndef __NR_fadvise64
-#define __NR_fadvise64 233
-#endif
-#ifndef __NR_fallocate
-#define __NR_fallocate 309
-#endif
 #ifndef __NR_fanotify_init
 #define __NR_fanotify_init 323
 #endif
 #ifndef __NR_fanotify_mark
 #define __NR_fanotify_mark 324
 #endif
-#ifndef __NR_fchdir
-#define __NR_fchdir 133
-#endif
-#ifndef __NR_fchmod
-#define __NR_fchmod 94
-#endif
-#ifndef __NR_fchmodat
-#define __NR_fchmodat 297
-#endif
-#ifndef __NR_fchown
-#define __NR_fchown 95
-#endif
-#ifndef __NR_fchownat
-#define __NR_fchownat 289
-#endif
-#ifndef __NR_fcntl
-#define __NR_fcntl 55
-#endif
-#ifndef __NR_fdatasync
-#define __NR_fdatasync 148
-#endif
 #ifndef __NR_fgetxattr
 #define __NR_fgetxattr 214
-#endif
-#ifndef __NR_finit_module
-#define __NR_finit_module 353
 #endif
 #ifndef __NR_flistxattr
 #define __NR_flistxattr 217
 #endif
-#ifndef __NR_flock
-#define __NR_flock 143
-#endif
 #ifndef __NR_fremovexattr
 #define __NR_fremovexattr 220
 #endif
-#ifndef __NR_fsconfig
-#define __NR_fsconfig 431
-#endif
 #ifndef __NR_fsetxattr
 #define __NR_fsetxattr 211
-#endif
-#ifndef __NR_fsmount
-#define __NR_fsmount 432
-#endif
-#ifndef __NR_fsopen
-#define __NR_fsopen 430
-#endif
-#ifndef __NR_fspick
-#define __NR_fspick 433
-#endif
-#ifndef __NR_fstat
-#define __NR_fstat 108
-#endif
-#ifndef __NR_fstatfs
-#define __NR_fstatfs 100
-#endif
-#ifndef __NR_fsync
-#define __NR_fsync 118
-#endif
-#ifndef __NR_ftruncate
-#define __NR_ftruncate 93
 #endif
 #ifndef __NR_futex
 #define __NR_futex 221
@@ -4302,68 +1428,11 @@ struct call_props_t {
 #ifndef __NR_futex_waitv
 #define __NR_futex_waitv 449
 #endif
-#ifndef __NR_futimesat
-#define __NR_futimesat 290
-#endif
-#ifndef __NR_get_mempolicy
-#define __NR_get_mempolicy 260
-#endif
 #ifndef __NR_get_robust_list
 #define __NR_get_robust_list 299
 #endif
-#ifndef __NR_getcwd
-#define __NR_getcwd 182
-#endif
-#ifndef __NR_getdents
-#define __NR_getdents 141
-#endif
-#ifndef __NR_getdents64
-#define __NR_getdents64 202
-#endif
-#ifndef __NR_getegid
-#define __NR_getegid 50
-#endif
-#ifndef __NR_geteuid
-#define __NR_geteuid 49
-#endif
-#ifndef __NR_getgid
-#define __NR_getgid 47
-#endif
-#ifndef __NR_getgroups
-#define __NR_getgroups 80
-#endif
-#ifndef __NR_getitimer
-#define __NR_getitimer 105
-#endif
 #ifndef __NR_getpeername
 #define __NR_getpeername 332
-#endif
-#ifndef __NR_getpgid
-#define __NR_getpgid 132
-#endif
-#ifndef __NR_getpgrp
-#define __NR_getpgrp 65
-#endif
-#ifndef __NR_getpid
-#define __NR_getpid 20
-#endif
-#ifndef __NR_getpriority
-#define __NR_getpriority 96
-#endif
-#ifndef __NR_getrandom
-#define __NR_getrandom 359
-#endif
-#ifndef __NR_getresgid
-#define __NR_getresgid 170
-#endif
-#ifndef __NR_getresuid
-#define __NR_getresuid 165
-#endif
-#ifndef __NR_getrlimit
-#define __NR_getrlimit 76
-#endif
-#ifndef __NR_getrusage
-#define __NR_getrusage 77
 #endif
 #ifndef __NR_getsockname
 #define __NR_getsockname 331
@@ -4371,17 +1440,8 @@ struct call_props_t {
 #ifndef __NR_getsockopt
 #define __NR_getsockopt 340
 #endif
-#ifndef __NR_gettid
-#define __NR_gettid 207
-#endif
-#ifndef __NR_getuid
-#define __NR_getuid 24
-#endif
 #ifndef __NR_getxattr
 #define __NR_getxattr 212
-#endif
-#ifndef __NR_init_module
-#define __NR_init_module 128
 #endif
 #ifndef __NR_inotify_add_watch
 #define __NR_inotify_add_watch 276
@@ -4425,24 +1485,6 @@ struct call_props_t {
 #ifndef __NR_ioctl
 #define __NR_ioctl 54
 #endif
-#ifndef __NR_ioperm
-#define __NR_ioperm 101
-#endif
-#ifndef __NR_iopl
-#define __NR_iopl 110
-#endif
-#ifndef __NR_ioprio_get
-#define __NR_ioprio_get 274
-#endif
-#ifndef __NR_ioprio_set
-#define __NR_ioprio_set 273
-#endif
-#ifndef __NR_kcmp
-#define __NR_kcmp 354
-#endif
-#ifndef __NR_kexec_load
-#define __NR_kexec_load 268
-#endif
 #ifndef __NR_keyctl
 #define __NR_keyctl 271
 #endif
@@ -4455,17 +1497,8 @@ struct call_props_t {
 #ifndef __NR_landlock_restrict_self
 #define __NR_landlock_restrict_self 446
 #endif
-#ifndef __NR_lchown
-#define __NR_lchown 16
-#endif
 #ifndef __NR_lgetxattr
 #define __NR_lgetxattr 213
-#endif
-#ifndef __NR_link
-#define __NR_link 9
-#endif
-#ifndef __NR_linkat
-#define __NR_linkat 294
 #endif
 #ifndef __NR_listen
 #define __NR_listen 329
@@ -4476,101 +1509,20 @@ struct call_props_t {
 #ifndef __NR_llistxattr
 #define __NR_llistxattr 216
 #endif
-#ifndef __NR_lookup_dcookie
-#define __NR_lookup_dcookie 235
-#endif
 #ifndef __NR_lremovexattr
 #define __NR_lremovexattr 219
-#endif
-#ifndef __NR_lseek
-#define __NR_lseek 19
 #endif
 #ifndef __NR_lsetxattr
 #define __NR_lsetxattr 210
 #endif
-#ifndef __NR_lstat
-#define __NR_lstat 107
-#endif
-#ifndef __NR_madvise
-#define __NR_madvise 205
-#endif
-#ifndef __NR_mbind
-#define __NR_mbind 259
-#endif
-#ifndef __NR_membarrier
-#define __NR_membarrier 365
-#endif
-#ifndef __NR_memfd_create
-#define __NR_memfd_create 360
-#endif
-#ifndef __NR_migrate_pages
-#define __NR_migrate_pages 258
-#endif
-#ifndef __NR_mincore
-#define __NR_mincore 206
-#endif
-#ifndef __NR_mkdir
-#define __NR_mkdir 39
-#endif
 #ifndef __NR_mkdirat
 #define __NR_mkdirat 287
-#endif
-#ifndef __NR_mknod
-#define __NR_mknod 14
-#endif
-#ifndef __NR_mknodat
-#define __NR_mknodat 288
-#endif
-#ifndef __NR_mlock
-#define __NR_mlock 150
-#endif
-#ifndef __NR_mlock2
-#define __NR_mlock2 378
-#endif
-#ifndef __NR_mlockall
-#define __NR_mlockall 152
 #endif
 #ifndef __NR_mmap
 #define __NR_mmap 90
 #endif
-#ifndef __NR_modify_ldt
-#define __NR_modify_ldt 123
-#endif
 #ifndef __NR_mount
 #define __NR_mount 21
-#endif
-#ifndef __NR_mount_setattr
-#define __NR_mount_setattr 442
-#endif
-#ifndef __NR_move_mount
-#define __NR_move_mount 429
-#endif
-#ifndef __NR_move_pages
-#define __NR_move_pages 301
-#endif
-#ifndef __NR_mprotect
-#define __NR_mprotect 125
-#endif
-#ifndef __NR_mq_getsetattr
-#define __NR_mq_getsetattr 267
-#endif
-#ifndef __NR_mq_notify
-#define __NR_mq_notify 266
-#endif
-#ifndef __NR_mq_open
-#define __NR_mq_open 262
-#endif
-#ifndef __NR_mq_timedreceive
-#define __NR_mq_timedreceive 265
-#endif
-#ifndef __NR_mq_timedsend
-#define __NR_mq_timedsend 264
-#endif
-#ifndef __NR_mq_unlink
-#define __NR_mq_unlink 263
-#endif
-#ifndef __NR_mremap
-#define __NR_mremap 163
 #endif
 #ifndef __NR_msgctl
 #define __NR_msgctl 402
@@ -4584,143 +1536,20 @@ struct call_props_t {
 #ifndef __NR_msgsnd
 #define __NR_msgsnd 400
 #endif
-#ifndef __NR_msync
-#define __NR_msync 144
-#endif
-#ifndef __NR_munlock
-#define __NR_munlock 151
-#endif
-#ifndef __NR_munlockall
-#define __NR_munlockall 153
-#endif
-#ifndef __NR_munmap
-#define __NR_munmap 91
-#endif
-#ifndef __NR_name_to_handle_at
-#define __NR_name_to_handle_at 345
-#endif
-#ifndef __NR_nanosleep
-#define __NR_nanosleep 162
-#endif
-#ifndef __NR_newfstatat
-#define __NR_newfstatat 291
-#endif
-#ifndef __NR_open
-#define __NR_open 5
-#endif
-#ifndef __NR_open_by_handle_at
-#define __NR_open_by_handle_at 346
-#endif
-#ifndef __NR_open_tree
-#define __NR_open_tree 428
-#endif
 #ifndef __NR_openat
 #define __NR_openat 286
-#endif
-#ifndef __NR_openat2
-#define __NR_openat2 437
-#endif
-#ifndef __NR_pause
-#define __NR_pause 29
 #endif
 #ifndef __NR_perf_event_open
 #define __NR_perf_event_open 319
 #endif
-#ifndef __NR_personality
-#define __NR_personality 136
-#endif
-#ifndef __NR_pidfd_getfd
-#define __NR_pidfd_getfd 438
-#endif
-#ifndef __NR_pidfd_open
-#define __NR_pidfd_open 434
-#endif
-#ifndef __NR_pidfd_send_signal
-#define __NR_pidfd_send_signal 424
-#endif
-#ifndef __NR_pipe
-#define __NR_pipe 42
-#endif
 #ifndef __NR_pipe2
 #define __NR_pipe2 317
-#endif
-#ifndef __NR_pivot_root
-#define __NR_pivot_root 203
-#endif
-#ifndef __NR_pkey_alloc
-#define __NR_pkey_alloc 384
-#endif
-#ifndef __NR_pkey_free
-#define __NR_pkey_free 385
-#endif
-#ifndef __NR_pkey_mprotect
-#define __NR_pkey_mprotect 386
-#endif
-#ifndef __NR_poll
-#define __NR_poll 167
-#endif
-#ifndef __NR_ppoll
-#define __NR_ppoll 281
 #endif
 #ifndef __NR_prctl
 #define __NR_prctl 171
 #endif
-#ifndef __NR_pread64
-#define __NR_pread64 179
-#endif
-#ifndef __NR_preadv
-#define __NR_preadv 320
-#endif
-#ifndef __NR_preadv2
-#define __NR_preadv2 380
-#endif
-#ifndef __NR_prlimit64
-#define __NR_prlimit64 325
-#endif
-#ifndef __NR_process_madvise
-#define __NR_process_madvise 440
-#endif
-#ifndef __NR_process_mrelease
-#define __NR_process_mrelease 448
-#endif
-#ifndef __NR_process_vm_readv
-#define __NR_process_vm_readv 351
-#endif
-#ifndef __NR_process_vm_writev
-#define __NR_process_vm_writev 352
-#endif
-#ifndef __NR_pselect6
-#define __NR_pselect6 280
-#endif
-#ifndef __NR_ptrace
-#define __NR_ptrace 26
-#endif
-#ifndef __NR_pwrite64
-#define __NR_pwrite64 180
-#endif
-#ifndef __NR_pwritev
-#define __NR_pwritev 321
-#endif
-#ifndef __NR_pwritev2
-#define __NR_pwritev2 381
-#endif
-#ifndef __NR_quotactl
-#define __NR_quotactl 131
-#endif
 #ifndef __NR_read
 #define __NR_read 3
-#endif
-#ifndef __NR_readahead
-#define __NR_readahead 191
-#endif
-#ifndef __NR_readlink
-#define __NR_readlink 85
-#endif
-#ifndef __NR_readlinkat
-#define __NR_readlinkat 296
-#endif
-#ifndef __NR_readv
-#define __NR_readv 145
 #endif
 #ifndef __NR_recvfrom
 #define __NR_recvfrom 337
@@ -4731,92 +1560,14 @@ struct call_props_t {
 #ifndef __NR_recvmsg
 #define __NR_recvmsg 342
 #endif
-#ifndef __NR_remap_file_pages
-#define __NR_remap_file_pages 239
-#endif
 #ifndef __NR_removexattr
 #define __NR_removexattr 218
-#endif
-#ifndef __NR_rename
-#define __NR_rename 38
-#endif
-#ifndef __NR_renameat
-#define __NR_renameat 293
-#endif
-#ifndef __NR_renameat2
-#define __NR_renameat2 357
 #endif
 #ifndef __NR_request_key
 #define __NR_request_key 270
 #endif
-#ifndef __NR_restart_syscall
-#define __NR_restart_syscall 0
-#endif
-#ifndef __NR_rmdir
-#define __NR_rmdir 40
-#endif
-#ifndef __NR_rseq
-#define __NR_rseq 387
-#endif
-#ifndef __NR_rt_sigaction
-#define __NR_rt_sigaction 173
-#endif
-#ifndef __NR_rt_sigpending
-#define __NR_rt_sigpending 175
-#endif
-#ifndef __NR_rt_sigprocmask
-#define __NR_rt_sigprocmask 174
-#endif
-#ifndef __NR_rt_sigqueueinfo
-#define __NR_rt_sigqueueinfo 177
-#endif
-#ifndef __NR_rt_sigreturn
-#define __NR_rt_sigreturn 172
-#endif
-#ifndef __NR_rt_sigsuspend
-#define __NR_rt_sigsuspend 178
-#endif
-#ifndef __NR_rt_sigtimedwait
-#define __NR_rt_sigtimedwait 176
-#endif
-#ifndef __NR_rt_tgsigqueueinfo
-#define __NR_rt_tgsigqueueinfo 322
-#endif
-#ifndef __NR_sched_getaffinity
-#define __NR_sched_getaffinity 223
-#endif
-#ifndef __NR_sched_getattr
-#define __NR_sched_getattr 356
-#endif
-#ifndef __NR_sched_getparam
-#define __NR_sched_getparam 155
-#endif
-#ifndef __NR_sched_getscheduler
-#define __NR_sched_getscheduler 157
-#endif
-#ifndef __NR_sched_rr_get_interval
-#define __NR_sched_rr_get_interval 161
-#endif
-#ifndef __NR_sched_setaffinity
-#define __NR_sched_setaffinity 222
-#endif
-#ifndef __NR_sched_setattr
-#define __NR_sched_setattr 355
-#endif
-#ifndef __NR_sched_setparam
-#define __NR_sched_setparam 154
-#endif
-#ifndef __NR_sched_setscheduler
-#define __NR_sched_setscheduler 156
-#endif
-#ifndef __NR_sched_yield
-#define __NR_sched_yield 158
-#endif
 #ifndef __NR_seccomp
 #define __NR_seccomp 358
-#endif
-#ifndef __NR_select
-#define __NR_select 82
 #endif
 #ifndef __NR_semctl
 #define __NR_semctl 394
@@ -4827,9 +1578,6 @@ struct call_props_t {
 #ifndef __NR_semtimedop
 #define __NR_semtimedop 392
 #endif
-#ifndef __NR_sendfile
-#define __NR_sendfile 186
-#endif
 #ifndef __NR_sendmmsg
 #define __NR_sendmmsg 349
 #endif
@@ -4839,59 +1587,14 @@ struct call_props_t {
 #ifndef __NR_sendto
 #define __NR_sendto 335
 #endif
-#ifndef __NR_set_mempolicy
-#define __NR_set_mempolicy 261
-#endif
 #ifndef __NR_set_robust_list
 #define __NR_set_robust_list 300
-#endif
-#ifndef __NR_set_tid_address
-#define __NR_set_tid_address 232
-#endif
-#ifndef __NR_setfsgid
-#define __NR_setfsgid 139
-#endif
-#ifndef __NR_setfsuid
-#define __NR_setfsuid 138
-#endif
-#ifndef __NR_setgid
-#define __NR_setgid 46
-#endif
-#ifndef __NR_setgroups
-#define __NR_setgroups 81
-#endif
-#ifndef __NR_setitimer
-#define __NR_setitimer 104
 #endif
 #ifndef __NR_setns
 #define __NR_setns 350
 #endif
-#ifndef __NR_setpgid
-#define __NR_setpgid 57
-#endif
-#ifndef __NR_setpriority
-#define __NR_setpriority 97
-#endif
-#ifndef __NR_setregid
-#define __NR_setregid 71
-#endif
-#ifndef __NR_setresgid
-#define __NR_setresgid 169
-#endif
-#ifndef __NR_setresuid
-#define __NR_setresuid 164
-#endif
-#ifndef __NR_setreuid
-#define __NR_setreuid 70
-#endif
-#ifndef __NR_setrlimit
-#define __NR_setrlimit 75
-#endif
 #ifndef __NR_setsockopt
 #define __NR_setsockopt 339
-#endif
-#ifndef __NR_setuid
-#define __NR_setuid 23
 #endif
 #ifndef __NR_setxattr
 #define __NR_setxattr 209
@@ -4911,104 +1614,11 @@ struct call_props_t {
 #ifndef __NR_shutdown
 #define __NR_shutdown 338
 #endif
-#ifndef __NR_sigaltstack
-#define __NR_sigaltstack 185
-#endif
-#ifndef __NR_signalfd
-#define __NR_signalfd 305
-#endif
-#ifndef __NR_signalfd4
-#define __NR_signalfd4 313
-#endif
 #ifndef __NR_socket
 #define __NR_socket 326
 #endif
 #ifndef __NR_socketpair
 #define __NR_socketpair 333
-#endif
-#ifndef __NR_splice
-#define __NR_splice 283
-#endif
-#ifndef __NR_stat
-#define __NR_stat 106
-#endif
-#ifndef __NR_statfs
-#define __NR_statfs 99
-#endif
-#ifndef __NR_statx
-#define __NR_statx 383
-#endif
-#ifndef __NR_symlink
-#define __NR_symlink 83
-#endif
-#ifndef __NR_symlinkat
-#define __NR_symlinkat 295
-#endif
-#ifndef __NR_sync
-#define __NR_sync 36
-#endif
-#ifndef __NR_syncfs
-#define __NR_syncfs 348
-#endif
-#ifndef __NR_sysfs
-#define __NR_sysfs 135
-#endif
-#ifndef __NR_sysinfo
-#define __NR_sysinfo 116
-#endif
-#ifndef __NR_syslog
-#define __NR_syslog 103
-#endif
-#ifndef __NR_tee
-#define __NR_tee 284
-#endif
-#ifndef __NR_tgkill
-#define __NR_tgkill 250
-#endif
-#ifndef __NR_time
-#define __NR_time 13
-#endif
-#ifndef __NR_timer_create
-#define __NR_timer_create 240
-#endif
-#ifndef __NR_timer_delete
-#define __NR_timer_delete 244
-#endif
-#ifndef __NR_timer_getoverrun
-#define __NR_timer_getoverrun 243
-#endif
-#ifndef __NR_timer_gettime
-#define __NR_timer_gettime 242
-#endif
-#ifndef __NR_timer_settime
-#define __NR_timer_settime 241
-#endif
-#ifndef __NR_timerfd_create
-#define __NR_timerfd_create 306
-#endif
-#ifndef __NR_timerfd_gettime
-#define __NR_timerfd_gettime 312
-#endif
-#ifndef __NR_timerfd_settime
-#define __NR_timerfd_settime 311
-#endif
-#ifndef __NR_times
-#define __NR_times 43
-#endif
-#ifndef __NR_tkill
-#define __NR_tkill 208
-#endif
-#ifndef __NR_truncate
-#define __NR_truncate 92
-#endif
-#ifndef __NR_umount2
-#define __NR_umount2 52
-#endif
-#ifndef __NR_uname
-#define __NR_uname 122
-#endif
-#ifndef __NR_unlink
-#define __NR_unlink 10
 #endif
 #ifndef __NR_unlinkat
 #define __NR_unlinkat 292
@@ -5016,44 +1626,17 @@ struct call_props_t {
 #ifndef __NR_unshare
 #define __NR_unshare 282
 #endif
-#ifndef __NR_uselib
-#define __NR_uselib 86
-#endif
 #ifndef __NR_userfaultfd
 #define __NR_userfaultfd 364
 #endif
-#ifndef __NR_ustat
-#define __NR_ustat 62
-#endif
-#ifndef __NR_utime
-#define __NR_utime 30
-#endif
-#ifndef __NR_utimensat
-#define __NR_utimensat 304
-#endif
-#ifndef __NR_utimes
-#define __NR_utimes 251
-#endif
-#ifndef __NR_vmsplice
-#define __NR_vmsplice 285
-#endif
-#ifndef __NR_wait4
-#define __NR_wait4 114
-#endif
-#ifndef __NR_waitid
-#define __NR_waitid 272
-#endif
 #ifndef __NR_write
 #define __NR_write 4
-#endif
-#ifndef __NR_writev
-#define __NR_writev 146
 #endif
 #endif
 
 #if GOARCH_riscv64
 #define GOARCH "riscv64"
-#define SYZ_REVISION "77a6863d59690d16975c5366ac87606e7c7ad873"
+#define SYZ_REVISION "11fc6f9e29be223be215aca7869848ae62832c23"
 #define SYZ_EXECUTOR_USES_FORK_SERVER 1
 #define SYZ_EXECUTOR_USES_SHMEM 1
 #define SYZ_PAGE_SIZE 4096
@@ -5065,9 +1648,6 @@ struct call_props_t {
 #ifndef __NR_accept4
 #define __NR_accept4 242
 #endif
-#ifndef __NR_acct
-#define __NR_acct 89
-#endif
 #ifndef __NR_add_key
 #define __NR_add_key 217
 #endif
@@ -5077,77 +1657,11 @@ struct call_props_t {
 #ifndef __NR_bpf
 #define __NR_bpf 280
 #endif
-#ifndef __NR_brk
-#define __NR_brk 214
-#endif
-#ifndef __NR_capget
-#define __NR_capget 90
-#endif
-#ifndef __NR_capset
-#define __NR_capset 91
-#endif
-#ifndef __NR_chdir
-#define __NR_chdir 49
-#endif
-#ifndef __NR_chroot
-#define __NR_chroot 51
-#endif
-#ifndef __NR_clock_adjtime
-#define __NR_clock_adjtime 266
-#endif
-#ifndef __NR_clock_getres
-#define __NR_clock_getres 114
-#endif
-#ifndef __NR_clock_gettime
-#define __NR_clock_gettime 113
-#endif
-#ifndef __NR_clock_nanosleep
-#define __NR_clock_nanosleep 115
-#endif
-#ifndef __NR_clock_settime
-#define __NR_clock_settime 112
-#endif
-#ifndef __NR_clone
-#define __NR_clone 220
-#endif
-#ifndef __NR_clone3
-#define __NR_clone3 435
-#endif
 #ifndef __NR_close
 #define __NR_close 57
 #endif
-#ifndef __NR_close_range
-#define __NR_close_range 436
-#endif
 #ifndef __NR_connect
 #define __NR_connect 203
-#endif
-#ifndef __NR_copy_file_range
-#define __NR_copy_file_range 285
-#endif
-#ifndef __NR_delete_module
-#define __NR_delete_module 106
-#endif
-#ifndef __NR_dup
-#define __NR_dup 23
-#endif
-#ifndef __NR_dup3
-#define __NR_dup3 24
-#endif
-#ifndef __NR_epoll_create1
-#define __NR_epoll_create1 20
-#endif
-#ifndef __NR_epoll_ctl
-#define __NR_epoll_ctl 21
-#endif
-#ifndef __NR_epoll_pwait
-#define __NR_epoll_pwait 22
-#endif
-#ifndef __NR_epoll_pwait2
-#define __NR_epoll_pwait2 441
-#endif
-#ifndef __NR_eventfd2
-#define __NR_eventfd2 19
 #endif
 #ifndef __NR_execve
 #define __NR_execve 221
@@ -5155,92 +1669,23 @@ struct call_props_t {
 #ifndef __NR_execveat
 #define __NR_execveat 281
 #endif
-#ifndef __NR_exit
-#define __NR_exit 93
-#endif
-#ifndef __NR_exit_group
-#define __NR_exit_group 94
-#endif
-#ifndef __NR_faccessat
-#define __NR_faccessat 48
-#endif
-#ifndef __NR_faccessat2
-#define __NR_faccessat2 439
-#endif
-#ifndef __NR_fadvise64
-#define __NR_fadvise64 223
-#endif
-#ifndef __NR_fallocate
-#define __NR_fallocate 47
-#endif
 #ifndef __NR_fanotify_init
 #define __NR_fanotify_init 262
 #endif
 #ifndef __NR_fanotify_mark
 #define __NR_fanotify_mark 263
 #endif
-#ifndef __NR_fchdir
-#define __NR_fchdir 50
-#endif
-#ifndef __NR_fchmod
-#define __NR_fchmod 52
-#endif
-#ifndef __NR_fchmodat
-#define __NR_fchmodat 53
-#endif
-#ifndef __NR_fchown
-#define __NR_fchown 55
-#endif
-#ifndef __NR_fchownat
-#define __NR_fchownat 54
-#endif
-#ifndef __NR_fcntl
-#define __NR_fcntl 25
-#endif
-#ifndef __NR_fdatasync
-#define __NR_fdatasync 83
-#endif
 #ifndef __NR_fgetxattr
 #define __NR_fgetxattr 10
-#endif
-#ifndef __NR_finit_module
-#define __NR_finit_module 273
 #endif
 #ifndef __NR_flistxattr
 #define __NR_flistxattr 13
 #endif
-#ifndef __NR_flock
-#define __NR_flock 32
-#endif
 #ifndef __NR_fremovexattr
 #define __NR_fremovexattr 16
 #endif
-#ifndef __NR_fsconfig
-#define __NR_fsconfig 431
-#endif
 #ifndef __NR_fsetxattr
 #define __NR_fsetxattr 7
-#endif
-#ifndef __NR_fsmount
-#define __NR_fsmount 432
-#endif
-#ifndef __NR_fsopen
-#define __NR_fsopen 430
-#endif
-#ifndef __NR_fspick
-#define __NR_fspick 433
-#endif
-#ifndef __NR_fstat
-#define __NR_fstat 80
-#endif
-#ifndef __NR_fstatfs
-#define __NR_fstatfs 44
-#endif
-#ifndef __NR_fsync
-#define __NR_fsync 82
-#endif
-#ifndef __NR_ftruncate
-#define __NR_ftruncate 46
 #endif
 #ifndef __NR_futex
 #define __NR_futex 98
@@ -5248,59 +1693,11 @@ struct call_props_t {
 #ifndef __NR_futex_waitv
 #define __NR_futex_waitv 449
 #endif
-#ifndef __NR_get_mempolicy
-#define __NR_get_mempolicy 236
-#endif
 #ifndef __NR_get_robust_list
 #define __NR_get_robust_list 100
 #endif
-#ifndef __NR_getcwd
-#define __NR_getcwd 17
-#endif
-#ifndef __NR_getdents64
-#define __NR_getdents64 61
-#endif
-#ifndef __NR_getegid
-#define __NR_getegid 177
-#endif
-#ifndef __NR_geteuid
-#define __NR_geteuid 175
-#endif
-#ifndef __NR_getgid
-#define __NR_getgid 176
-#endif
-#ifndef __NR_getgroups
-#define __NR_getgroups 158
-#endif
-#ifndef __NR_getitimer
-#define __NR_getitimer 102
-#endif
 #ifndef __NR_getpeername
 #define __NR_getpeername 205
-#endif
-#ifndef __NR_getpgid
-#define __NR_getpgid 155
-#endif
-#ifndef __NR_getpid
-#define __NR_getpid 172
-#endif
-#ifndef __NR_getpriority
-#define __NR_getpriority 141
-#endif
-#ifndef __NR_getrandom
-#define __NR_getrandom 278
-#endif
-#ifndef __NR_getresgid
-#define __NR_getresgid 150
-#endif
-#ifndef __NR_getresuid
-#define __NR_getresuid 148
-#endif
-#ifndef __NR_getrlimit
-#define __NR_getrlimit 163
-#endif
-#ifndef __NR_getrusage
-#define __NR_getrusage 165
 #endif
 #ifndef __NR_getsockname
 #define __NR_getsockname 204
@@ -5308,17 +1705,8 @@ struct call_props_t {
 #ifndef __NR_getsockopt
 #define __NR_getsockopt 209
 #endif
-#ifndef __NR_gettid
-#define __NR_gettid 178
-#endif
-#ifndef __NR_getuid
-#define __NR_getuid 174
-#endif
 #ifndef __NR_getxattr
 #define __NR_getxattr 8
-#endif
-#ifndef __NR_init_module
-#define __NR_init_module 105
 #endif
 #ifndef __NR_inotify_add_watch
 #define __NR_inotify_add_watch 27
@@ -5359,18 +1747,6 @@ struct call_props_t {
 #ifndef __NR_ioctl
 #define __NR_ioctl 29
 #endif
-#ifndef __NR_ioprio_get
-#define __NR_ioprio_get 31
-#endif
-#ifndef __NR_ioprio_set
-#define __NR_ioprio_set 30
-#endif
-#ifndef __NR_kcmp
-#define __NR_kcmp 272
-#endif
-#ifndef __NR_kexec_load
-#define __NR_kexec_load 104
-#endif
 #ifndef __NR_keyctl
 #define __NR_keyctl 219
 #endif
@@ -5386,9 +1762,6 @@ struct call_props_t {
 #ifndef __NR_lgetxattr
 #define __NR_lgetxattr 9
 #endif
-#ifndef __NR_linkat
-#define __NR_linkat 37
-#endif
 #ifndef __NR_listen
 #define __NR_listen 201
 #endif
@@ -5398,92 +1771,20 @@ struct call_props_t {
 #ifndef __NR_llistxattr
 #define __NR_llistxattr 12
 #endif
-#ifndef __NR_lookup_dcookie
-#define __NR_lookup_dcookie 18
-#endif
 #ifndef __NR_lremovexattr
 #define __NR_lremovexattr 15
-#endif
-#ifndef __NR_lseek
-#define __NR_lseek 62
 #endif
 #ifndef __NR_lsetxattr
 #define __NR_lsetxattr 6
 #endif
-#ifndef __NR_madvise
-#define __NR_madvise 233
-#endif
-#ifndef __NR_mbind
-#define __NR_mbind 235
-#endif
-#ifndef __NR_membarrier
-#define __NR_membarrier 283
-#endif
-#ifndef __NR_memfd_create
-#define __NR_memfd_create 279
-#endif
-#ifndef __NR_memfd_secret
-#define __NR_memfd_secret 447
-#endif
-#ifndef __NR_migrate_pages
-#define __NR_migrate_pages 238
-#endif
-#ifndef __NR_mincore
-#define __NR_mincore 232
-#endif
 #ifndef __NR_mkdirat
 #define __NR_mkdirat 34
-#endif
-#ifndef __NR_mknodat
-#define __NR_mknodat 33
-#endif
-#ifndef __NR_mlock
-#define __NR_mlock 228
-#endif
-#ifndef __NR_mlock2
-#define __NR_mlock2 284
-#endif
-#ifndef __NR_mlockall
-#define __NR_mlockall 230
 #endif
 #ifndef __NR_mmap
 #define __NR_mmap 222
 #endif
 #ifndef __NR_mount
 #define __NR_mount 40
-#endif
-#ifndef __NR_mount_setattr
-#define __NR_mount_setattr 442
-#endif
-#ifndef __NR_move_mount
-#define __NR_move_mount 429
-#endif
-#ifndef __NR_move_pages
-#define __NR_move_pages 239
-#endif
-#ifndef __NR_mprotect
-#define __NR_mprotect 226
-#endif
-#ifndef __NR_mq_getsetattr
-#define __NR_mq_getsetattr 185
-#endif
-#ifndef __NR_mq_notify
-#define __NR_mq_notify 184
-#endif
-#ifndef __NR_mq_open
-#define __NR_mq_open 180
-#endif
-#ifndef __NR_mq_timedreceive
-#define __NR_mq_timedreceive 183
-#endif
-#ifndef __NR_mq_timedsend
-#define __NR_mq_timedsend 182
-#endif
-#ifndef __NR_mq_unlink
-#define __NR_mq_unlink 181
-#endif
-#ifndef __NR_mremap
-#define __NR_mremap 216
 #endif
 #ifndef __NR_msgctl
 #define __NR_msgctl 187
@@ -5497,128 +1798,20 @@ struct call_props_t {
 #ifndef __NR_msgsnd
 #define __NR_msgsnd 189
 #endif
-#ifndef __NR_msync
-#define __NR_msync 227
-#endif
-#ifndef __NR_munlock
-#define __NR_munlock 229
-#endif
-#ifndef __NR_munlockall
-#define __NR_munlockall 231
-#endif
-#ifndef __NR_munmap
-#define __NR_munmap 215
-#endif
-#ifndef __NR_name_to_handle_at
-#define __NR_name_to_handle_at 264
-#endif
-#ifndef __NR_nanosleep
-#define __NR_nanosleep 101
-#endif
-#ifndef __NR_newfstatat
-#define __NR_newfstatat 79
-#endif
-#ifndef __NR_open_by_handle_at
-#define __NR_open_by_handle_at 265
-#endif
-#ifndef __NR_open_tree
-#define __NR_open_tree 428
-#endif
 #ifndef __NR_openat
 #define __NR_openat 56
-#endif
-#ifndef __NR_openat2
-#define __NR_openat2 437
 #endif
 #ifndef __NR_perf_event_open
 #define __NR_perf_event_open 241
 #endif
-#ifndef __NR_personality
-#define __NR_personality 92
-#endif
-#ifndef __NR_pidfd_getfd
-#define __NR_pidfd_getfd 438
-#endif
-#ifndef __NR_pidfd_open
-#define __NR_pidfd_open 434
-#endif
-#ifndef __NR_pidfd_send_signal
-#define __NR_pidfd_send_signal 424
-#endif
 #ifndef __NR_pipe2
 #define __NR_pipe2 59
-#endif
-#ifndef __NR_pivot_root
-#define __NR_pivot_root 41
-#endif
-#ifndef __NR_pkey_alloc
-#define __NR_pkey_alloc 289
-#endif
-#ifndef __NR_pkey_free
-#define __NR_pkey_free 290
-#endif
-#ifndef __NR_pkey_mprotect
-#define __NR_pkey_mprotect 288
-#endif
-#ifndef __NR_ppoll
-#define __NR_ppoll 73
 #endif
 #ifndef __NR_prctl
 #define __NR_prctl 167
 #endif
-#ifndef __NR_pread64
-#define __NR_pread64 67
-#endif
-#ifndef __NR_preadv
-#define __NR_preadv 69
-#endif
-#ifndef __NR_preadv2
-#define __NR_preadv2 286
-#endif
-#ifndef __NR_prlimit64
-#define __NR_prlimit64 261
-#endif
-#ifndef __NR_process_madvise
-#define __NR_process_madvise 440
-#endif
-#ifndef __NR_process_mrelease
-#define __NR_process_mrelease 448
-#endif
-#ifndef __NR_process_vm_readv
-#define __NR_process_vm_readv 270
-#endif
-#ifndef __NR_process_vm_writev
-#define __NR_process_vm_writev 271
-#endif
-#ifndef __NR_pselect6
-#define __NR_pselect6 72
-#endif
-#ifndef __NR_ptrace
-#define __NR_ptrace 117
-#endif
-#ifndef __NR_pwrite64
-#define __NR_pwrite64 68
-#endif
-#ifndef __NR_pwritev
-#define __NR_pwritev 70
-#endif
-#ifndef __NR_pwritev2
-#define __NR_pwritev2 287
-#endif
-#ifndef __NR_quotactl
-#define __NR_quotactl 60
-#endif
 #ifndef __NR_read
 #define __NR_read 63
-#endif
-#ifndef __NR_readahead
-#define __NR_readahead 213
-#endif
-#ifndef __NR_readlinkat
-#define __NR_readlinkat 78
-#endif
-#ifndef __NR_readv
-#define __NR_readv 65
 #endif
 #ifndef __NR_recvfrom
 #define __NR_recvfrom 207
@@ -5629,80 +1822,11 @@ struct call_props_t {
 #ifndef __NR_recvmsg
 #define __NR_recvmsg 212
 #endif
-#ifndef __NR_remap_file_pages
-#define __NR_remap_file_pages 234
-#endif
 #ifndef __NR_removexattr
 #define __NR_removexattr 14
 #endif
-#ifndef __NR_renameat2
-#define __NR_renameat2 276
-#endif
 #ifndef __NR_request_key
 #define __NR_request_key 218
-#endif
-#ifndef __NR_restart_syscall
-#define __NR_restart_syscall 128
-#endif
-#ifndef __NR_riscv_flush_icache
-#define __NR_riscv_flush_icache 259
-#endif
-#ifndef __NR_rseq
-#define __NR_rseq 293
-#endif
-#ifndef __NR_rt_sigaction
-#define __NR_rt_sigaction 134
-#endif
-#ifndef __NR_rt_sigpending
-#define __NR_rt_sigpending 136
-#endif
-#ifndef __NR_rt_sigprocmask
-#define __NR_rt_sigprocmask 135
-#endif
-#ifndef __NR_rt_sigqueueinfo
-#define __NR_rt_sigqueueinfo 138
-#endif
-#ifndef __NR_rt_sigreturn
-#define __NR_rt_sigreturn 139
-#endif
-#ifndef __NR_rt_sigsuspend
-#define __NR_rt_sigsuspend 133
-#endif
-#ifndef __NR_rt_sigtimedwait
-#define __NR_rt_sigtimedwait 137
-#endif
-#ifndef __NR_rt_tgsigqueueinfo
-#define __NR_rt_tgsigqueueinfo 240
-#endif
-#ifndef __NR_sched_getaffinity
-#define __NR_sched_getaffinity 123
-#endif
-#ifndef __NR_sched_getattr
-#define __NR_sched_getattr 275
-#endif
-#ifndef __NR_sched_getparam
-#define __NR_sched_getparam 121
-#endif
-#ifndef __NR_sched_getscheduler
-#define __NR_sched_getscheduler 120
-#endif
-#ifndef __NR_sched_rr_get_interval
-#define __NR_sched_rr_get_interval 127
-#endif
-#ifndef __NR_sched_setaffinity
-#define __NR_sched_setaffinity 122
-#endif
-#ifndef __NR_sched_setattr
-#define __NR_sched_setattr 274
-#endif
-#ifndef __NR_sched_setparam
-#define __NR_sched_setparam 118
-#endif
-#ifndef __NR_sched_setscheduler
-#define __NR_sched_setscheduler 119
-#endif
-#ifndef __NR_sched_yield
-#define __NR_sched_yield 124
 #endif
 #ifndef __NR_seccomp
 #define __NR_seccomp 277
@@ -5719,9 +1843,6 @@ struct call_props_t {
 #ifndef __NR_semtimedop
 #define __NR_semtimedop 192
 #endif
-#ifndef __NR_sendfile
-#define __NR_sendfile 71
-#endif
 #ifndef __NR_sendmmsg
 #define __NR_sendmmsg 269
 #endif
@@ -5731,59 +1852,14 @@ struct call_props_t {
 #ifndef __NR_sendto
 #define __NR_sendto 206
 #endif
-#ifndef __NR_set_mempolicy
-#define __NR_set_mempolicy 237
-#endif
 #ifndef __NR_set_robust_list
 #define __NR_set_robust_list 99
-#endif
-#ifndef __NR_set_tid_address
-#define __NR_set_tid_address 96
-#endif
-#ifndef __NR_setfsgid
-#define __NR_setfsgid 152
-#endif
-#ifndef __NR_setfsuid
-#define __NR_setfsuid 151
-#endif
-#ifndef __NR_setgid
-#define __NR_setgid 144
-#endif
-#ifndef __NR_setgroups
-#define __NR_setgroups 159
-#endif
-#ifndef __NR_setitimer
-#define __NR_setitimer 103
 #endif
 #ifndef __NR_setns
 #define __NR_setns 268
 #endif
-#ifndef __NR_setpgid
-#define __NR_setpgid 154
-#endif
-#ifndef __NR_setpriority
-#define __NR_setpriority 140
-#endif
-#ifndef __NR_setregid
-#define __NR_setregid 143
-#endif
-#ifndef __NR_setresgid
-#define __NR_setresgid 149
-#endif
-#ifndef __NR_setresuid
-#define __NR_setresuid 147
-#endif
-#ifndef __NR_setreuid
-#define __NR_setreuid 145
-#endif
-#ifndef __NR_setrlimit
-#define __NR_setrlimit 164
-#endif
 #ifndef __NR_setsockopt
 #define __NR_setsockopt 208
-#endif
-#ifndef __NR_setuid
-#define __NR_setuid 146
 #endif
 #ifndef __NR_setxattr
 #define __NR_setxattr 5
@@ -5803,89 +1879,11 @@ struct call_props_t {
 #ifndef __NR_shutdown
 #define __NR_shutdown 210
 #endif
-#ifndef __NR_sigaltstack
-#define __NR_sigaltstack 132
-#endif
-#ifndef __NR_signalfd4
-#define __NR_signalfd4 74
-#endif
 #ifndef __NR_socket
 #define __NR_socket 198
 #endif
 #ifndef __NR_socketpair
 #define __NR_socketpair 199
-#endif
-#ifndef __NR_splice
-#define __NR_splice 76
-#endif
-#ifndef __NR_statfs
-#define __NR_statfs 43
-#endif
-#ifndef __NR_statx
-#define __NR_statx 291
-#endif
-#ifndef __NR_symlinkat
-#define __NR_symlinkat 36
-#endif
-#ifndef __NR_sync
-#define __NR_sync 81
-#endif
-#ifndef __NR_sync_file_range
-#define __NR_sync_file_range 84
-#endif
-#ifndef __NR_syncfs
-#define __NR_syncfs 267
-#endif
-#ifndef __NR_sysinfo
-#define __NR_sysinfo 179
-#endif
-#ifndef __NR_syslog
-#define __NR_syslog 116
-#endif
-#ifndef __NR_tee
-#define __NR_tee 77
-#endif
-#ifndef __NR_tgkill
-#define __NR_tgkill 131
-#endif
-#ifndef __NR_timer_create
-#define __NR_timer_create 107
-#endif
-#ifndef __NR_timer_delete
-#define __NR_timer_delete 111
-#endif
-#ifndef __NR_timer_getoverrun
-#define __NR_timer_getoverrun 109
-#endif
-#ifndef __NR_timer_gettime
-#define __NR_timer_gettime 108
-#endif
-#ifndef __NR_timer_settime
-#define __NR_timer_settime 110
-#endif
-#ifndef __NR_timerfd_create
-#define __NR_timerfd_create 85
-#endif
-#ifndef __NR_timerfd_gettime
-#define __NR_timerfd_gettime 87
-#endif
-#ifndef __NR_timerfd_settime
-#define __NR_timerfd_settime 86
-#endif
-#ifndef __NR_times
-#define __NR_times 153
-#endif
-#ifndef __NR_tkill
-#define __NR_tkill 130
-#endif
-#ifndef __NR_truncate
-#define __NR_truncate 45
-#endif
-#ifndef __NR_umount2
-#define __NR_umount2 39
-#endif
-#ifndef __NR_uname
-#define __NR_uname 160
 #endif
 #ifndef __NR_unlinkat
 #define __NR_unlinkat 35
@@ -5896,29 +1894,14 @@ struct call_props_t {
 #ifndef __NR_userfaultfd
 #define __NR_userfaultfd 282
 #endif
-#ifndef __NR_utimensat
-#define __NR_utimensat 88
-#endif
-#ifndef __NR_vmsplice
-#define __NR_vmsplice 75
-#endif
-#ifndef __NR_wait4
-#define __NR_wait4 260
-#endif
-#ifndef __NR_waitid
-#define __NR_waitid 95
-#endif
 #ifndef __NR_write
 #define __NR_write 64
-#endif
-#ifndef __NR_writev
-#define __NR_writev 66
 #endif
 #endif
 
 #if GOARCH_s390x
 #define GOARCH "s390x"
-#define SYZ_REVISION "a658ac9aa9b0675db10d17c9aad53d96f482714b"
+#define SYZ_REVISION "fed8c205ed8a50cb7e3194b9d52ec85eadb08e63"
 #define SYZ_EXECUTOR_USES_FORK_SERVER 1
 #define SYZ_EXECUTOR_USES_SHMEM 1
 #define SYZ_PAGE_SIZE 4096
@@ -5927,14 +1910,8 @@ struct call_props_t {
 #ifndef __NR_accept4
 #define __NR_accept4 364
 #endif
-#ifndef __NR_acct
-#define __NR_acct 51
-#endif
 #ifndef __NR_add_key
 #define __NR_add_key 278
-#endif
-#ifndef __NR_alarm
-#define __NR_alarm 27
 #endif
 #ifndef __NR_bind
 #define __NR_bind 361
@@ -5942,98 +1919,11 @@ struct call_props_t {
 #ifndef __NR_bpf
 #define __NR_bpf 351
 #endif
-#ifndef __NR_brk
-#define __NR_brk 45
-#endif
-#ifndef __NR_capget
-#define __NR_capget 184
-#endif
-#ifndef __NR_capset
-#define __NR_capset 185
-#endif
-#ifndef __NR_chdir
-#define __NR_chdir 12
-#endif
-#ifndef __NR_chmod
-#define __NR_chmod 15
-#endif
-#ifndef __NR_chown
-#define __NR_chown 212
-#endif
-#ifndef __NR_chroot
-#define __NR_chroot 61
-#endif
-#ifndef __NR_clock_adjtime
-#define __NR_clock_adjtime 337
-#endif
-#ifndef __NR_clock_getres
-#define __NR_clock_getres 261
-#endif
-#ifndef __NR_clock_gettime
-#define __NR_clock_gettime 260
-#endif
-#ifndef __NR_clock_nanosleep
-#define __NR_clock_nanosleep 262
-#endif
-#ifndef __NR_clock_settime
-#define __NR_clock_settime 259
-#endif
-#ifndef __NR_clone
-#define __NR_clone 120
-#endif
-#ifndef __NR_clone3
-#define __NR_clone3 435
-#endif
 #ifndef __NR_close
 #define __NR_close 6
 #endif
-#ifndef __NR_close_range
-#define __NR_close_range 436
-#endif
 #ifndef __NR_connect
 #define __NR_connect 362
-#endif
-#ifndef __NR_copy_file_range
-#define __NR_copy_file_range 375
-#endif
-#ifndef __NR_creat
-#define __NR_creat 8
-#endif
-#ifndef __NR_delete_module
-#define __NR_delete_module 129
-#endif
-#ifndef __NR_dup
-#define __NR_dup 41
-#endif
-#ifndef __NR_dup2
-#define __NR_dup2 63
-#endif
-#ifndef __NR_dup3
-#define __NR_dup3 326
-#endif
-#ifndef __NR_epoll_create
-#define __NR_epoll_create 249
-#endif
-#ifndef __NR_epoll_create1
-#define __NR_epoll_create1 327
-#endif
-#ifndef __NR_epoll_ctl
-#define __NR_epoll_ctl 250
-#endif
-#ifndef __NR_epoll_pwait
-#define __NR_epoll_pwait 312
-#endif
-#ifndef __NR_epoll_pwait2
-#define __NR_epoll_pwait2 441
-#endif
-#ifndef __NR_epoll_wait
-#define __NR_epoll_wait 251
-#endif
-#ifndef __NR_eventfd
-#define __NR_eventfd 318
-#endif
-#ifndef __NR_eventfd2
-#define __NR_eventfd2 323
 #endif
 #ifndef __NR_execve
 #define __NR_execve 11
@@ -6041,92 +1931,23 @@ struct call_props_t {
 #ifndef __NR_execveat
 #define __NR_execveat 354
 #endif
-#ifndef __NR_exit
-#define __NR_exit 1
-#endif
-#ifndef __NR_exit_group
-#define __NR_exit_group 248
-#endif
-#ifndef __NR_faccessat
-#define __NR_faccessat 300
-#endif
-#ifndef __NR_faccessat2
-#define __NR_faccessat2 439
-#endif
-#ifndef __NR_fadvise64
-#define __NR_fadvise64 253
-#endif
-#ifndef __NR_fallocate
-#define __NR_fallocate 314
-#endif
 #ifndef __NR_fanotify_init
 #define __NR_fanotify_init 332
 #endif
 #ifndef __NR_fanotify_mark
 #define __NR_fanotify_mark 333
 #endif
-#ifndef __NR_fchdir
-#define __NR_fchdir 133
-#endif
-#ifndef __NR_fchmod
-#define __NR_fchmod 94
-#endif
-#ifndef __NR_fchmodat
-#define __NR_fchmodat 299
-#endif
-#ifndef __NR_fchown
-#define __NR_fchown 207
-#endif
-#ifndef __NR_fchownat
-#define __NR_fchownat 291
-#endif
-#ifndef __NR_fcntl
-#define __NR_fcntl 55
-#endif
-#ifndef __NR_fdatasync
-#define __NR_fdatasync 148
-#endif
 #ifndef __NR_fgetxattr
 #define __NR_fgetxattr 229
-#endif
-#ifndef __NR_finit_module
-#define __NR_finit_module 344
 #endif
 #ifndef __NR_flistxattr
 #define __NR_flistxattr 232
 #endif
-#ifndef __NR_flock
-#define __NR_flock 143
-#endif
 #ifndef __NR_fremovexattr
 #define __NR_fremovexattr 235
 #endif
-#ifndef __NR_fsconfig
-#define __NR_fsconfig 431
-#endif
 #ifndef __NR_fsetxattr
 #define __NR_fsetxattr 226
-#endif
-#ifndef __NR_fsmount
-#define __NR_fsmount 432
-#endif
-#ifndef __NR_fsopen
-#define __NR_fsopen 430
-#endif
-#ifndef __NR_fspick
-#define __NR_fspick 433
-#endif
-#ifndef __NR_fstat
-#define __NR_fstat 108
-#endif
-#ifndef __NR_fstatfs
-#define __NR_fstatfs 100
-#endif
-#ifndef __NR_fsync
-#define __NR_fsync 118
-#endif
-#ifndef __NR_ftruncate
-#define __NR_ftruncate 93
 #endif
 #ifndef __NR_futex
 #define __NR_futex 238
@@ -6134,68 +1955,11 @@ struct call_props_t {
 #ifndef __NR_futex_waitv
 #define __NR_futex_waitv 449
 #endif
-#ifndef __NR_futimesat
-#define __NR_futimesat 292
-#endif
-#ifndef __NR_get_mempolicy
-#define __NR_get_mempolicy 269
-#endif
 #ifndef __NR_get_robust_list
 #define __NR_get_robust_list 305
 #endif
-#ifndef __NR_getcwd
-#define __NR_getcwd 183
-#endif
-#ifndef __NR_getdents
-#define __NR_getdents 141
-#endif
-#ifndef __NR_getdents64
-#define __NR_getdents64 220
-#endif
-#ifndef __NR_getegid
-#define __NR_getegid 202
-#endif
-#ifndef __NR_geteuid
-#define __NR_geteuid 201
-#endif
-#ifndef __NR_getgid
-#define __NR_getgid 200
-#endif
-#ifndef __NR_getgroups
-#define __NR_getgroups 205
-#endif
-#ifndef __NR_getitimer
-#define __NR_getitimer 105
-#endif
 #ifndef __NR_getpeername
 #define __NR_getpeername 368
-#endif
-#ifndef __NR_getpgid
-#define __NR_getpgid 132
-#endif
-#ifndef __NR_getpgrp
-#define __NR_getpgrp 65
-#endif
-#ifndef __NR_getpid
-#define __NR_getpid 20
-#endif
-#ifndef __NR_getpriority
-#define __NR_getpriority 96
-#endif
-#ifndef __NR_getrandom
-#define __NR_getrandom 349
-#endif
-#ifndef __NR_getresgid
-#define __NR_getresgid 211
-#endif
-#ifndef __NR_getresuid
-#define __NR_getresuid 209
-#endif
-#ifndef __NR_getrlimit
-#define __NR_getrlimit 191
-#endif
-#ifndef __NR_getrusage
-#define __NR_getrusage 77
 #endif
 #ifndef __NR_getsockname
 #define __NR_getsockname 367
@@ -6203,17 +1967,8 @@ struct call_props_t {
 #ifndef __NR_getsockopt
 #define __NR_getsockopt 365
 #endif
-#ifndef __NR_gettid
-#define __NR_gettid 236
-#endif
-#ifndef __NR_getuid
-#define __NR_getuid 199
-#endif
 #ifndef __NR_getxattr
 #define __NR_getxattr 227
-#endif
-#ifndef __NR_init_module
-#define __NR_init_module 128
 #endif
 #ifndef __NR_inotify_add_watch
 #define __NR_inotify_add_watch 285
@@ -6257,18 +2012,6 @@ struct call_props_t {
 #ifndef __NR_ioctl
 #define __NR_ioctl 54
 #endif
-#ifndef __NR_ioprio_get
-#define __NR_ioprio_get 283
-#endif
-#ifndef __NR_ioprio_set
-#define __NR_ioprio_set 282
-#endif
-#ifndef __NR_kcmp
-#define __NR_kcmp 343
-#endif
-#ifndef __NR_kexec_load
-#define __NR_kexec_load 277
-#endif
 #ifndef __NR_keyctl
 #define __NR_keyctl 280
 #endif
@@ -6281,17 +2024,8 @@ struct call_props_t {
 #ifndef __NR_landlock_restrict_self
 #define __NR_landlock_restrict_self 446
 #endif
-#ifndef __NR_lchown
-#define __NR_lchown 198
-#endif
 #ifndef __NR_lgetxattr
 #define __NR_lgetxattr 228
-#endif
-#ifndef __NR_link
-#define __NR_link 9
-#endif
-#ifndef __NR_linkat
-#define __NR_linkat 296
 #endif
 #ifndef __NR_listen
 #define __NR_listen 363
@@ -6302,98 +2036,20 @@ struct call_props_t {
 #ifndef __NR_llistxattr
 #define __NR_llistxattr 231
 #endif
-#ifndef __NR_lookup_dcookie
-#define __NR_lookup_dcookie 110
-#endif
 #ifndef __NR_lremovexattr
 #define __NR_lremovexattr 234
-#endif
-#ifndef __NR_lseek
-#define __NR_lseek 19
 #endif
 #ifndef __NR_lsetxattr
 #define __NR_lsetxattr 225
 #endif
-#ifndef __NR_lstat
-#define __NR_lstat 107
-#endif
-#ifndef __NR_madvise
-#define __NR_madvise 219
-#endif
-#ifndef __NR_mbind
-#define __NR_mbind 268
-#endif
-#ifndef __NR_membarrier
-#define __NR_membarrier 356
-#endif
-#ifndef __NR_memfd_create
-#define __NR_memfd_create 350
-#endif
-#ifndef __NR_migrate_pages
-#define __NR_migrate_pages 287
-#endif
-#ifndef __NR_mincore
-#define __NR_mincore 218
-#endif
-#ifndef __NR_mkdir
-#define __NR_mkdir 39
-#endif
 #ifndef __NR_mkdirat
 #define __NR_mkdirat 289
-#endif
-#ifndef __NR_mknod
-#define __NR_mknod 14
-#endif
-#ifndef __NR_mknodat
-#define __NR_mknodat 290
-#endif
-#ifndef __NR_mlock
-#define __NR_mlock 150
-#endif
-#ifndef __NR_mlock2
-#define __NR_mlock2 374
-#endif
-#ifndef __NR_mlockall
-#define __NR_mlockall 152
 #endif
 #ifndef __NR_mmap
 #define __NR_mmap 90
 #endif
 #ifndef __NR_mount
 #define __NR_mount 21
-#endif
-#ifndef __NR_mount_setattr
-#define __NR_mount_setattr 442
-#endif
-#ifndef __NR_move_mount
-#define __NR_move_mount 429
-#endif
-#ifndef __NR_move_pages
-#define __NR_move_pages 310
-#endif
-#ifndef __NR_mprotect
-#define __NR_mprotect 125
-#endif
-#ifndef __NR_mq_getsetattr
-#define __NR_mq_getsetattr 276
-#endif
-#ifndef __NR_mq_notify
-#define __NR_mq_notify 275
-#endif
-#ifndef __NR_mq_open
-#define __NR_mq_open 271
-#endif
-#ifndef __NR_mq_timedreceive
-#define __NR_mq_timedreceive 274
-#endif
-#ifndef __NR_mq_timedsend
-#define __NR_mq_timedsend 273
-#endif
-#ifndef __NR_mq_unlink
-#define __NR_mq_unlink 272
-#endif
-#ifndef __NR_mremap
-#define __NR_mremap 163
 #endif
 #ifndef __NR_msgctl
 #define __NR_msgctl 402
@@ -6407,143 +2063,20 @@ struct call_props_t {
 #ifndef __NR_msgsnd
 #define __NR_msgsnd 400
 #endif
-#ifndef __NR_msync
-#define __NR_msync 144
-#endif
-#ifndef __NR_munlock
-#define __NR_munlock 151
-#endif
-#ifndef __NR_munlockall
-#define __NR_munlockall 153
-#endif
-#ifndef __NR_munmap
-#define __NR_munmap 91
-#endif
-#ifndef __NR_name_to_handle_at
-#define __NR_name_to_handle_at 335
-#endif
-#ifndef __NR_nanosleep
-#define __NR_nanosleep 162
-#endif
-#ifndef __NR_newfstatat
-#define __NR_newfstatat 293
-#endif
-#ifndef __NR_open
-#define __NR_open 5
-#endif
-#ifndef __NR_open_by_handle_at
-#define __NR_open_by_handle_at 336
-#endif
-#ifndef __NR_open_tree
-#define __NR_open_tree 428
-#endif
 #ifndef __NR_openat
 #define __NR_openat 288
-#endif
-#ifndef __NR_openat2
-#define __NR_openat2 437
-#endif
-#ifndef __NR_pause
-#define __NR_pause 29
 #endif
 #ifndef __NR_perf_event_open
 #define __NR_perf_event_open 331
 #endif
-#ifndef __NR_personality
-#define __NR_personality 136
-#endif
-#ifndef __NR_pidfd_getfd
-#define __NR_pidfd_getfd 438
-#endif
-#ifndef __NR_pidfd_open
-#define __NR_pidfd_open 434
-#endif
-#ifndef __NR_pidfd_send_signal
-#define __NR_pidfd_send_signal 424
-#endif
-#ifndef __NR_pipe
-#define __NR_pipe 42
-#endif
 #ifndef __NR_pipe2
 #define __NR_pipe2 325
-#endif
-#ifndef __NR_pivot_root
-#define __NR_pivot_root 217
-#endif
-#ifndef __NR_pkey_alloc
-#define __NR_pkey_alloc 385
-#endif
-#ifndef __NR_pkey_free
-#define __NR_pkey_free 386
-#endif
-#ifndef __NR_pkey_mprotect
-#define __NR_pkey_mprotect 384
-#endif
-#ifndef __NR_poll
-#define __NR_poll 168
-#endif
-#ifndef __NR_ppoll
-#define __NR_ppoll 302
 #endif
 #ifndef __NR_prctl
 #define __NR_prctl 172
 #endif
-#ifndef __NR_pread64
-#define __NR_pread64 180
-#endif
-#ifndef __NR_preadv
-#define __NR_preadv 328
-#endif
-#ifndef __NR_preadv2
-#define __NR_preadv2 376
-#endif
-#ifndef __NR_prlimit64
-#define __NR_prlimit64 334
-#endif
-#ifndef __NR_process_madvise
-#define __NR_process_madvise 440
-#endif
-#ifndef __NR_process_mrelease
-#define __NR_process_mrelease 448
-#endif
-#ifndef __NR_process_vm_readv
-#define __NR_process_vm_readv 340
-#endif
-#ifndef __NR_process_vm_writev
-#define __NR_process_vm_writev 341
-#endif
-#ifndef __NR_pselect6
-#define __NR_pselect6 301
-#endif
-#ifndef __NR_ptrace
-#define __NR_ptrace 26
-#endif
-#ifndef __NR_pwrite64
-#define __NR_pwrite64 181
-#endif
-#ifndef __NR_pwritev
-#define __NR_pwritev 329
-#endif
-#ifndef __NR_pwritev2
-#define __NR_pwritev2 377
-#endif
-#ifndef __NR_quotactl
-#define __NR_quotactl 131
-#endif
 #ifndef __NR_read
 #define __NR_read 3
-#endif
-#ifndef __NR_readahead
-#define __NR_readahead 222
-#endif
-#ifndef __NR_readlink
-#define __NR_readlink 85
-#endif
-#ifndef __NR_readlinkat
-#define __NR_readlinkat 298
-#endif
-#ifndef __NR_readv
-#define __NR_readv 145
 #endif
 #ifndef __NR_recvfrom
 #define __NR_recvfrom 371
@@ -6554,92 +2087,14 @@ struct call_props_t {
 #ifndef __NR_recvmsg
 #define __NR_recvmsg 372
 #endif
-#ifndef __NR_remap_file_pages
-#define __NR_remap_file_pages 267
-#endif
 #ifndef __NR_removexattr
 #define __NR_removexattr 233
-#endif
-#ifndef __NR_rename
-#define __NR_rename 38
-#endif
-#ifndef __NR_renameat
-#define __NR_renameat 295
-#endif
-#ifndef __NR_renameat2
-#define __NR_renameat2 347
 #endif
 #ifndef __NR_request_key
 #define __NR_request_key 279
 #endif
-#ifndef __NR_restart_syscall
-#define __NR_restart_syscall 7
-#endif
-#ifndef __NR_rmdir
-#define __NR_rmdir 40
-#endif
-#ifndef __NR_rseq
-#define __NR_rseq 383
-#endif
-#ifndef __NR_rt_sigaction
-#define __NR_rt_sigaction 174
-#endif
-#ifndef __NR_rt_sigpending
-#define __NR_rt_sigpending 176
-#endif
-#ifndef __NR_rt_sigprocmask
-#define __NR_rt_sigprocmask 175
-#endif
-#ifndef __NR_rt_sigqueueinfo
-#define __NR_rt_sigqueueinfo 178
-#endif
-#ifndef __NR_rt_sigreturn
-#define __NR_rt_sigreturn 173
-#endif
-#ifndef __NR_rt_sigsuspend
-#define __NR_rt_sigsuspend 179
-#endif
-#ifndef __NR_rt_sigtimedwait
-#define __NR_rt_sigtimedwait 177
-#endif
-#ifndef __NR_rt_tgsigqueueinfo
-#define __NR_rt_tgsigqueueinfo 330
-#endif
-#ifndef __NR_sched_getaffinity
-#define __NR_sched_getaffinity 240
-#endif
-#ifndef __NR_sched_getattr
-#define __NR_sched_getattr 346
-#endif
-#ifndef __NR_sched_getparam
-#define __NR_sched_getparam 155
-#endif
-#ifndef __NR_sched_getscheduler
-#define __NR_sched_getscheduler 157
-#endif
-#ifndef __NR_sched_rr_get_interval
-#define __NR_sched_rr_get_interval 161
-#endif
-#ifndef __NR_sched_setaffinity
-#define __NR_sched_setaffinity 239
-#endif
-#ifndef __NR_sched_setattr
-#define __NR_sched_setattr 345
-#endif
-#ifndef __NR_sched_setparam
-#define __NR_sched_setparam 154
-#endif
-#ifndef __NR_sched_setscheduler
-#define __NR_sched_setscheduler 156
-#endif
-#ifndef __NR_sched_yield
-#define __NR_sched_yield 158
-#endif
 #ifndef __NR_seccomp
 #define __NR_seccomp 348
-#endif
-#ifndef __NR_select
-#define __NR_select 142
 #endif
 #ifndef __NR_semctl
 #define __NR_semctl 394
@@ -6650,9 +2105,6 @@ struct call_props_t {
 #ifndef __NR_semtimedop
 #define __NR_semtimedop 392
 #endif
-#ifndef __NR_sendfile
-#define __NR_sendfile 187
-#endif
 #ifndef __NR_sendmmsg
 #define __NR_sendmmsg 358
 #endif
@@ -6662,59 +2114,14 @@ struct call_props_t {
 #ifndef __NR_sendto
 #define __NR_sendto 369
 #endif
-#ifndef __NR_set_mempolicy
-#define __NR_set_mempolicy 270
-#endif
 #ifndef __NR_set_robust_list
 #define __NR_set_robust_list 304
-#endif
-#ifndef __NR_set_tid_address
-#define __NR_set_tid_address 252
-#endif
-#ifndef __NR_setfsgid
-#define __NR_setfsgid 216
-#endif
-#ifndef __NR_setfsuid
-#define __NR_setfsuid 215
-#endif
-#ifndef __NR_setgid
-#define __NR_setgid 214
-#endif
-#ifndef __NR_setgroups
-#define __NR_setgroups 206
-#endif
-#ifndef __NR_setitimer
-#define __NR_setitimer 104
 #endif
 #ifndef __NR_setns
 #define __NR_setns 339
 #endif
-#ifndef __NR_setpgid
-#define __NR_setpgid 57
-#endif
-#ifndef __NR_setpriority
-#define __NR_setpriority 97
-#endif
-#ifndef __NR_setregid
-#define __NR_setregid 204
-#endif
-#ifndef __NR_setresgid
-#define __NR_setresgid 210
-#endif
-#ifndef __NR_setresuid
-#define __NR_setresuid 208
-#endif
-#ifndef __NR_setreuid
-#define __NR_setreuid 203
-#endif
-#ifndef __NR_setrlimit
-#define __NR_setrlimit 75
-#endif
 #ifndef __NR_setsockopt
 #define __NR_setsockopt 366
-#endif
-#ifndef __NR_setuid
-#define __NR_setuid 213
 #endif
 #ifndef __NR_setxattr
 #define __NR_setxattr 224
@@ -6734,104 +2141,11 @@ struct call_props_t {
 #ifndef __NR_shutdown
 #define __NR_shutdown 373
 #endif
-#ifndef __NR_sigaltstack
-#define __NR_sigaltstack 186
-#endif
-#ifndef __NR_signalfd
-#define __NR_signalfd 316
-#endif
-#ifndef __NR_signalfd4
-#define __NR_signalfd4 322
-#endif
 #ifndef __NR_socket
 #define __NR_socket 359
 #endif
 #ifndef __NR_socketpair
 #define __NR_socketpair 360
-#endif
-#ifndef __NR_splice
-#define __NR_splice 306
-#endif
-#ifndef __NR_stat
-#define __NR_stat 106
-#endif
-#ifndef __NR_statfs
-#define __NR_statfs 99
-#endif
-#ifndef __NR_statx
-#define __NR_statx 379
-#endif
-#ifndef __NR_symlink
-#define __NR_symlink 83
-#endif
-#ifndef __NR_symlinkat
-#define __NR_symlinkat 297
-#endif
-#ifndef __NR_sync
-#define __NR_sync 36
-#endif
-#ifndef __NR_sync_file_range
-#define __NR_sync_file_range 307
-#endif
-#ifndef __NR_syncfs
-#define __NR_syncfs 338
-#endif
-#ifndef __NR_sysfs
-#define __NR_sysfs 135
-#endif
-#ifndef __NR_sysinfo
-#define __NR_sysinfo 116
-#endif
-#ifndef __NR_syslog
-#define __NR_syslog 103
-#endif
-#ifndef __NR_tee
-#define __NR_tee 308
-#endif
-#ifndef __NR_tgkill
-#define __NR_tgkill 241
-#endif
-#ifndef __NR_timer_create
-#define __NR_timer_create 254
-#endif
-#ifndef __NR_timer_delete
-#define __NR_timer_delete 258
-#endif
-#ifndef __NR_timer_getoverrun
-#define __NR_timer_getoverrun 257
-#endif
-#ifndef __NR_timer_gettime
-#define __NR_timer_gettime 256
-#endif
-#ifndef __NR_timer_settime
-#define __NR_timer_settime 255
-#endif
-#ifndef __NR_timerfd_create
-#define __NR_timerfd_create 319
-#endif
-#ifndef __NR_timerfd_gettime
-#define __NR_timerfd_gettime 321
-#endif
-#ifndef __NR_timerfd_settime
-#define __NR_timerfd_settime 320
-#endif
-#ifndef __NR_times
-#define __NR_times 43
-#endif
-#ifndef __NR_tkill
-#define __NR_tkill 237
-#endif
-#ifndef __NR_truncate
-#define __NR_truncate 92
-#endif
-#ifndef __NR_umount2
-#define __NR_umount2 52
-#endif
-#ifndef __NR_uname
-#define __NR_uname 122
-#endif
-#ifndef __NR_unlink
-#define __NR_unlink 10
 #endif
 #ifndef __NR_unlinkat
 #define __NR_unlinkat 294
@@ -6839,38 +2153,11 @@ struct call_props_t {
 #ifndef __NR_unshare
 #define __NR_unshare 303
 #endif
-#ifndef __NR_uselib
-#define __NR_uselib 86
-#endif
 #ifndef __NR_userfaultfd
 #define __NR_userfaultfd 355
 #endif
-#ifndef __NR_ustat
-#define __NR_ustat 62
-#endif
-#ifndef __NR_utime
-#define __NR_utime 30
-#endif
-#ifndef __NR_utimensat
-#define __NR_utimensat 315
-#endif
-#ifndef __NR_utimes
-#define __NR_utimes 313
-#endif
-#ifndef __NR_vmsplice
-#define __NR_vmsplice 309
-#endif
-#ifndef __NR_wait4
-#define __NR_wait4 114
-#endif
-#ifndef __NR_waitid
-#define __NR_waitid 281
-#endif
 #ifndef __NR_write
 #define __NR_write 4
-#endif
-#ifndef __NR_writev
-#define __NR_writev 146
 #endif
 #endif
 

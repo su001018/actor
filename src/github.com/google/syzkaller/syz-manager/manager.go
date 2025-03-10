@@ -29,7 +29,6 @@ import (
 	"github.com/google/syzkaller/pkg/db"
 	"github.com/google/syzkaller/pkg/debug"
 
-	// "github.com/google/syzkaller/pkg/debug"
 	"github.com/google/syzkaller/pkg/gce"
 	"github.com/google/syzkaller/pkg/hash"
 	"github.com/google/syzkaller/pkg/host"
@@ -54,6 +53,8 @@ var (
 	flagBench  = flag.String("bench", "", "write execution statistics into this file periodically")
 	flagPprof  = flag.Bool("pprof", false, "enable pprof memory profiling, endpoint available at http://localhost:<syzMgrHttpPort>/debug/pprof")
 	flagProm   = flag.Bool("prom", false, "enable Prometheus, endpoint available at http://localhost:<syzMgrHttpPort>/metrics")
+	flagName   = flag.String("name", "", "the prefix file name of seeds")
+	flagRace   = flag.Bool("race", false, "enable race mode to prove uaf")
 )
 
 type Manager struct {
@@ -114,6 +115,7 @@ type Manager struct {
 	uafCorpus map[string]UafCorpusItem
 	// from: DB & fuzzers, to: schedulers' workQueue.Candidate
 	uafCandidates []rpctype.UafCandidate
+	uafCandHash   map[string]rpctype.UafCandidate
 
 	uafPool *vm.Pool
 }
@@ -251,6 +253,7 @@ func RunManager(cfg *mgrconfig.Config) {
 		usedFiles:        make(map[string]time.Time),
 		saturatedCalls:   make(map[string]bool),
 		uafCorpus:        make(map[string]UafCorpusItem),
+		uafCandHash:      make(map[string]rpctype.UafCandidate),
 		uafPool:          uafPool,
 	}
 
@@ -285,6 +288,8 @@ func RunManager(cfg *mgrconfig.Config) {
 			}
 			mgr.fuzzingTime += diff * time.Duration(atomic.LoadUint32(&mgr.numFuzzing))
 			executed := mgr.stats.execTotal.get()
+			schedulerExecuted := mgr.stats.schedulerExecTotal.get()
+			uafCandInput := mgr.stats.uafCandInput.get()
 			crashes := mgr.stats.crashes.get()
 			corpusCover := mgr.stats.corpusCover.get()
 			corpusSignal := mgr.stats.corpusSignal.get()
@@ -298,10 +303,15 @@ func RunManager(cfg *mgrconfig.Config) {
 			merged := len(mgr.rpcserv.mergedGroups)
 			mgr.rpcserv.groupMu.Unlock()
 
-			log.Logf(0, "VMs %v, executed %v, cover %v, signal %v/%v, crashes %v, repro %v"+
+			log.Logf(0, "VMs %v, executed %v, scheduler executed %v, uaf cand %v, cover %v, signal %v/%v, crashes %v, repro %v"+
 				", groups %v (%v)",
-				numFuzzing, executed, corpusCover, corpusSignal, maxSignal, crashes, numReproducing,
+				numFuzzing, executed, schedulerExecuted, uafCandInput, corpusCover, corpusSignal, maxSignal, crashes, numReproducing,
 				merged, merged+numNewGroups)
+
+			// debug.LogDebug("VMs %v, executed %v, scheduler executed %v, uaf cand %v, cover %v, signal %v/%v, crashes %v, repro %v"+
+			// 	", groups %v (%v)",
+			// 	numFuzzing, executed, schedulerExecuted, uafCandInput, corpusCover, corpusSignal, maxSignal, crashes, numReproducing,
+			// 	merged, merged+numNewGroups)
 
 			if *flagProm {
 				numPendingGroups.Set(float64(merged + numNewGroups))
@@ -450,6 +460,7 @@ func (mgr *Manager) vmLoop() {
 				}()
 			}
 			for uafInstances.Len() > 0 {
+
 				idx := uafInstances.TakeOne()
 				if idx == nil {
 					break
@@ -470,6 +481,7 @@ func (mgr *Manager) vmLoop() {
 	wait:
 		select {
 		case <-instances.Freed:
+		case <-uafInstances.Freed:
 			// An instance has been released.
 		case stopRequest <- true:
 			log.Logf(1, "loop: issued stop request")
@@ -791,11 +803,14 @@ func (mgr *Manager) preloadCorpus() {
 			log.Fatalf("failed to read seeds dir: %v", err)
 		}
 		for _, seed := range seeds {
-			data, err := ioutil.ReadFile(filepath.Join(seedDir, seed.Name()))
-			if err != nil {
-				log.Fatalf("failed to read seed %v: %v", seed.Name(), err)
+			if len(seed.Name()) >= len(*flagName) && seed.Name()[:len(*flagName)] == *flagName {
+				data, err := ioutil.ReadFile(filepath.Join(seedDir, seed.Name()))
+				if err != nil {
+					log.Fatalf("failed to read seed %v: %v", seed.Name(), err)
+				}
+				mgr.seeds = append(mgr.seeds, data)
 			}
-			mgr.seeds = append(mgr.seeds, data)
+
 		}
 	}
 }
@@ -877,12 +892,15 @@ func (mgr *Manager) loadUafProg(data []byte, minimized, smashed bool) bool {
 		FreeAddr:  uafProg.FreeAddr,
 		UseAddr:   uafProg.UseAddr,
 	}
-	mgr.uafCandidates = append(mgr.uafCandidates, rpctype.UafCandidate{
+	cand := rpctype.UafCandidate{
 		Prog:      uafProg.Prog,
 		UafInfo:   uafInfo,
 		Minimized: minimized,
 		Smashed:   smashed,
-	})
+	}
+	mgr.uafCandidates = append(mgr.uafCandidates, cand)
+	sig := hash.String(uafProg.Prog, uafInfo.Serialize())
+	mgr.uafCandHash[sig] = cand
 	return true
 }
 
@@ -1025,6 +1043,9 @@ func (mgr *Manager) runInstanceInner(index int, instanceName string, sched bool)
 
 	fuzzerV := 0
 	procs := mgr.cfg.Procs
+	if sched {
+		procs = mgr.cfg.SchedulerProcs
+	}
 	var flagDebug *bool
 	var collide string
 	if sched {
@@ -1060,6 +1081,7 @@ func (mgr *Manager) runInstanceInner(index int, instanceName string, sched bool)
 		Debug:     *flagDebug,
 		Test:      false,
 		Runtest:   false,
+		Race:      *flagRace,
 		Optional: &instance.OptionalFuzzerArgs{
 			Slowdown: mgr.cfg.Timeouts.Slowdown,
 			RawCover: mgr.cfg.RawCover,
@@ -1642,6 +1664,21 @@ func (mgr *Manager) newUafCandInput(inp rpctype.UafCandInput) bool {
 		// ffffffff815eaef2:       48 8b 3d bf 64 60 02    mov    0x26064bf(%rip),%rdi        # ffffffff83bf13b8 <seq_file_cache>
 		FreeAddr: uint64(inp.FreeEvent.Trace[inp.FreeEvent.InstrId]) - 5,
 		UseAddr:  uint64(inp.UseEvent.Trace[inp.UseEvent.InstrId]) - 5,
+		Sched:    inp.Sched,
+	}
+
+	if uafInfo.FreeIndex == uafInfo.UseIndex || uafInfo.FreeAddr == uafInfo.UseAddr {
+		return false
+	}
+
+	sig := hash.String(inp.Prog, uafInfo.Serialize())
+
+	if *flagRace {
+		sig = hash.String(uafInfo.Serialize())
+	}
+
+	if _, ok := mgr.uafCandHash[sig]; ok {
+		return false
 	}
 
 	uafCand := rpctype.UafCandidate{
@@ -1651,6 +1688,7 @@ func (mgr *Manager) newUafCandInput(inp rpctype.UafCandInput) bool {
 	debug.LogDebug("newUafCandInput: uafCand info:%v, freeAddr:%x,useAddr:%x\n", uafInfo, uafInfo.FreeAddr, uafInfo.UseAddr)
 
 	mgr.uafCandidates = append(mgr.uafCandidates, uafCand)
+	mgr.uafCandHash[sig] = uafCand
 
 	// if old, ok := mgr.uafCorpus[sig]; ok {
 	// 	mgr.uafCorpus[sig] = old
@@ -1676,6 +1714,7 @@ func (mgr *Manager) newUafCandInput(inp rpctype.UafCandInput) bool {
 	// 		log.Logf(0, "failed to save corpus database: %v", err)
 	// 	}
 	// }
+	mgr.stats.uafCandInput.inc()
 	return true
 }
 
@@ -1801,7 +1840,8 @@ func (mgr *Manager) candidateSchedulerBatch(size int) []rpctype.UafCandidate {
 func (mgr *Manager) rotateCorpus() bool {
 	mgr.mu.Lock()
 	defer mgr.mu.Unlock()
-	return mgr.phase == phaseTriagedHub
+	// return mgr.phase == phaseTriagedHub
+	return false
 }
 
 func (mgr *Manager) collectUsedFiles() {

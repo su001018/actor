@@ -13,36 +13,37 @@ type EvtrackEventType uint32
 type Size_t uint32
 
 const (
-	NR_MAX_TRACE_ENTRIES             = 32 // Maximum number of stack trace entries in the context stored
-	EVTRACK_EVENT_HEAP_ALLOCATION    = 1  // Heap allocations, e.g. kmalloc()
-	EVTRACK_EVENT_HEAP_DEALLOCATION  = 2  // Heap deallocations, e.g. kfree()
-	EVTRACK_EVENT_HEAP_READ          = 3  // Heap read
-	EVTRACK_EVENT_HEAP_WRITE         = 4  // Heap write
-	EVTRACK_EVENT_HEAP_POINTER_READ  = 5  // Heap read from pointer value
-	EVTRACK_EVENT_HEAP_POINTER_WRITE = 6  // Heap write to pointer value
-	EVTRACK_EVENT_HEAP_INDEX_READ    = 7  // Heap read from index value
-	EVTRACK_EVENT_HEAP_INDEX_WRITE   = 8  // Heap write to index value
-	EVTRACK_EVENT_TYPES              = 8  // Number of different event types
+	NR_MAX_TRACE_ENTRIES             = 32  // Maximum number of stack trace entries in the context stored
+	EVTRACK_EVENT_HEAP_ALLOCATION    = 1   // Heap allocations, e.g. kmalloc()
+	EVTRACK_EVENT_HEAP_DEALLOCATION  = 2   // Heap deallocations, e.g. kfree()
+	EVTRACK_EVENT_HEAP_READ          = 3   // Heap read
+	EVTRACK_EVENT_HEAP_WRITE         = 4   // Heap write
+	EVTRACK_EVENT_HEAP_POINTER_READ  = 5   // Heap read from pointer value
+	EVTRACK_EVENT_HEAP_POINTER_WRITE = 6   // Heap write to pointer value
+	EVTRACK_EVENT_HEAP_INDEX_READ    = 7   // Heap read from index value
+	EVTRACK_EVENT_HEAP_INDEX_WRITE   = 8   // Heap write to index value
+	EVTRACK_EVENT_TYPES              = 8   // Number of different event types
 	GROUPS_PER_VM                    = 400 // Number of groups assigned to a VM
 )
 
 type EvtrackEvent struct {
-	EventId   uint32                       // Monotonically increasing event id
-	EventType EvtrackEventType             // Type of the event
-	Ptr       uint64                       // Pointer associated to the event
-	Size      Size_t                       // Size associated to the event
-	NumTrace  uint32                       // Number of entries in the stack trace
-	TimeStamp uint64                       // Nano-seconds
-	ObjId     uint32                       // the event_id of the object this event is related to
-	InstrId   uint32                       // the id of the instruction that triggers this event
-	Trace     []uint32                     // Stack-trace leading to the event
-	Syscall   string                       // Systemcall triggering the event (not recorded by the kernel))
-	Args      []Arg                        // Arguments of the system call (not recorded by the kernel)
+	EventId   uint32           // Monotonically increasing event id
+	EventType EvtrackEventType // Type of the event
+	Ptr       uint64           // Pointer associated to the event
+	AllocPtr  uint64
+	Size      Size_t   // Size associated to the event
+	NumTrace  uint32   // Number of entries in the stack trace
+	TimeStamp uint64   // Nano-seconds
+	ObjId     uint32   // the event_id of the object this event is related to
+	InstrId   uint32   // the id of the instruction that triggers this event
+	Trace     []uint32 // Stack-trace leading to the event
+	Syscall   string   // Systemcall triggering the event (not recorded by the kernel))
+	Args      []Arg    // Arguments of the system call (not recorded by the kernel)
 }
 
 type Batch struct {
-	Size      uint64
-	Events    [][]EvtrackEvent
+	Size   uint64
+	Events [][]EvtrackEvent
 }
 
 type Group struct {
@@ -67,7 +68,6 @@ type EvTrackState struct {
 	newUsed    map[uint64]bool
 	evChoice   *EvChoiceTable
 	strategies []Strategy
-
 }
 
 type GroupLookup struct {
@@ -290,7 +290,7 @@ func checkSyscalls(results []Result, byName map[string]bool) ([]Result, []uint64
 		s := todelete[len(todelete)-1-i]
 		deletedIDs[i] = results[s].Res.ID
 		moreDeletes = append(moreDeletes, results[s].Deleted...)
-		if s == len(results) - 1 {
+		if s == len(results)-1 {
 			results = results[:s]
 		} else {
 			results = append(results[:s], results[s+1:]...)

@@ -108,6 +108,7 @@ func (proc *Proc) executeWithFail(execOpts *ipc.ExecOpts, p *prog.Prog, flags Pr
 		log.Logf(1, "#%v: fail prog call :%d\n", proc.pid, idx)
 		proc.failCall(p, idx)
 	}
+	log.Logf(1, "unique: #%v: executeWithFail :%d\n", proc.pid)
 	proc.execute(execOpts, p, flags, stat, keepEvts)
 }
 
@@ -178,7 +179,7 @@ func (proc *Proc) triageInput(item *WorkTriage) {
 	data := item.p.Serialize()
 	sig := hash.Hash(data)
 
-	log.Logf(2, "added new input for %v to corpus:\n%s", logCallName, data)
+	log.Logf(2, "added new input for %v to corpus:\n", logCallName)
 	proc.fuzzer.sendInputToManager(rpctype.Input{
 		Call:     callName,
 		CallID:   item.call,
@@ -265,6 +266,7 @@ func (proc *Proc) executeHintSeed(p *prog.Prog, call int) {
 }
 
 func (proc *Proc) execute(execOpts *ipc.ExecOpts, p *prog.Prog, flags ProgTypes, stat Stat, keepEvts bool) *ipc.ProgInfo {
+	log.Logf(0, "unique: execute")
 	info := proc.executeRaw(execOpts, p, stat)
 	if info == nil {
 		return nil
@@ -325,11 +327,12 @@ func (proc *Proc) randomCollide(origP *prog.Prog) *prog.Prog {
 }
 
 func (proc *Proc) executeRaw(opts *ipc.ExecOpts, p *prog.Prog, stat Stat) *ipc.ProgInfo {
-	proc.fuzzer.checkDisabledCalls(p)
+	// proc.fuzzer.checkDisabledCalls(p)
 
 	// Limit concurrency window and do leak checking once in a while.
 	ticket := proc.fuzzer.gate.Enter()
 	defer proc.fuzzer.gate.Leave(ticket)
+	log.Logf(0, "unique: executeRaw")
 
 	proc.logProgram(opts, p)
 	for try := 0; ; try++ {
@@ -363,8 +366,9 @@ func (proc *Proc) logProgram(opts *ipc.ExecOpts, p *prog.Prog) {
 		return
 	}
 
-	data := p.Serialize()
+	// data := p.Serialize()
 
+	data := p.String()
 	// The following output helps to understand what program crashed kernel.
 	// It must not be intermixed.
 	switch proc.fuzzer.outputType {
@@ -387,7 +391,7 @@ func (proc *Proc) logProgram(opts *ipc.ExecOpts, p *prog.Prog) {
 	case OutputFile:
 		f, err := os.Create(fmt.Sprintf("%v-%v.prog", proc.fuzzer.name, proc.pid))
 		if err == nil {
-			f.Write(data)
+			f.Write([]byte(data))
 			f.Close()
 		}
 	default:
@@ -397,8 +401,15 @@ func (proc *Proc) logProgram(opts *ipc.ExecOpts, p *prog.Prog) {
 
 func (proc *Proc) storeUafInput(p *prog.Prog, info *ipc.ProgInfo) {
 	proc.fuzzer.allocMu.Lock()
-	uafProgs := uaf.BuildUafProgList(proc.fuzzer.allocMap, p, info)
+	uafProgs := uaf.BuildUafProgList(proc.fuzzer.allocMap, p, info, proc.fuzzer.raceMode)
 	proc.fuzzer.allocMu.Unlock()
+
+	// for callIndedx, callInfo := range info.Calls {
+	// 	log.Logf(1, "callIndex: %d, callName: %s\n", callIndedx, p.Calls[callIndedx].Meta.CallName)
+	// 	for eventIndex, eventInfo := range callInfo.EvList {
+	// 		log.Logf(1, "eventIndex: %d, eventType: %d, addr:%x\n", eventIndex, eventInfo.EventType, eventInfo.Ptr)
+	// 	}
+	// }
 
 	if len(uafProgs) == 0 {
 		return
@@ -409,9 +420,11 @@ func (proc *Proc) storeUafInput(p *prog.Prog, info *ipc.ProgInfo) {
 			Prog:      uafProg.Prog,
 			FreeIndex: uafProg.FreeIndex,
 			UseIndex:  uafProg.UseIndex,
+			Sched:     uafProg.Sched,
 			FreeEvent: uafProg.FreeEvent,
 			UseEvent:  uafProg.UseEvent,
 		}
+		fmt.Printf("uafInput: freeIndex: %d, useIndex:%d\n", inp.FreeIndex, inp.UseIndex)
 		proc.fuzzer.sendUafInputToManager(inp)
 	}
 }

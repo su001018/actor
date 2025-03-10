@@ -309,7 +309,7 @@ func (env *Env) Exec(opts *ExecOpts, p *prog.Prog) (output []byte, info *ProgInf
 // info: per-call info
 // hanged: program hanged and was killed
 // err0: failed to start the process or bug in executor itself.
-func (env *Env) ExecUaf(opts *ExecOpts, p *prog.Prog, uafInfo common.UafInfo) (output []byte, info *ProgInfo, hanged bool, err0 error) {
+func (env *Env) ExecUaf(opts *ExecOpts, p *prog.Prog, uafInfo common.UafInfo) (output []byte, info *ProgInfo, hanged bool, err0 error, isRace bool) {
 	// Copy-in serialized program.
 	progSize, err := p.SerializeForExec(env.in)
 	if err != nil {
@@ -340,7 +340,7 @@ func (env *Env) ExecUaf(opts *ExecOpts, p *prog.Prog, uafInfo common.UafInfo) (o
 			return
 		}
 	}
-	output, hanged, err0 = env.cmd.execUaf(opts, progData, uafInfo)
+	output, hanged, err0, isRace = env.cmd.execUaf(opts, progData, uafInfo)
 	if err0 != nil {
 		env.cmd.close()
 		env.cmd = nil
@@ -528,6 +528,10 @@ func readEvents(outp *[]byte, eventSize uint32) ([]prog.EvtrackEvent, error) {
 		evList[i].Ptr, ok = readUint64(outp)
 		if !ok {
 			return nil, fmt.Errorf("failed to read ptr %v", i)
+		}
+		evList[i].AllocPtr, ok = readUint64(outp)
+		if !ok {
+			return nil, fmt.Errorf("failed to read alloc_ptr %v", i)
 		}
 		size, ok := readUint64(outp)
 		if !ok {
@@ -1026,7 +1030,7 @@ func (c *command) exec(opts *ExecOpts, progData []byte) (output []byte, hanged b
 	return
 }
 
-func (c *command) execUaf(opts *ExecOpts, progData []byte, uafInfo common.UafInfo) (output []byte, hanged bool, err0 error) {
+func (c *command) execUaf(opts *ExecOpts, progData []byte, uafInfo common.UafInfo) (output []byte, hanged bool, err0 error, isRace bool) {
 	req := &executeReq{
 		magic:            inMagic,
 		envFlags:         uint64(c.config.Flags),
@@ -1089,6 +1093,7 @@ func (c *command) execUaf(opts *ExecOpts, progData []byte, uafInfo common.UafInf
 			exitStatus = int(reply.status)
 			break
 		}
+		isRace = reply.isRace != 0
 		callReply := &callReply{}
 		callReplyData := (*[unsafe.Sizeof(*callReply)]byte)(unsafe.Pointer(callReply))[:]
 		if _, err := io.ReadFull(c.inrp, callReplyData); err != nil {

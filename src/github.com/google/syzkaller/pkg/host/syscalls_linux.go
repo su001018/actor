@@ -434,7 +434,7 @@ func onlySandboxNoneOrNamespace(sandbox string) (bool, string) {
 func isSupportedSocket(c *prog.Syscall) (bool, string) {
 	af, ok := c.Args[0].Type.(*prog.ConstType)
 	if !ok {
-		panic("socket family is not const")
+		panic(fmt.Sprintf("socket family is not const: %s, type: %s", c.CallName, c.Args[0].Type.Name()))
 	}
 	fd, err := syscall.Socket(int(af.Val), 0, 0)
 	if fd != -1 {

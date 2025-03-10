@@ -313,10 +313,10 @@ func (arch *arch) neutralizeIoctl(c *prog.Call) {
 	case arch.SNAPSHOT_POWER_OFF:
 		// SNAPSHOT_POWER_OFF shuts down the machine.
 		cmd.Val = arch.FITHAW
-	case arch.EXT4_IOC_SHUTDOWN:
-		// EXT4_IOC_SHUTDOWN on root fs effectively brings the machine down in weird ways.
-		// Fortunately, the value does not conflict with any other ioctl commands for now.
-		cmd.Val = arch.EXT4_IOC_MIGRATE
+	// case arch.EXT4_IOC_SHUTDOWN:
+	// 	// EXT4_IOC_SHUTDOWN on root fs effectively brings the machine down in weird ways.
+	// 	// Fortunately, the value does not conflict with any other ioctl commands for now.
+	// 	cmd.Val = arch.EXT4_IOC_MIGRATE
 	case arch.EXT4_IOC_RESIZE_FS:
 		// EXT4_IOC_RESIZE_FS on root fs can shrink it to 0 (or whatever is the minimum size)
 		// and then creation of new temp dirs for tests will fail.
