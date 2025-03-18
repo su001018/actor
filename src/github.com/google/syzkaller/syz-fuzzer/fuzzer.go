@@ -84,6 +84,7 @@ type Fuzzer struct {
 
 	// uaf
 	allocMap map[uint64]uint64
+	pairMap  map[string]bool
 	allocMu  sync.Mutex
 
 	raceMode bool
@@ -317,6 +318,7 @@ func main() {
 		vanilla:                  *flagVanilla,
 		banned:                   make(map[string]bool),
 		allocMap:                 make(map[uint64]uint64),
+		pairMap:                  make(map[string]bool),
 		raceMode:                 *flagRace,
 	}
 	gateCallback := fuzzer.useBugFrames(r, *flagProcs)

@@ -497,17 +497,17 @@ func (inst *instance) boot() error {
 	if inst.cfg.Kernel != "" {
 		cmdline := append([]string{
 			"kvm-intel.nested=1",
-			"kvm-intel.unrestricted_guest=1",
-			"kvm-intel.vmm_exclusive=1",
-			"kvm-intel.fasteoi=1",
-			"kvm-intel.ept=1",
-			"kvm-intel.flexpriority=1",
-			"kvm-intel.vpid=1",
-			"kvm-intel.emulate_invalid_guest_state=1",
-			"kvm-intel.eptad=1",
-			"kvm-intel.enable_shadow_vmcs=1",
-			"kvm-intel.pml=1",
-			"kvm-intel.enable_apicv=1",
+			// "kvm-intel.unrestricted_guest=1",
+			// "kvm-intel.vmm_exclusive=1",
+			// "kvm-intel.fasteoi=1",
+			// "kvm-intel.ept=1",
+			// "kvm-intel.flexpriority=1",
+			// "kvm-intel.vpid=1",
+			// "kvm-intel.emulate_invalid_guest_state=1",
+			// "kvm-intel.eptad=1",
+			// "kvm-intel.enable_shadow_vmcs=1",
+			// "kvm-intel.pml=1",
+			// "kvm-intel.enable_apicv=1",
 		}, inst.archConfig.CmdLine...)
 		if inst.image == "9p" {
 			cmdline = append(cmdline,

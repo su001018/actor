@@ -365,10 +365,14 @@ func (proc *Proc) logProgram(opts *ipc.ExecOpts, p *prog.Prog) {
 	if proc.fuzzer.outputType == OutputNone {
 		return
 	}
+	var data string
 
-	// data := p.Serialize()
+	if proc.pid == 0 {
+		data = string(p.Serialize())
+	} else {
+		data = p.String()
+	}
 
-	data := p.String()
 	// The following output helps to understand what program crashed kernel.
 	// It must not be intermixed.
 	switch proc.fuzzer.outputType {
@@ -424,7 +428,6 @@ func (proc *Proc) storeUafInput(p *prog.Prog, info *ipc.ProgInfo) {
 			FreeEvent: uafProg.FreeEvent,
 			UseEvent:  uafProg.UseEvent,
 		}
-		fmt.Printf("uafInput: freeIndex: %d, useIndex:%d\n", inp.FreeIndex, inp.UseIndex)
 		proc.fuzzer.sendUafInputToManager(inp)
 	}
 }

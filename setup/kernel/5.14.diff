@@ -279,10 +279,10 @@ index 4df609be42d0..aba6a9774c3b 100644
  obj-$(CONFIG_KGDB) += debug/
 diff --git a/kernel/evtrack.c b/kernel/evtrack.c
 new file mode 100644
-index 000000000000..8c6adfb4d26c
+index 000000000000..0b1c47eafe04
 --- /dev/null
 +++ b/kernel/evtrack.c
-@@ -0,0 +1,738 @@
+@@ -0,0 +1,778 @@
 +// SPDX-License-Identifier: GPL-2.0
 +#define pr_fmt(fmt) "evtrack: " fmt
 +
@@ -332,6 +332,7 @@ index 000000000000..8c6adfb4d26c
 +
 +/* debugfs */
 +bool noconsole = true, noshmem = false;
++unsigned long MAX_OLD_TIME = 1000;
 +unsigned long evcnt = 0, max_evcnt = -1;
 +unsigned long long evtypes = ((1 << EVTRACK_EVENT_HEAP_ALLOCATION) | (1 << EVTRACK_EVENT_HEAP_DEALLOCATION) |
 +							 (1 << EVTRACK_EVENT_HEAP_READ) | (1 << EVTRACK_EVENT_HEAP_WRITE)) >> 1;
@@ -375,7 +376,7 @@ index 000000000000..8c6adfb4d26c
 +	barrier();
 +	return mode == needed_mode;
 +}
-+
++// extern atomic_t sw;
 +/*
 + * Return true if an event takes place on an object which we
 + * have observed getting allocated. Return False otherwise.
@@ -399,25 +400,42 @@ index 000000000000..8c6adfb4d26c
 +			node = node->rb_right;
 +		else {
 +			if (event->type == EVTRACK_EVENT_HEAP_READ) {
-+				old = (__u64) atomic64_read(&data->r_timestamp);
-+				if (ts_old > old || old == 0) {
-+					smp_mb__before_atomic();
-+					tmp = (__u64) atomic64_cmpxchg(&data->r_timestamp, old, atomic64_read(&timestamp));
-+					smp_mb__after_atomic();
-+					if (tmp == old) {
-+						event->alloc_ptr = alloc_ptr;
-+						spin_unlock(&root_lock);
-+						return true;
-+					} else {
-+						event->alloc_ptr = alloc_ptr;
-+						spin_unlock(&root_lock);
-+						return false;
-+					}
-+				} else {
-+					event->alloc_ptr = alloc_ptr;
-+					spin_unlock(&root_lock);
-+					return false;
-+				}
++				// old = (__u64) atomic64_read(&data->r_timestamp);
++				// if(ts_old < old && old - ts_old >= MAX_OLD_TIME){
++				// 	if(atomic_read(&sw) == (int)ptr){
++				// 		// printk(KERN_INFO "[PID: %d] is_known_allocation: ts_old: %ld, old: %ld, addr: %p, size :%d\n", current->pid, ts_old, old, (void*)alloc_ptr, alloc_size);
++				// 	}
++				// 	spin_unlock(&root_lock);
++				// 	return false;
++				// }
++				// atomic64_cmpxchg(&data->r_timestamp, old, atomic64_read(&timestamp));
++				event->alloc_ptr = alloc_ptr;
++				spin_unlock(&root_lock);
++				return true;
++				// if (ts_old > old || old == 0) {
++				// 	smp_mb__before_atomic();
++				// 	tmp = (__u64) atomic64_cmpxchg(&data->r_timestamp, old, atomic64_read(&timestamp));
++				// 	smp_mb__after_atomic();
++				// 	if (tmp == old) {
++				// 		event->alloc_ptr = alloc_ptr;
++				// 		spin_unlock(&root_lock);
++				// 		return true;
++				// 	} else {
++				// 		// event->alloc_ptr = alloc_ptr;
++				// 		if(atomic_read(&sw) == (int)ptr){
++				// 			printk(KERN_INFO "[PID: %d] is_known_allocation: tmp != old: addr: %p, size :%d\n", current->pid, (void*)alloc_ptr, alloc_size);
++				// 		}
++				// 		spin_unlock(&root_lock);
++				// 		return false;
++				// 	}
++				// } else {
++				// 	// event->alloc_ptr = alloc_ptr;
++				// 	if(atomic_read(&sw) == (int)ptr){
++				// 		printk(KERN_INFO "[PID: %d] is_known_allocation: ts_old: %ld, old: %ld, addr: %p, size :%d\n", current->pid, ts_old, old, (void*)alloc_ptr, alloc_size);
++				// 	}
++				// 	spin_unlock(&root_lock);
++				// 	return false;
++				// }
 +				/*
 +				if (ts_old > data->r_timestamp || data->r_timestamp == 0) {
 +					// this time stamp may not be exactly the one the event will have later on
@@ -433,24 +451,32 @@ index 000000000000..8c6adfb4d26c
 +			}
 +			if (event->type == EVTRACK_EVENT_HEAP_WRITE) {
 +				old = (__u64) atomic64_read(&data->w_timestamp);
-+				if (ts_old > old || old == 0) {
-+					smp_mb__before_atomic();
-+					tmp = (__u64) atomic64_cmpxchg(&data->w_timestamp, old, atomic64_read(&timestamp));
-+					smp_mb__after_atomic();
-+					if (tmp == old) {
-+						event->alloc_ptr = alloc_ptr;
-+						spin_unlock(&root_lock);
-+						return true;
-+					} else {
-+						event->alloc_ptr = alloc_ptr;
-+						spin_unlock(&root_lock);
-+						return false;
-+					}
-+				} else {
-+					event->alloc_ptr = alloc_ptr;
++				if(ts_old < old && old - ts_old >= MAX_OLD_TIME){
 +					spin_unlock(&root_lock);
 +					return false;
 +				}
++				atomic64_cmpxchg(&data->w_timestamp, old, atomic64_read(&timestamp));
++				event->alloc_ptr = alloc_ptr;
++				spin_unlock(&root_lock);
++				return true;
++				// if (ts_old > old || old == 0) {
++				// 	smp_mb__before_atomic();
++				// 	tmp = (__u64) atomic64_cmpxchg(&data->w_timestamp, old, atomic64_read(&timestamp));
++				// 	smp_mb__after_atomic();
++				// 	if (tmp == old) {
++				// 		event->alloc_ptr = alloc_ptr;
++				// 		spin_unlock(&root_lock);
++				// 		return true;
++				// 	} else {
++				// 		// event->alloc_ptr = alloc_ptr;
++				// 		spin_unlock(&root_lock);
++				// 		return false;
++				// 	}
++				// } else {
++				// 	// event->alloc_ptr = alloc_ptr;
++				// 	spin_unlock(&root_lock);
++				// 	return false;
++				// }
 +				/*
 +				if (ts_old > data->w_timestamp || data->w_timestamp == 0) {
 +					data->r_timestamp = atomic64_read(&timestamp);
@@ -465,7 +491,7 @@ index 000000000000..8c6adfb4d26c
 +			return true;
 +		}
 +	}
-+	event->alloc_ptr = alloc_ptr;
++	// event->alloc_ptr = alloc_ptr;
 +	spin_unlock(&root_lock);
 +	return false;
 +}
@@ -499,7 +525,9 @@ index 000000000000..8c6adfb4d26c
 +			if (data->size > this->size)
 +				this->size = data->size;
 +			kfree(data);
++			// printk(KERN_INFO "[PID: %d] record_event: alloc: addr: %p, size :%d, data_size: %d\n", current->pid, (void*)this->ptr, this->size, data->size);
 +			spin_unlock(&root_lock);
++			
 +			return;
 +		}
 +	}
@@ -507,7 +535,9 @@ index 000000000000..8c6adfb4d26c
 +	/*Add new node and rebalance tree. */
 +	rb_link_node(&data->node, parent, new);
 +	rb_insert_color(&data->node, &alloc_root);
++	// printk(KERN_INFO "[PID: %d] record_event: alloc: addr: %p, size :%d, data_size: %d\n", current->pid, (void*)rb_entry(&data->node, struct ev_rbtree_node, node)->ptr, rb_entry(&data->node, struct ev_rbtree_node, node)->size, data->size);
 +	spin_unlock(&root_lock);
++	
 +}
 +
 +/*
@@ -607,18 +637,28 @@ index 000000000000..8c6adfb4d26c
 +
 +		// Filter out a READ/WRITE event if the allocation hasn't been seen before
 +		event->ptr = ptr;
++		event->size = size;
 +		event->instr_id = 0;
 +		event->type = event_type;
 +		if (event_type == EVTRACK_EVENT_HEAP_READ
 +				|| event_type == EVTRACK_EVENT_HEAP_WRITE
 +				|| event_type == EVTRACK_EVENT_HEAP_DEALLOCATION) {
-+			if (!is_known_allocation(event,t->evtrack->timestamp))
++			if (!is_known_allocation(event,t->evtrack->timestamp)){
++				// if(atomic_read(&sw) == (int)ptr){
++				// 	printk(KERN_INFO "[PID: %d] record_event: unkown: addr: %p, size :%d, type: %d, alloc: %p\n", current->pid, (void*)ptr, size, event_type, (void*)event->alloc_ptr);
++				// }
 +				goto out;
++			}
++				
 +		} else {
 +			// insert event into rb tree
 +			save_allocation(event);
 +			event->obj_id = 0;				// EVTRACK_EVENT_HEAP_ALLOCATION
 +		}
++		// if(atomic_read(&sw) == (int)ptr){
++		// 	printk(KERN_INFO "[PID: %d] record_event: addr: %p, size :%d, type: %d, alloc: %p\n", current->pid, (void*)ptr, size, event_type, (void*)event->alloc_ptr);
++		// }
++		
 +
 +		// Filter out an event if generated by an IRQ caller
 +		nr_filtered_trace = save_stack_trace(event);
@@ -626,7 +666,7 @@ index 000000000000..8c6adfb4d26c
 +			goto out;
 +		evcnt += 1;
 +		event->event_id = nr_events;
-+		event->size = size;
++		// event->size = size;
 +		//event->type = event_type;
 +		// event->timestamp = ktime_get_ns();
 +		event->timestamp = (__u64) atomic64_inc_return(&timestamp) - 1;
@@ -1198,20 +1238,199 @@ index c3f5ba7a294a..f07224e4601e 100644
  	if (likely(!memory_is_poisoned(addr, size)))
  		return true;
  
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index c53f14b94356..972a04ea01c9 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -473,8 +473,11 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 
+ 	err = xt_check_entry_offsets(e, e->elems, e->target_offset,
+ 				     e->next_offset);
+-	if (err)
++	if (err){
++		// printk(KERN_INFO "check_entry_size_and_hooks: xt_check_entry_offsets return err: %d\n", err);
+ 		return err;
++	}
++		
+ 
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_ARP_NUMHOOKS; h++) {
+@@ -483,8 +486,11 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 		if ((unsigned char *)e - base == hook_entries[h])
+ 			newinfo->hook_entry[h] = hook_entries[h];
+ 		if ((unsigned char *)e - base == underflows[h]) {
+-			if (!check_underflow(e))
++			if (!check_underflow(e)){
++				// printk(KERN_INFO "check_entry_size_and_hooks: check_underflow false, h: %d\n", h);
+ 				return -EINVAL;
++			}
++				
+ 
+ 			newinfo->underflow[h] = underflows[h];
+ 		}
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 13acb687c19a..14f01a4b4797 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -110,7 +110,7 @@ get_entry(const void *base, unsigned int offset)
+ static inline bool unconditional(const struct ipt_entry *e)
+ {
+ 	static const struct ipt_ip uncond;
+-
++	// printk(KERN_INFO "unconditional: e->target_offset: %d, sizeof(struct ipt_entry): %d\n", e->target_offset, sizeof(struct ipt_entry));
+ 	return e->target_offset == sizeof(struct ipt_entry) &&
+ 	       memcmp(&e->ip, &uncond, sizeof(uncond)) == 0;
+ }
+@@ -479,6 +479,7 @@ find_check_match(struct xt_entry_match *m, struct xt_mtchk_param *par)
+ 	struct xt_match *match;
+ 	int ret;
+ 
++	// printk(KERN_INFO "find_check_match: name: %s\n", m->u.user.name);
+ 	match = xt_request_find_match(NFPROTO_IPV4, m->u.user.name,
+ 				      m->u.user.revision);
+ 	if (IS_ERR(match))
+@@ -577,8 +578,11 @@ static bool check_underflow(const struct ipt_entry *e)
+ 	if (!unconditional(e))
+ 		return false;
+ 	t = ipt_get_target_c(e);
+-	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) != 0)
++	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) != 0){
++		// printk(KERN_INFO "check_underflow: t->u.user.name: %s, XT_STANDARD_TARGET: %s\n", t->u.user.name, XT_STANDARD_TARGET);
+ 		return false;
++	}
++		
+ 	verdict = ((struct xt_standard_target *)t)->verdict;
+ 	verdict = -verdict - 1;
+ 	return verdict == NF_DROP || verdict == NF_ACCEPT;
+@@ -596,32 +600,50 @@ check_entry_size_and_hooks(struct ipt_entry *e,
+ 	unsigned int h;
+ 	int err;
+ 
++	// printk(KERN_INFO "[PID: %d] check_entry_size_and_hooks: begin: e: %d, sizeof(struct ipt_entry): %d, limit: %d, e->next_offset: %d, e->target_offset: %d\n", current->pid, (unsigned long)e, sizeof(struct ipt_entry), limit, e->next_offset, e->target_offset);
++
+ 	if ((unsigned long)e % __alignof__(struct ipt_entry) != 0 ||
+ 	    (unsigned char *)e + sizeof(struct ipt_entry) >= limit ||
+-	    (unsigned char *)e + e->next_offset > limit)
+-		return -EINVAL;
++	    (unsigned char *)e + e->next_offset > limit){
++			// printk(KERN_INFO "[PID: %d] check_entry_size_and_hooks: e: %d, (unsigned char *)e + sizeof(struct ipt_entry): %d, limit: %d, (unsigned char *)e + e->next_offset: %d\n", current->pid, (unsigned long)e, (unsigned char *)e + sizeof(struct ipt_entry), limit, (unsigned char *)e + e->next_offset);
++			return -EINVAL;
++		}
++		
+ 
+ 	if (e->next_offset
+-	    < sizeof(struct ipt_entry) + sizeof(struct xt_entry_target))
+-		return -EINVAL;
++	    < sizeof(struct ipt_entry) + sizeof(struct xt_entry_target)){
++			// printk(KERN_INFO "[PID: %d] check_entry_size_and_hooks: e->next_offset: %d, sizeof(struct ipt_entry) + sizeof(struct xt_entry_target): %d\n", current->pid, e->next_offset, sizeof(struct ipt_entry) + sizeof(struct xt_entry_target));
++			return -EINVAL;
++		}
++		
+ 
+-	if (!ip_checkentry(&e->ip))
++	if (!ip_checkentry(&e->ip)){
++		// printk(KERN_INFO "[PID: %d] check_entry_size_and_hooks: ip_checkentry false\n", current->pid);
+ 		return -EINVAL;
++	}
++		
+ 
+ 	err = xt_check_entry_offsets(e, e->elems, e->target_offset,
+ 				     e->next_offset);
+-	if (err)
++	if (err){
++		// printk(KERN_INFO "[PID: %d] check_entry_size_and_hooks: xt_check_entry_offsets return err: %d\n", current->pid, err);
+ 		return err;
++	}
++		
+ 
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
+ 		if (!(valid_hooks & (1 << h)))
+ 			continue;
++		// printk(KERN_INFO "check_entry_size_and_hooks: check_underflow false, h: %d, underflows[h]: %d, hook_entries[h]: %d\n", h, underflows[h], hook_entries[h]);
+ 		if ((unsigned char *)e - base == hook_entries[h])
+ 			newinfo->hook_entry[h] = hook_entries[h];
+ 		if ((unsigned char *)e - base == underflows[h]) {
+-			if (!check_underflow(e))
++			if (!check_underflow(e)){
++				// printk(KERN_INFO "[PID: %d] check_entry_size_and_hooks: check_underflow: h: %d\n", current->pid, h);
+ 				return -EINVAL;
++			}
++				
+ 
+ 			newinfo->underflow[h] = underflows[h];
+ 		}
+@@ -682,13 +704,16 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+ 	i = 0;
+ 	/* Walk through entries, checking offsets. */
+ 	xt_entry_foreach(iter, entry0, newinfo->size) {
++		// printk(KERN_INFO "[PID: %d] translate_table: i: %d\n", current->pid, i);
+ 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
+ 						 entry0 + repl->size,
+ 						 repl->hook_entry,
+ 						 repl->underflow,
+ 						 repl->valid_hooks);
+-		if (ret != 0)
++		if (ret != 0){
+ 			goto out_free;
++		}
++			
+ 		if (i < repl->num_entries)
+ 			offsets[i] = (void *)iter - entry0;
+ 		++i;
+@@ -698,8 +723,11 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+ 	}
+ 
+ 	ret = -EINVAL;
+-	if (i != repl->num_entries)
++	if (i != repl->num_entries){
++		// printk(KERN_INFO "[PID: %d] translate_table: i: %d, num_entries: %d\n", current->pid, i, repl->num_entries);
+ 		goto out_free;
++	}
++		
+ 
+ 	ret = xt_check_table_hooks(newinfo, repl->valid_hooks);
+ 	if (ret)
+@@ -1109,6 +1137,7 @@ do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 	struct xt_table_info *newinfo;
+ 	void *loc_cpu_entry;
+ 	struct ipt_entry *iter;
++	// char *i;
+ 
+ 	if (copy_from_sockptr(&tmp, arg, sizeof(tmp)) != 0)
+ 		return -EFAULT;
+@@ -1126,11 +1155,17 @@ do_replace(struct net *net, sockptr_t arg, unsigned int len)
+ 		return -ENOMEM;
+ 
+ 	loc_cpu_entry = newinfo->entries;
++	
+ 	if (copy_from_sockptr_offset(loc_cpu_entry, arg, sizeof(tmp),
+ 			tmp.size) != 0) {
+ 		ret = -EFAULT;
+ 		goto free_newinfo;
+ 	}
++	// printk(KERN_INFO "do_replace: entry: \n");
++	// for(i = (char*)loc_cpu_entry; i < (char*)loc_cpu_entry + tmp.size; i++){
++	// 	printk(KERN_INFO "%d: %x ", i - (char*)loc_cpu_entry,  *i);
++	// }
++	// printk(KERN_INFO "\n");
+ 
+ 	ret = translate_table(net, newinfo, loc_cpu_entry, &tmp);
+ 	if (ret != 0)
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index de2cf3943b91..9543928e021c 100644
+index de2cf3943b91..fe27668f38bc 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
 @@ -1076,6 +1076,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
  
  	/* You lied! */
  	if (valid_hooks != t->valid_hooks) {
-+		printk(KERN_INFO "__do_replace: valid_hooks: %d, t->valid_hooks: %d\n", valid_hooks, t->valid_hooks);
++		// printk(KERN_INFO "__do_replace: valid_hooks: %d, t->valid_hooks: %d\n", valid_hooks, t->valid_hooks);
  		ret = -EINVAL;
  		goto put_module;
  	}
 diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 63d032191e62..f59485beb0f8 100644
+index 63d032191e62..2ce3bda34d8e 100644
 --- a/net/netfilter/core.c
 +++ b/net/netfilter/core.c
 @@ -25,7 +25,7 @@
@@ -1223,15 +1442,42 @@ index 63d032191e62..f59485beb0f8 100644
  #include "nf_internals.h"
  
  const struct nf_ipv6_ops __rcu *nf_ipv6_ops __read_mostly;
-@@ -82,6 +82,7 @@ static void nf_hook_entries_free(struct nf_hook_entries *e)
+@@ -72,6 +72,8 @@ static void __nf_hook_entries_free(struct rcu_head *h)
+ 	kvfree(head->allocation);
+ }
+ 
++// atomic_t sw = ATOMIC_INIT(0);
++
+ static void nf_hook_entries_free(struct nf_hook_entries *e)
+ {
+ 	struct nf_hook_entries_rcu_head *head;
+@@ -81,7 +83,15 @@ static void nf_hook_entries_free(struct nf_hook_entries *e)
+ 	if (!e)
  		return;
  
++
++	// printk(KERN_INFO "[PID: %d] nf_hook_entries_free: e ptr: %p", current->pid,(void*)e);
++	// atomic_set(&sw, (int)e);
++	// printk(KERN_INFO "------------>\n");
  	num = e->num_hook_entries;
-+	printk(KERN_INFO "[PID: %d] nf_hook_entries_free: e ptr: %p", current->pid,(void*)e);
++	// printk(KERN_INFO "<------------\n");
++	// atomic_set(&sw, 0);
++
++	
  	ops = nf_hook_entries_get_hook_ops(e);
  	head = (void *)&ops[num];
  	head->allocation = e;
-@@ -398,20 +399,24 @@ static int __nf_register_net_hook(struct net *net, int pf,
+@@ -170,7 +180,9 @@ static void hooks_validate(const struct nf_hook_entries *hooks)
+ 
+ 	orig_ops = nf_hook_entries_get_hook_ops(hooks);
+ 
++
+ 	for (i = 0; i < hooks->num_hook_entries; i++) {
++		// printk(KERN_INFO "[PID: %d] hooks_validate: hooks: %p\n",current->pid, (void*)hooks);
+ 		if (orig_ops[i] == &dummy_ops)
+ 			continue;
+ 
+@@ -398,22 +410,28 @@ static int __nf_register_net_hook(struct net *net, int pf,
  	}
  
  	pp = nf_hook_entry_head(net, pf, reg->hooknum, reg->dev);
@@ -1256,15 +1502,19 @@ index 63d032191e62..f59485beb0f8 100644
 +	if (IS_ERR(new_hooks)){
  		return PTR_ERR(new_hooks);
 +	}
-+	printk(KERN_INFO "[PID: %d] __nf_register_net_hook: new_hooks: %p\n", current->pid, (void *)new_hooks);
++	// printk(KERN_INFO "[PID: %d] __nf_register_net_hook: new_hooks: %p\n", current->pid, (void *)new_hooks);
  
++	// atomic_set(&sw, (int)new_hooks);
  	hooks_validate(new_hooks);
++	// atomic_set(&sw, (int)new_hooks);
  #ifdef CONFIG_NETFILTER_INGRESS
-@@ -421,6 +426,7 @@ static int __nf_register_net_hook(struct net *net, int pf,
+ 	if (nf_ingress_hook(reg, pf))
+ 		net_inc_ingress_queue();
+@@ -421,6 +439,7 @@ static int __nf_register_net_hook(struct net *net, int pf,
  	nf_static_key_inc(reg, pf);
  
  	BUG_ON(p == new_hooks);
-+	printk(KERN_INFO "[PID: %d] __nf_register_net_hook: free p: %p\n", current->pid, (void *)p);
++	// printk(KERN_INFO "[PID: %d] __nf_register_net_hook: free p: %p\n", current->pid, (void *)p);
  	nf_hook_entries_free(p);
  	return 0;
  }
@@ -1295,3 +1545,93 @@ index 081437dd75b7..e8ba8dde6157 100644
  }
  
  void nft_register_chain_type(const struct nft_chain_type *ctype)
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 84e58ee501a4..422367e408f3 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -190,7 +190,9 @@ struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
+ 
+ 	mutex_lock(&xt[af].mutex);
+ 	list_for_each_entry(m, &xt[af].match, list) {
++		// printk(KERN_INFO "xt_find_match: m->name: %s\n", m->name);
+ 		if (strcmp(m->name, name) == 0) {
++			// printk(KERN_INFO "xt_find_match: m->revision: %d\n", m->revision);
+ 			if (m->revision == revision) {
+ 				if (try_module_get(m->me)) {
+ 					mutex_unlock(&xt[af].mutex);
+@@ -545,8 +547,11 @@ static int xt_check_entry_match(const char *match, const char *target,
+ 		if (length < (int)sizeof(struct xt_entry_match))
+ 			return -EINVAL;
+ 
+-		if (pos->u.match_size < sizeof(struct xt_entry_match))
++		if (pos->u.match_size < sizeof(struct xt_entry_match)){
++			// printk(KERN_INFO "[PID: %d] xt_check_entry_match: pos->u.match_size: %d, sizeof(struct xt_entry_match): %d\n", current->pid, pos->u.match_size, sizeof(struct xt_entry_match));
+ 			return -EINVAL;
++		}
++			
+ 
+ 		if (pos->u.match_size > length)
+ 			return -EINVAL;
+@@ -912,17 +917,22 @@ int xt_check_entry_offsets(const void *base,
+ 		return -EINVAL;
+ 
+ 	t = (void *)(e + target_offset);
+-	if (t->u.target_size < sizeof(*t))
++	if (t->u.target_size < sizeof(*t)){
++		printk(KERN_INFO "xt_check_entry_offsets: target_offset: %d, sizeof(*t): %d, t->u.target_size: %d\n", target_offset, sizeof(*t), t->u.target_size);
+ 		return -EINVAL;
++	}
++		
+ 
+ 	if (target_offset + t->u.target_size > next_offset)
+ 		return -EINVAL;
+ 
+ 	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0) {
+ 		const struct xt_standard_target *st = (const void *)t;
+-
+-		if (XT_ALIGN(target_offset + sizeof(*st)) != next_offset)
++		// printk(KERN_INFO "[PID: %d] target_offset: %d, sizeof(*st): %d, next_offset: %d, XT_ALIGN: %d\n", current->pid, target_offset, sizeof(*st), next_offset, XT_ALIGN(target_offset + sizeof(*st)));
++		if (XT_ALIGN(target_offset + sizeof(*st)) != next_offset){
+ 			return -EINVAL;
++		}
++			
+ 
+ 		if (!verdict_ok(st->verdict))
+ 			return -EINVAL;
+@@ -1393,6 +1403,7 @@ xt_replace_table(struct xt_table *table,
+ 
+ 	/* Check inside lock: is the old number correct? */
+ 	if (num_counters != private->number) {
++		printk(KERN_INFO "xt_replace_table: num_counters: %d, private->number: %d\n", num_counters, private->number);
+ 		pr_debug("num_counters != table->private->number (%u/%u)\n",
+ 			 num_counters, private->number);
+ 		local_bh_enable();
+diff --git a/syzkaller/asm/a.out.h b/syzkaller/asm/a.out.h
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/syzkaller/asm/mce.h b/syzkaller/asm/mce.h
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/syzkaller/asm/msr.h b/syzkaller/asm/msr.h
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/syzkaller/asm/prctl.h b/syzkaller/asm/prctl.h
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/syzkaller/stdarg.h b/syzkaller/stdarg.h
+new file mode 100644
+index 000000000000..bedd2a4be7f2
+--- /dev/null
++++ b/syzkaller/stdarg.h
+@@ -0,0 +1,8 @@
++
++#pragma once
++#define va_list __builtin_va_list
++#define va_start __builtin_va_start
++#define va_end __builtin_va_end
++#define va_arg __builtin_va_arg
++#define va_copy __builtin_va_copy
++#define __va_copy __builtin_va_copy
+diff --git a/syzkaller/uapi/asm/msr.h b/syzkaller/uapi/asm/msr.h
+new file mode 100644
+index 000000000000..e69de29bb2d1

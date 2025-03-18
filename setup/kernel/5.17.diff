@@ -831,6 +831,7 @@ index 000000000000..3ab87b80d607
 +
 +		// Filter out a READ/WRITE event if the allocation hasn't been seen before
 +		event->ptr = ptr;
++		event->size = size;
 +		event->instr_id = 0;
 +		event->type = event_type;
 +		if (event_type == EVTRACK_EVENT_HEAP_READ
@@ -858,7 +859,6 @@ index 000000000000..3ab87b80d607
 +			goto out;
 +		evcnt += 1;
 +		event->event_id = nr_events;
-+		event->size = size;
 +		//event->type = event_type;
 +		// event->timestamp = ktime_get_ns();
 +		event->timestamp = (__u64) atomic64_inc_return(&timestamp) - 1;

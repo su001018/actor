@@ -52,7 +52,7 @@ static inline __u64 kcov_remote_handle(__u64 subsys, __u64 inst)
 #define EVTRACK_ENABLE        _IO('c', 100)
 #define EVTRACK_DISABLE       _IO('c', 101)
 #define EVTRACK_STOP          _IO('c', 103)
-#define NR_EVENTS              1024
+#define NR_EVENTS              4096
 #define EVTRACK_TRACK_ALL      0
 
 /* Maximum number of stack trace entries in the context stored */

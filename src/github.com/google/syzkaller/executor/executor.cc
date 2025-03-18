@@ -1024,10 +1024,10 @@ void execute_one()
 			// will anyway try to make it non-threaded.
 		} else if (flag_threaded) {
 			// Wait for call completion.
-			uint64 timeout_ms = syscall_timeout_ms + call->attrs.timeout * slowdown_scale;
+			uint64 timeout_ms = (syscall_timeout_ms + call->attrs.timeout * slowdown_scale) * 2;
 			// This is because of printing pre/post call. Ideally we print everything in the main thread
 			// and then remove this (would also avoid intermixed output).
-			if (timeout_ms < 1000)
+			if (flag_debug && timeout_ms < 1000)
 				timeout_ms = 1000;
 			if (event_timedwait(&th->done, timeout_ms))
 				handle_completion(th);

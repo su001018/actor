@@ -907,6 +907,7 @@ func (mgr *Manager) loadUafProg(data []byte, minimized, smashed bool) bool {
 func (mgr *Manager) loadProg(data []byte, minimized, smashed bool) bool {
 	bad, disabled := checkProgram(mgr.target, mgr.targetEnabledSyscalls, data)
 	if bad {
+		log.Logf(0, "bad program: %s", data)
 		return false
 	}
 	if disabled {
@@ -957,6 +958,7 @@ func programLeftover(target *prog.Target, enabled map[*prog.Syscall]bool, data [
 func checkProgram(target *prog.Target, enabled map[*prog.Syscall]bool, data []byte) (bad, disabled bool) {
 	p, err := target.Deserialize(data, prog.NonStrict)
 	if err != nil {
+		log.Logf(0, "checkProgram: error: %v", err)
 		return true, true
 	}
 	if len(p.Calls) > prog.MaxCalls {
@@ -1674,7 +1676,7 @@ func (mgr *Manager) newUafCandInput(inp rpctype.UafCandInput) bool {
 	sig := hash.String(inp.Prog, uafInfo.Serialize())
 
 	if *flagRace {
-		sig = hash.String(uafInfo.Serialize())
+		sig = hash.String([]byte(fmt.Sprintf("%x:%x:%d", uafInfo.FreeAddr, uafInfo.UseAddr, uafInfo.Sched)))
 	}
 
 	if _, ok := mgr.uafCandHash[sig]; ok {
